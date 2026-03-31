@@ -123,7 +123,7 @@
             const listContainer = document.getElementById('schedule-list');
             listContainer.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fas fa-spinner fa-spin mr-2 text-brand text-2xl"></i><br>日程を読み込んでいます...</div>';
 
-            if (LIFF_ID && LIFF_ID !== "2009652448-yEc3eycW") {
+            if (LIFF_ID && LIFF_ID !== "ここにあなたのLIFF_IDを貼り付け") {
                 logDebug("2. LIFF通信開始...");
                 
                 liff.init({ liffId: LIFF_ID })
@@ -151,7 +151,7 @@
         function loadSchedulesFromGAS(listContainer) {
             logDebug("5. GASに日程データを要求中...");
             
-            if (GAS_URL === "ここにGASのURLを貼り付け" || GAS_URL === "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec") {
+            if (GAS_URL === "ここにGASのURLを貼り付け" || GAS_URL === "") {
                 logDebug("【エラー】GAS_URLが設定されていません。");
                 listContainer.innerHTML = '<div class="text-center py-4 text-red-500 font-bold">システム設定エラー：GASのURLがありません。</div>';
                 return;
