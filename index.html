@@ -23,15 +23,13 @@
             <h1 class="text-lg font-bold">おぶせ 春の自習室</h1>
         </header>
 
+        <!-- 画面１：入力画面 -->
         <div id="view-input" class="p-4 space-y-6 block">
-            
-            <!-- 無事に動いたら、この診断ログの <div>〜</div> をまるごと消しても大丈夫です -->
-            <div id="debug-log" class="bg-gray-900 text-green-400 p-3 text-xs font-mono rounded-lg mb-4 break-words" style="white-space: pre-wrap;">[システム診断開始]</div>
-
             <section>
                 <h2 class="font-bold text-gray-700 mb-3">日程を選択</h2>
                 <div class="space-y-3" id="schedule-list">
-                    </div>
+                    <!-- ここに日程が表示されます -->
+                </div>
             </section>
 
             <hr class="border-gray-100">
@@ -68,6 +66,7 @@
             </div>
         </div>
 
+        <!-- 画面２：確認画面 -->
         <div id="view-confirm" class="p-4 hidden pb-24">
             <h2 class="text-xl font-bold text-center text-gray-800 mb-6 mt-4">予約内容の確認</h2>
             <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-4">
@@ -90,6 +89,7 @@
             </div>
         </div>
 
+        <!-- 画面３：完了画面 -->
         <div id="view-success" class="p-8 hidden flex flex-col items-center justify-center min-h-[70vh]">
             <div class="w-20 h-20 bg-brand text-white rounded-full flex items-center justify-center mb-6 shadow-lg"><i class="fas fa-check text-4xl"></i></div>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">予約完了</h2>
@@ -99,77 +99,46 @@
     </div>
 
     <script>
-        // ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-        // 【重要①】ここに、取得した「LIFF ID」を貼り付けてください！
-        // ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
         const LIFF_ID = "2009652448-yEc3eycW";
-
-        // ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-        // 【重要②】ここに、新しく発行する「GASのウェブアプリURL」を貼り付けてください！
-        // ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
 
         let schedules = [];
         let lineUserId = "";
 
-        // 診断内容を画面の黒い枠に書き出すプログラム
-        function logDebug(msg) {
-            const logger = document.getElementById('debug-log');
-            if (logger) { logger.innerText += '\n' + msg; }
-        }
-
         window.onload = function() {
-            logDebug("1. 画面の表示OK (GitHub Pages)");
             const listContainer = document.getElementById('schedule-list');
             listContainer.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fas fa-spinner fa-spin mr-2 text-brand text-2xl"></i><br>日程を読み込んでいます...</div>';
 
-            if (LIFF_ID && LIFF_ID !== "ここにあなたのLIFF_IDを貼り付け") {
-                logDebug("2. LIFF通信開始...");
-                
+            if (LIFF_ID) {
                 liff.init({ liffId: LIFF_ID })
                     .then(() => {
-                        logDebug("3. LIFF接続成功");
                         if (liff.isLoggedIn()) {
                             lineUserId = liff.getContext().userId;
-                            logDebug("4. ID取得成功: " + (lineUserId ? "OK" : "なし"));
                         } else {
-                            logDebug("4. 未ログイン状態（LINE外）");
+                            liff.login();
                         }
                         loadSchedulesFromGAS(listContainer);
                     })
                     .catch((err) => {
-                        logDebug("【エラー発生】LIFF初期化: " + err.message);
                         loadSchedulesFromGAS(listContainer);
                     });
             } else {
-                logDebug("2. LIFF IDが未設定です");
                 loadSchedulesFromGAS(listContainer);
             }
         };
 
-        // ★書き換えポイント：GASへの通信を fetch（インターネットの標準機能）に変更しました
         function loadSchedulesFromGAS(listContainer) {
-            logDebug("5. GASに日程データを要求中...");
-            
-            if (GAS_URL === "ここにGASのURLを貼り付け" || GAS_URL === "") {
-                logDebug("【エラー】GAS_URLが設定されていません。");
-                listContainer.innerHTML = '<div class="text-center py-4 text-red-500 font-bold">システム設定エラー：GASのURLがありません。</div>';
-                return;
-            }
-
             fetch(GAS_URL + "?action=getSchedules")
                 .then(response => {
-                    if (!response.ok) throw new Error('ネットワークエラー');
+                    if (!response.ok) throw new Error('Network error');
                     return response.json();
                 })
                 .then(data => {
-                    logDebug("6. GASからデータ到着！(件数:" + data.length + ")");
                     schedules = data;
                     renderSchedules(listContainer);
                 })
                 .catch(error => {
-                    logDebug("【エラー発生】GAS通信失敗: " + error.message);
-                    listContainer.innerHTML = '<div class="text-center py-4 text-red-500 font-bold">通信エラーが発生しました。</div>';
+                    listContainer.innerHTML = '<div class="text-center py-4 text-red-500 font-bold">通信エラーが発生しました。<br>時間をおいて開き直してください。</div>';
                 });
         }
 
@@ -229,7 +198,6 @@
             document.getElementById('view-input').classList.remove('hidden');
         }
 
-        // ★書き換えポイント：GASへの送信も fetch に変更しました
         function submitReservation() {
             const selectedSchedule = document.querySelector('input[name="schedule_id"]:checked');
             const scheduleData = schedules.find(s => s.id === selectedSchedule.value);
@@ -258,15 +226,10 @@
 
             fetch(GAS_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain' // GASの制限を回避するためのおまじない
-                },
+                headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify(requestBody)
             })
-            .then(response => {
-                if (!response.ok) throw new Error('ネットワークエラー');
-                return response.json();
-            })
+            .then(response => response.json())
             .then(result => {
                 if(result.status === "success") {
                     document.getElementById('view-confirm').classList.add('hidden');
