@@ -81,7 +81,8 @@
                 <div><p class="text-sm text-gray-500 mb-1">参加者名</p><p class="font-bold text-gray-800" id="confirm-participant">--</p></div>
                 <div><p class="text-sm text-gray-500 mb-1">保護者名</p><p class="font-bold text-gray-800" id="confirm-parent">--</p></div>
                 <div><p class="text-sm text-gray-500 mb-1">電話番号</p><p class="font-bold text-gray-800" id="confirm-phone">--</p></div>
-                <div><p class="text-sm text-gray-500 mb-1">利用プラン</p><p class="font-bold text-gray-800" id="confirm-plan">通常利用</p></div>
+                <!-- ★「通常利用」を「2時間利用」に変更しました -->
+                <div><p class="text-sm text-gray-500 mb-1">利用プラン</p><p class="font-bold text-gray-800" id="confirm-plan">2時間利用</p></div>
             </div>
 
             <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 p-4 flex space-x-3">
@@ -187,7 +188,9 @@
             document.getElementById('confirm-participant').innerText = pName;
             document.getElementById('confirm-parent').innerText = parName;
             document.getElementById('confirm-phone').innerText = phone;
-            document.getElementById('confirm-plan').innerText = isOneHour ? "1時間のみ利用" : "通常利用";
+            
+            // ★「通常利用」を「2時間利用」に変更しました
+            document.getElementById('confirm-plan').innerText = isOneHour ? "1時間のみ利用" : "2時間利用";
 
             document.getElementById('view-input').classList.add('hidden');
             document.getElementById('view-confirm').classList.remove('hidden');
@@ -212,7 +215,8 @@
                 participantName: document.getElementById('participant-last').value + " " + document.getElementById('participant-first').value,
                 parentName: document.getElementById('parent-last').value + " " + document.getElementById('parent-first').value,
                 phone: document.getElementById('phone').value,
-                plan: isOneHour ? "1時間のみ" : "通常（2時間）",
+                // ★スプレッドシートに記録される文字も「通常」から「2時間利用」に変更しました
+                plan: isOneHour ? "1時間のみ" : "2時間利用",
                 lineUserId: lineUserId
             };
 
