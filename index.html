@@ -19,18 +19,15 @@
 
     <div class="max-w-md mx-auto bg-white min-h-screen relative shadow-lg overflow-hidden pb-24">
         
-        <header class="border-b border-gray-200 p-4 flex justify-between items-center bg-white sticky top-0 z-10">
+        <header class="border-b border-gray-200 p-4 flex justify-center items-center bg-white sticky top-0 z-10">
             <h1 class="text-lg font-bold">おぶせ 春の自習室</h1>
-            <button class="text-gray-400 hover:text-gray-600" onclick="closeApp()"><i class="fas fa-times text-xl"></i></button>
         </header>
 
-        <!-- 画面１：入力画面 -->
         <div id="view-input" class="p-4 space-y-6 block">
             <section>
                 <h2 class="font-bold text-gray-700 mb-3">日程を選択</h2>
                 <div class="space-y-3" id="schedule-list">
-                    <!-- ここに日程が表示されます -->
-                </div>
+                    </div>
             </section>
 
             <hr class="border-gray-100">
@@ -67,7 +64,6 @@
             </div>
         </div>
 
-        <!-- 画面２：確認画面 -->
         <div id="view-confirm" class="p-4 hidden pb-24">
             <h2 class="text-xl font-bold text-center text-gray-800 mb-6 mt-4">予約内容の確認</h2>
             <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-4">
@@ -90,7 +86,6 @@
             </div>
         </div>
 
-        <!-- 画面３：完了画面 -->
         <div id="view-success" class="p-8 hidden flex flex-col items-center justify-center min-h-[70vh]">
             <div class="w-20 h-20 bg-brand text-white rounded-full flex items-center justify-center mb-6 shadow-lg"><i class="fas fa-check text-4xl"></i></div>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">予約完了</h2>
@@ -98,7 +93,6 @@
             <button onclick="closeApp()" class="w-full bg-gray-200 text-gray-800 font-bold py-3 rounded-lg">画面を閉じる</button>
         </div>
 
-        <!-- 画面４：キャンセル確認画面 -->
         <div id="view-cancel" class="p-8 hidden flex flex-col items-center justify-center min-h-[70vh]">
             <div class="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-6 shadow-lg"><i class="fas fa-exclamation-triangle text-4xl"></i></div>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">予約をキャンセルしますか？</h2>
@@ -109,7 +103,6 @@
             </div>
         </div>
 
-        <!-- 画面５：キャンセル完了画面 -->
         <div id="view-cancel-success" class="p-8 hidden flex flex-col items-center justify-center min-h-[70vh]">
             <div class="w-20 h-20 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center mb-6 shadow-lg"><i class="fas fa-trash-alt text-4xl"></i></div>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">キャンセル完了</h2>
@@ -145,19 +138,16 @@
             }
         };
 
-        // 開かれたURLを見て、予約画面を出すか、キャンセル画面を出すか振り分ける
         function routePage() {
             const urlParams = new URLSearchParams(window.location.search);
             const action = urlParams.get('action');
             const cancelId = urlParams.get('id');
 
             if (action === 'cancel' && cancelId) {
-                // キャンセルの場合
                 cancelReservationId = cancelId;
                 document.getElementById('view-input').classList.add('hidden');
                 document.getElementById('view-cancel').classList.remove('hidden');
             } else {
-                // 通常の予約の場合
                 const listContainer = document.getElementById('schedule-list');
                 listContainer.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fas fa-spinner fa-spin mr-2 text-brand text-2xl"></i><br>日程を読み込んでいます...</div>';
                 loadSchedulesFromGAS(listContainer);
@@ -283,7 +273,6 @@
             });
         }
 
-        // キャンセルを実行する処理
         function submitCancel() {
             const btn = document.getElementById('btn-cancel-submit');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>処理中...';
@@ -316,14 +305,13 @@
             });
         }
 
-        // ★エラーの原因だった余計な処理を消して、シンプルに閉じる機能だけにしました！
         function closeApp() {
             setTimeout(() => {
                 try {
                     if (typeof liff !== 'undefined' && liff.isInClient()) { 
                         liff.closeWindow(); 
                     } else { 
-                        window.close(); // パソコンなどで開いたとき用
+                        window.close();
                         alert("画面右上の「×」ボタンを押して閉じてください。"); 
                     }
                 } catch (e) {
