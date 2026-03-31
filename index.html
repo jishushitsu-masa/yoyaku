@@ -21,6 +21,7 @@
         
         <header class="border-b border-gray-200 p-4 flex justify-between items-center bg-white sticky top-0 z-10">
             <h1 class="text-lg font-bold">おぶせ 春の自習室</h1>
+            <button class="text-gray-400 hover:text-gray-600" onclick="closeApp()"><i class="fas fa-times text-xl"></i></button>
         </header>
 
         <!-- 画面１：入力画面 -->
@@ -247,10 +248,14 @@
         }
 
         function closeApp() {
-            if (typeof liff !== 'undefined' && liff.isInClient()) { 
-                liff.closeWindow(); 
-            } else { 
-                alert("ブラウザのタブを閉じてください"); 
+            try {
+                if (typeof liff !== 'undefined' && liff.isInClient()) { 
+                    liff.closeWindow(); 
+                } else { 
+                    alert("画面右上の「×」ボタンを押して閉じてください。"); 
+                }
+            } catch (e) {
+                alert("画面右上の「×」ボタンを押して閉じてください。"); 
             }
         }
     </script>
