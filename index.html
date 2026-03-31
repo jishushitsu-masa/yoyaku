@@ -316,16 +316,30 @@
             });
         }
 
+        // ★強化版：確実に画面を閉じるプログラム
         function closeApp() {
-            try {
-                if (typeof liff !== 'undefined' && liff.isInClient()) { 
-                    liff.closeWindow(); 
-                } else { 
-                    alert("画面右上の「×」ボタンを押して閉じてください。"); 
-                }
-            } catch (e) {
-                alert("画面右上の「×」ボタンを押して閉じてください。"); 
+            // ボタンが連続で押されるのを防ぐ
+            if(event && event.target) {
+                event.target.innerHTML = '閉じています...';
+                event.target.disabled = true;
             }
+
+            // 少しだけ（0.1秒）待ってから閉じる命令を送る（LINEアプリが落ち着くのを待つため）
+            setTimeout(() => {
+                try {
+                    if (typeof liff !== 'undefined' && liff.isInClient()) { 
+                        liff.closeWindow(); 
+                    } else { 
+                        window.close(); // 外部ブラウザ用
+                        alert("画面右上の「×」ボタンを押して閉じてください。"); 
+                        if(event && event.target) { event.target.innerHTML = '画面を閉じる'; event.target.disabled = false; }
+                    }
+                } catch (e) {
+                    window.close(); // 念のため
+                    alert("画面右上の「×」ボタンを押して閉じてください。"); 
+                    if(event && event.target) { event.target.innerHTML = '画面を閉じる'; event.target.disabled = false; }
+                }
+            }, 100);
         }
     </script>
 </body>
