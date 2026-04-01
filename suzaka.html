@@ -139,7 +139,7 @@
         // ページ読み込み時の処理
         window.onload = function() {
             initForm();
-            if (LIFF_ID && LIFF_ID !== "ここに新しいLIFF IDを貼り付ける") {
+            if (LIFF_ID && LIFF_ID !== "2009652448-3y5lLswa") {
                 liff.init({ liffId: LIFF_ID })
                     .then(() => {
                         if (liff.isLoggedIn()) { lineUserId = liff.getContext().userId; }
