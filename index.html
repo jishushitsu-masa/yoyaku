@@ -6,94 +6,89 @@
     <title>予約 - おぶせ 春の自習室</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { brand: '#4F46E5' } } } }
+        tailwind.config = { theme: { extend: { colors: { brand: '#4F46E5', 'brand-dark': '#4338CA' } } } }
     </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; }
         .accordion-content { transition: max-height 0.3s ease-out; overflow: hidden; max-height: 0; }
         .accordion-open .accordion-content { max-height: 1000px; transition: max-height 0.5s ease-in; }
         .accordion-chevron { transition: transform 0.3s; }
         .accordion-open .accordion-chevron { transform: rotate(180deg); }
     </style>
 </head>
-<body class="pb-10">
+<body class="text-gray-800 pb-10">
 
-    <div class="max-w-md mx-auto bg-white min-h-screen shadow-md">
-        <header class="bg-brand text-white p-6 text-center">
-            <h1 class="text-xl font-bold">おぶせ 春の自習室</h1>
-            <p class="text-sm opacity-90 mt-1">予約フォーム</p>
+    <div class="max-w-md mx-auto bg-white min-h-screen shadow-lg">
+        <header class="bg-gray-800 text-white p-4 text-center">
+            <h1 class="text-lg font-bold">おぶせ 春の自習室 予約</h1>
         </header>
 
-        <div class="p-6">
-            <div id="step-1" class="mb-8">
-                <label class="block text-gray-700 text-sm font-bold mb-2">
-                    <i class="far fa-calendar-check mr-1 text-brand"></i> 希望の日程を選択
+        <div class="p-4 space-y-6">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">
+                    <i class="far fa-calendar-alt mr-1 text-brand"></i> 希望の日程を選択
                 </label>
-                
-                <div id="accordion-container" class="border border-gray-200 rounded-lg overflow-hidden bg-white">
-                    <button id="accordion-trigger" onclick="toggleAccordion()" class="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
-                        <span id="selected-schedule-text" class="text-gray-500 font-medium">日程を表示する</span>
+                <div id="accordion-container" class="border border-gray-300 rounded-lg overflow-hidden">
+                    <button onclick="toggleAccordion()" class="w-full flex items-center justify-between p-4 bg-white hover:bg-gray-50 transition-colors">
+                        <span id="selected-schedule-text" class="text-gray-400">タップして日程を表示</span>
                         <i class="fas fa-chevron-down accordion-chevron text-gray-400"></i>
                     </button>
-
-                    <div id="accordion-body" class="accordion-content border-t border-gray-100">
-                        <div id="schedule-list" class="divide-y divide-gray-100">
-                            <div class="p-4 text-center text-gray-400 text-sm">読み込み中...</div>
+                    <div id="accordion-body" class="accordion-content bg-gray-50">
+                        <div id="schedule-list" class="divide-y divide-gray-200">
+                            <div class="p-4 text-center text-sm text-gray-500">読み込み中...</div>
                         </div>
                     </div>
                 </div>
                 <input type="hidden" id="selected-schedule-id">
             </div>
 
-            <div id="form-fields" class="space-y-4 opacity-50 pointer-events-none transition-opacity duration-300">
+            <div id="form-fields" class="space-y-4 opacity-50 pointer-events-none transition-opacity">
                 <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">参加プラン</label>
-                    <select id="plan" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-brand">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">参加プラン</label>
+                    <select id="plan" class="w-full border border-gray-300 rounded p-3 bg-white focus:border-brand outline-none">
                         <option value="1日利用">1日利用</option>
                         <option value="午前のみ">午前のみ</option>
                         <option value="午後のみ">午後のみ</option>
                     </select>
                 </div>
+
                 <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">参加者名（生徒）</label>
-                    <input type="text" id="participantName" placeholder="例：小布施 太郎" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-brand">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">参加者名（生徒）</label>
+                    <input type="text" id="participantName" class="w-full border border-gray-300 rounded p-3 focus:border-brand outline-none" placeholder="お名前を入力">
                 </div>
+
                 <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">保護者名</label>
-                    <input type="text" id="parentName" placeholder="例：小布施 花子" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-brand">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">保護者名</label>
+                    <input type="text" id="parentName" class="w-full border border-gray-300 rounded p-3 focus:border-brand outline-none" placeholder="保護者様のお名前">
                 </div>
+
                 <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">緊急連絡先（電話番号）</label>
-                    <input type="tel" id="phone" placeholder="例：09012345678" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-brand">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">緊急連絡先（電話番号）</label>
+                    <input type="tel" id="phone" class="w-full border border-gray-300 rounded p-3 focus:border-brand outline-none" placeholder="09012345678">
                 </div>
-                
-                <button onclick="submitReservation()" id="submit-btn" class="w-full bg-brand text-white font-bold py-4 rounded-xl shadow-lg hover:bg-opacity-90 transition mt-6">
+
+                <button onclick="submitReservation()" id="submit-btn" class="w-full bg-brand hover:bg-brand-dark text-white font-bold py-4 rounded shadow-lg transition duration-200 mt-4">
                     予約を確定する
                 </button>
             </div>
         </div>
     </div>
 
-    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden p-4 z-50">
-        <div class="bg-white rounded-2xl p-8 max-w-xs w-full text-center shadow-2xl">
-            <div class="text-green-500 text-6xl mb-4"><i class="fas fa-check-circle"></i></div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">予約完了！</h2>
-            <p class="text-gray-600 mb-6">LINEに予約確認メッセージをお送りしました。</p>
-            <button onclick="window.location.reload()" class="w-full bg-gray-800 text-white font-bold py-3 rounded-lg">閉じる</button>
+    <div id="success-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-white rounded-lg p-6 max-w-sm w-full text-center shadow-xl">
+            <i class="fas fa-check-circle text-green-500 text-5xl mb-4"></i>
+            <h2 class="text-xl font-bold mb-2">予約を完了しました</h2>
+            <p class="text-gray-600 text-sm mb-6">LINEメッセージをご確認ください。</p>
+            <button onclick="window.location.reload()" class="w-full bg-gray-800 text-white py-3 rounded font-bold">閉じる</button>
         </div>
     </div>
 
     <script>
-        // ★GASのURLをあなたのものに差し替えてください
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
-        
         let allSchedules = [];
 
-        // 初期読み込み
-        window.onload = () => {
-            fetchSchedules();
-        };
+        window.onload = fetchSchedules;
 
         function fetchSchedules() {
             fetch(`${GAS_URL}?action=getSchedules`)
@@ -107,107 +102,75 @@
         function renderSchedules() {
             const list = document.getElementById('schedule-list');
             list.innerHTML = '';
-            
-            if (allSchedules.length === 0) {
-                list.innerHTML = '<div class="p-4 text-center text-gray-500">現在、案内可能な日程がありません。</div>';
-                return;
-            }
-
             allSchedules.forEach(item => {
-                const div = document.createElement('div');
-                div.className = "p-4 hover:bg-indigo-50 cursor-pointer transition-colors border-b last:border-0";
-                // 日付から曜日を自動判定するための装飾
                 const isObuse = item.location.includes('おぶせ');
                 const locColor = isObuse ? 'text-green-600' : 'text-orange-500';
-
+                
+                const div = document.createElement('div');
+                div.className = "p-4 hover:bg-white cursor-pointer flex justify-between items-center transition";
+                div.onclick = () => selectSchedule(item);
                 div.innerHTML = `
-                    <div class="flex justify-between items-center" onclick="selectSchedule('${item.id}', '${item.date}', '${item.time}', '${item.location}')">
-                        <div>
-                            <span class="block font-bold text-gray-800">${item.date}</span>
-                            <span class="text-sm text-gray-500">${item.time}</span>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-xs font-bold px-2 py-1 rounded bg-gray-100 ${locColor}">${item.location}</span>
-                        </div>
+                    <div>
+                        <div class="font-bold text-gray-800">${item.date}</div>
+                        <div class="text-xs text-gray-500">${item.time}</div>
                     </div>
+                    <div class="text-xs font-bold ${locColor} bg-white px-2 py-1 rounded border border-current">${item.location}</div>
                 `;
                 list.appendChild(div);
             });
         }
 
         function toggleAccordion() {
-            const container = document.getElementById('accordion-container');
-            container.classList.toggle('accordion-open');
+            document.getElementById('accordion-container').classList.toggle('accordion-open');
         }
 
-        function selectSchedule(id, date, time, location) {
-            // IDとテキストをセット
-            document.getElementById('selected-schedule-id').value = id;
+        function selectSchedule(item) {
+            document.getElementById('selected-schedule-id').value = item.id;
             document.getElementById('selected-schedule-text').innerHTML = `
-                <div class="text-left">
-                    <span class="block text-brand font-bold text-sm">${location}</span>
-                    <span class="text-gray-800 font-bold">${date} ${time}</span>
-                </div>
+                <span class="text-gray-800 font-bold">${item.date} (${item.location})</span>
             `;
-            document.getElementById('selected-schedule-text').classList.remove('text-gray-500');
-
-            // アコーディオンを閉じる
-            document.getElementById('accordion-container').classList.remove('accordion-open');
-
-            // フォーム入力を活性化させる
-            const formFields = document.getElementById('form-fields');
-            formFields.classList.remove('opacity-50', 'pointer-events-none');
+            toggleAccordion();
+            document.getElementById('form-fields').classList.remove('opacity-50', 'pointer-events-none');
         }
 
         function submitReservation() {
             const btn = document.getElementById('submit-btn');
-            const scheduleId = document.getElementById('selected-schedule-id').value;
-            const participantName = document.getElementById('participantName').value;
-            const parentName = document.getElementById('parentName').value;
-            const phone = document.getElementById('phone').value;
-            const plan = document.getElementById('plan').value;
+            const data = {
+                scheduleId: document.getElementById('selected-schedule-id').value,
+                participantName: document.getElementById('participantName').value,
+                parentName: document.getElementById('parentName').value,
+                phone: document.getElementById('phone').value,
+                plan: document.getElementById('plan').value
+            };
 
-            if (!participantName || !parentName || !phone) {
-                alert("すべての項目を入力してください。");
+            if (!data.participantName || !data.parentName || !data.phone) {
+                alert("未入力の項目があります");
                 return;
             }
 
+            const schedule = allSchedules.find(s => s.id === data.scheduleId);
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> 送信中...';
-
-            const schedule = allSchedules.find(s => s.id === scheduleId);
-
-            const payload = {
-                action: "saveReservation",
-                data: {
-                    scheduleId: scheduleId,
-                    scheduleLocation: schedule.location,
-                    scheduleDate: schedule.date,
-                    scheduleTime: schedule.time,
-                    participantName: participantName,
-                    parentName: parentName,
-                    phone: phone,
-                    plan: plan,
-                    lineUserId: "" // LIFF等を使っている場合はここにIDを入れる
-                }
-            };
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>送信中...';
 
             fetch(GAS_URL, {
                 method: "POST",
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    action: "saveReservation",
+                    data: {
+                        ...data,
+                        scheduleLocation: schedule.location,
+                        scheduleDate: schedule.date,
+                        scheduleTime: schedule.time,
+                        lineUserId: "" // 必要に応じて
+                    }
+                })
             })
             .then(res => res.json())
-            .then(result => {
-                if (result.status === "success") {
-                    document.getElementById('success-modal').classList.remove('hidden');
-                } else {
-                    alert("エラーが発生しました: " + result.message);
-                    btn.disabled = false;
-                    btn.innerText = "予約を確定する";
-                }
+            .then(res => {
+                if(res.status === "success") document.getElementById('success-modal').classList.remove('hidden');
             })
-            .catch(err => {
-                alert("送信に失敗しました。");
+            .catch(() => {
+                alert("エラーが発生しました");
                 btn.disabled = false;
                 btn.innerText = "予約を確定する";
             });
