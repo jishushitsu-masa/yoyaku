@@ -3,120 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>予約 - おぶせ 春の自習室</title>
+    <title>予約画面 - おぶせ 春の自習室</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { brand: '#4F46E5', 'brand-dark': '#4338CA' } } } }
+        tailwind.config = { theme: { extend: { colors: { brand: '#68c3a3', 'brand-dark': '#52a386' } } } }
     </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; }
+        .required-badge { background-color: #68c3a3; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: bold;}
+        /* アコーディオン用アニメーション */
         .accordion-content { transition: max-height 0.3s ease-out; overflow: hidden; max-height: 0; }
-        .accordion-open .accordion-content { max-height: 1000px; transition: max-height 0.5s ease-in; }
+        .accordion-open .accordion-content { max-height: 2000px; transition: max-height 0.5s ease-in; }
         .accordion-chevron { transition: transform 0.3s; }
         .accordion-open .accordion-chevron { transform: rotate(180deg); }
     </style>
 </head>
-<body class="text-gray-800 pb-10">
+<body class="text-gray-800">
 
-    <div class="max-w-md mx-auto bg-white min-h-screen shadow-lg">
-        <header class="bg-gray-800 text-white p-4 text-center">
-            <h1 class="text-lg font-bold">おぶせ 春の自習室 予約</h1>
+    <div class="max-w-md mx-auto bg-white min-h-screen relative shadow-lg overflow-hidden pb-24">
+        
+        <header class="border-b border-gray-200 p-4 flex justify-between items-center bg-white sticky top-0 z-10">
+            <h1 class="text-lg font-bold">おぶせ 春の自習室</h1>
+            <button class="text-gray-400 hover:text-gray-600" onclick="closeApp()"><i class="fas fa-times text-xl"></i></button>
         </header>
 
-        <div class="p-4 space-y-6">
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-2">
-                    <i class="far fa-calendar-alt mr-1 text-brand"></i> 希望の日程を選択
-                </label>
-                <div id="accordion-container" class="border border-gray-300 rounded-lg overflow-hidden">
-                    <button onclick="toggleAccordion()" class="w-full flex items-center justify-between p-4 bg-white hover:bg-gray-50 transition-colors">
-                        <span id="selected-schedule-text" class="text-gray-400">タップして日程を表示</span>
+        <div id="view-input" class="p-4 space-y-6 block">
+            <section>
+                <div class="flex items-center mb-3"><h2 class="font-bold text-gray-700">日程を選択</h2><span class="required-badge">必須</span></div>
+                
+                <div id="accordion-container" class="border border-gray-300 rounded-lg overflow-hidden bg-white">
+                    <button onclick="toggleAccordion()" class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left">
+                        <span id="selected-schedule-label" class="text-gray-500 font-bold text-sm">タップして日程を表示</span>
                         <i class="fas fa-chevron-down accordion-chevron text-gray-400"></i>
                     </button>
-                    <div id="accordion-body" class="accordion-content bg-gray-50">
-                        <div id="schedule-list" class="divide-y divide-gray-200">
-                            <div class="p-4 text-center text-sm text-gray-500">読み込み中...</div>
-                        </div>
+                    <div class="accordion-content bg-gray-50">
+                        <div class="p-3 space-y-3" id="schedule-list">
+                            </div>
                     </div>
                 </div>
-                <input type="hidden" id="selected-schedule-id">
-            </div>
+            </section>
 
-            <div id="form-fields" class="space-y-4 opacity-50 pointer-events-none transition-opacity">
+            <hr class="border-gray-100">
+
+            <section class="space-y-5">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">参加プラン</label>
-                    <select id="plan" class="w-full border border-gray-300 rounded p-3 bg-white focus:border-brand outline-none">
-                        <option value="1日利用">1日利用</option>
-                        <option value="午前のみ">午前のみ</option>
-                        <option value="午後のみ">午後のみ</option>
-                    </select>
+                    <div class="flex items-center mb-2"><label class="font-bold text-gray-700 text-sm">参加者名</label><span class="required-badge">必須</span></div>
+                    <div class="flex space-x-2">
+                        <input type="text" id="participant-last" placeholder="姓" class="w-1/2 border border-gray-300 rounded p-2 focus:outline-none focus:border-brand">
+                        <input type="text" id="participant-first" placeholder="名" class="w-1/2 border border-gray-300 rounded p-2 focus:outline-none focus:border-brand">
+                    </div>
                 </div>
-
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">参加者名（生徒）</label>
-                    <input type="text" id="participantName" class="w-full border border-gray-300 rounded p-3 focus:border-brand outline-none" placeholder="お名前を入力">
+                    <div class="flex items-center mb-2"><label class="font-bold text-gray-700 text-sm">保護者名</label><span class="required-badge">必須</span></div>
+                    <div class="flex space-x-2">
+                        <input type="text" id="parent-last" placeholder="姓" class="w-1/2 border border-gray-300 rounded p-2 focus:outline-none focus:border-brand">
+                        <input type="text" id="parent-first" placeholder="名" class="w-1/2 border border-gray-300 rounded p-2 focus:outline-none focus:border-brand">
+                    </div>
                 </div>
-
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">保護者名</label>
-                    <input type="text" id="parentName" class="w-full border border-gray-300 rounded p-3 focus:border-brand outline-none" placeholder="保護者様のお名前">
+                    <div class="flex items-center mb-2"><label class="font-bold text-gray-700 text-sm">電話番号</label><span class="required-badge">必須</span></div>
+                    <input type="tel" id="phone" placeholder="数字のみ（ハイフン不要）" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-brand">
                 </div>
-
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">緊急連絡先（電話番号）</label>
-                    <input type="tel" id="phone" class="w-full border border-gray-300 rounded p-3 focus:border-brand outline-none" placeholder="09012345678">
+                <div class="pt-2">
+                    <label class="flex items-center space-x-3 cursor-pointer p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <input type="checkbox" id="one-hour-only" class="w-5 h-5 text-brand rounded accent-brand">
+                        <span class="text-gray-700 font-medium">1時間のみ利用する</span>
+                    </label>
                 </div>
+            </section>
 
-                <button onclick="submitReservation()" id="submit-btn" class="w-full bg-brand hover:bg-brand-dark text-white font-bold py-4 rounded shadow-lg transition duration-200 mt-4">
-                    予約を確定する
-                </button>
+            <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 p-4">
+                <button onclick="goToConfirm()" class="w-full bg-brand hover:bg-brand-dark text-white font-bold py-3 px-4 rounded-lg shadow">予約を確認する</button>
             </div>
         </div>
-    </div>
 
-    <div id="success-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50 p-4">
-        <div class="bg-white rounded-lg p-6 max-w-sm w-full text-center shadow-xl">
-            <i class="fas fa-check-circle text-green-500 text-5xl mb-4"></i>
-            <h2 class="text-xl font-bold mb-2">予約を完了しました</h2>
-            <p class="text-gray-600 text-sm mb-6">LINEメッセージをご確認ください。</p>
-            <button onclick="window.location.reload()" class="w-full bg-gray-800 text-white py-3 rounded font-bold">閉じる</button>
+        <div id="view-confirm" class="p-4 hidden pb-24">
+            <h2 class="text-xl font-bold text-center text-gray-800 mb-6 mt-4">予約内容の確認</h2>
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-4">
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">選択した日程</p>
+                    <p class="text-gray-800 text-sm mb-1 text-gray-600"><i class="fas fa-map-marker-alt text-red-400 mr-1"></i><span id="confirm-location">--</span></p>
+                    <p class="font-bold text-gray-800" id="confirm-date">--</p>
+                    <p class="text-gray-800" id="confirm-time">--</p>
+                </div>
+                <hr class="border-gray-200">
+                <div><p class="text-sm text-gray-500 mb-1">参加者名</p><p class="font-bold text-gray-800" id="confirm-participant">--</p></div>
+                <div><p class="text-sm text-gray-500 mb-1">保護者名</p><p class="font-bold text-gray-800" id="confirm-parent">--</p></div>
+                <div><p class="text-sm text-gray-500 mb-1">電話番号</p><p class="font-bold text-gray-800" id="confirm-phone">--</p></div>
+                <div><p class="text-sm text-gray-500 mb-1">利用プラン</p><p class="font-bold text-gray-800" id="confirm-plan">2時間利用</p></div>
+            </div>
+
+            <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 p-4 flex space-x-3">
+                <button id="btn-back" onclick="goBackToInput()" class="w-1/3 bg-white border border-gray-300 text-gray-600 font-bold py-3 rounded-lg">修正</button>
+                <button id="btn-submit" onclick="submitReservation()" class="w-2/3 bg-brand text-white font-bold py-3 rounded-lg shadow">予約を確定する</button>
+            </div>
+        </div>
+
+        <div id="view-success" class="p-8 hidden flex flex-col items-center justify-center min-h-[70vh]">
+            <div class="w-20 h-20 bg-brand text-white rounded-full flex items-center justify-center mb-6 shadow-lg"><i class="fas fa-check text-4xl"></i></div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">予約完了</h2>
+            <p class="text-gray-600 text-center mb-8">公式アカウントからの通知を確認してください。</p>
+            <button onclick="closeApp()" class="w-full bg-gray-200 text-gray-800 font-bold py-3 rounded-lg">画面を閉じる</button>
+        </div>
+
+        <div id="view-cancel" class="p-8 hidden flex flex-col items-center justify-center min-h-[70vh]">
+            <div class="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-6 shadow-lg"><i class="fas fa-exclamation-triangle text-4xl"></i></div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">予約をキャンセルしますか？</h2>
+            <p class="text-gray-600 text-center mb-8">この操作は取り消せません。</p>
+            <div class="w-full flex space-x-3">
+                <button onclick="closeApp()" class="w-1/2 bg-gray-200 text-gray-800 font-bold py-3 rounded-lg">やめる</button>
+                <button id="btn-cancel-submit" onclick="submitCancel()" class="w-1/2 bg-red-500 text-white font-bold py-3 rounded-lg shadow">キャンセルする</button>
+            </div>
+        </div>
+
+        <div id="view-cancel-success" class="p-8 hidden flex flex-col items-center justify-center min-h-[70vh]">
+            <div class="w-20 h-20 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center mb-6 shadow-lg"><i class="fas fa-trash-alt text-4xl"></i></div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">キャンセル完了</h2>
+            <p class="text-gray-600 text-center mb-8">予約のキャンセルを受け付けました。</p>
+            <button onclick="closeApp()" class="w-full bg-gray-200 text-gray-800 font-bold py-3 rounded-lg">画面を閉じる</button>
         </div>
     </div>
 
     <script>
+        const LIFF_ID = "2009652448-yEc3eycW";
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
-        let allSchedules = [];
 
-        window.onload = fetchSchedules;
+        let schedules = [];
+        let lineUserId = "";
+        let cancelReservationId = "";
 
-        function fetchSchedules() {
-            fetch(`${GAS_URL}?action=getSchedules`)
-                .then(res => res.json())
+        window.onload = function() {
+            if (LIFF_ID) {
+                liff.init({ liffId: LIFF_ID })
+                    .then(() => {
+                        if (liff.isLoggedIn()) {
+                            lineUserId = liff.getContext().userId;
+                        } else {
+                            liff.login();
+                        }
+                        routePage();
+                    })
+                    .catch((err) => {
+                        routePage();
+                    });
+            } else {
+                routePage();
+            }
+        };
+
+        function routePage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const action = urlParams.get('action');
+            const cancelId = urlParams.get('id');
+
+            if (action === 'cancel' && cancelId) {
+                cancelReservationId = cancelId;
+                document.getElementById('view-input').classList.add('hidden');
+                document.getElementById('view-cancel').classList.remove('hidden');
+            } else {
+                const listContainer = document.getElementById('schedule-list');
+                listContainer.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fas fa-spinner fa-spin mr-2 text-brand text-2xl"></i><br>日程を読み込んでいます...</div>';
+                loadSchedulesFromGAS(listContainer);
+            }
+        }
+
+        function loadSchedulesFromGAS(listContainer) {
+            fetch(GAS_URL + "?action=getSchedules")
+                .then(response => {
+                    if (!response.ok) throw new Error('Network error');
+                    return response.json();
+                })
                 .then(data => {
-                    allSchedules = data;
-                    renderSchedules();
+                    schedules = data;
+                    renderSchedules(listContainer);
+                })
+                .catch(error => {
+                    listContainer.innerHTML = '<div class="text-center py-4 text-red-500 font-bold">通信エラーが発生しました。<br>時間をおいて開き直してください。</div>';
                 });
         }
 
-        function renderSchedules() {
-            const list = document.getElementById('schedule-list');
-            list.innerHTML = '';
-            allSchedules.forEach(item => {
-                const isObuse = item.location.includes('おぶせ');
-                const locColor = isObuse ? 'text-green-600' : 'text-orange-500';
-                
-                const div = document.createElement('div');
-                div.className = "p-4 hover:bg-white cursor-pointer flex justify-between items-center transition";
-                div.onclick = () => selectSchedule(item);
-                div.innerHTML = `
-                    <div>
-                        <div class="font-bold text-gray-800">${item.date}</div>
-                        <div class="text-xs text-gray-500">${item.time}</div>
-                    </div>
-                    <div class="text-xs font-bold ${locColor} bg-white px-2 py-1 rounded border border-current">${item.location}</div>
+        function renderSchedules(listContainer) {
+            listContainer.innerHTML = ''; 
+            if (schedules.length === 0) {
+                listContainer.innerHTML = '<div class="text-center py-4 text-gray-500 border border-gray-200 rounded-lg">現在、予約できる日程はありません。</div>';
+                return;
+            }
+            schedules.forEach(schedule => {
+                const cardHtml = `
+                    <label class="block border border-gray-200 rounded-lg p-4 cursor-pointer bg-white hover:bg-gray-50 transition flex items-start space-x-3 schedule-card" onclick="selectCard(this, '${schedule.id}')">
+                        <div class="pt-1"><input type="radio" name="schedule_id" value="${schedule.id}" class="w-5 h-5 text-brand accent-brand"></div>
+                        <div class="flex-1">
+                            <div class="flex text-sm text-gray-500 mb-1"><span class="w-12 font-bold">場所</span><span>${schedule.location}</span></div>
+                            <div class="flex text-sm text-gray-500 mb-1"><span class="w-12 font-bold">日程</span><span>${schedule.date}</span></div>
+                            <div class="flex text-sm text-gray-500"><span class="w-12 font-bold">時間</span><span>${schedule.time}</span></div>
+                        </div>
+                    </label>
                 `;
-                list.appendChild(div);
+                listContainer.insertAdjacentHTML('beforeend', cardHtml);
             });
         }
 
@@ -124,56 +209,155 @@
             document.getElementById('accordion-container').classList.toggle('accordion-open');
         }
 
-        function selectSchedule(item) {
-            document.getElementById('selected-schedule-id').value = item.id;
-            document.getElementById('selected-schedule-text').innerHTML = `
-                <span class="text-gray-800 font-bold">${item.date} (${item.location})</span>
+        function selectCard(labelElement, scheduleId) {
+            // 他のカードのスタイルをリセット
+            document.querySelectorAll('.schedule-card').forEach(el => el.classList.remove('border-brand', 'bg-emerald-50'));
+            
+            // 選択したカードのスタイルを適用
+            labelElement.classList.add('border-brand', 'bg-emerald-50');
+            
+            // ラジオボタンにチェックを入れる
+            labelElement.querySelector('input[type="radio"]').checked = true;
+
+            // 選択情報をラベルに表示
+            const scheduleData = schedules.find(s => s.id === scheduleId);
+            document.getElementById('selected-schedule-label').innerHTML = `
+                <div class="text-gray-800">
+                    <span class="font-bold text-brand">${scheduleData.location}</span><br>
+                    <span class="text-xs">${scheduleData.date} ${scheduleData.time}</span>
+                </div>
             `;
-            toggleAccordion();
-            document.getElementById('form-fields').classList.remove('opacity-50', 'pointer-events-none');
+
+            // 少し遅延させてアコーディオンを閉じる（タップ感のため）
+            setTimeout(() => {
+                document.getElementById('accordion-container').classList.remove('accordion-open');
+            }, 200);
+        }
+
+        function goToConfirm() {
+            const selectedSchedule = document.querySelector('input[name="schedule_id"]:checked');
+            if (!selectedSchedule) { alert("日程を選択してください"); return; }
+            
+            const scheduleData = schedules.find(s => s.id === selectedSchedule.value);
+            const pName = document.getElementById('participant-last').value + " " + document.getElementById('participant-first').value;
+            const parName = document.getElementById('parent-last').value + " " + document.getElementById('parent-first').value;
+            const phone = document.getElementById('phone').value;
+            const isOneHour = document.getElementById('one-hour-only').checked;
+
+            if (!document.getElementById('participant-last').value || !phone) { alert("必須項目を入力してください"); return; }
+
+            document.getElementById('confirm-location').innerText = scheduleData.location;
+            document.getElementById('confirm-date').innerText = scheduleData.date;
+            document.getElementById('confirm-time').innerText = scheduleData.time;
+            document.getElementById('confirm-participant').innerText = pName;
+            document.getElementById('confirm-parent').innerText = parName;
+            document.getElementById('confirm-phone').innerText = phone;
+            document.getElementById('confirm-plan').innerText = isOneHour ? "1時間のみ利用" : "2時間利用";
+
+            document.getElementById('view-input').classList.add('hidden');
+            document.getElementById('view-confirm').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function goBackToInput() {
+            document.getElementById('view-confirm').classList.add('hidden');
+            document.getElementById('view-input').classList.remove('hidden');
         }
 
         function submitReservation() {
-            const btn = document.getElementById('submit-btn');
-            const data = {
-                scheduleId: document.getElementById('selected-schedule-id').value,
-                participantName: document.getElementById('participantName').value,
-                parentName: document.getElementById('parentName').value,
+            const selectedSchedule = document.querySelector('input[name="schedule_id"]:checked');
+            const scheduleData = schedules.find(s => s.id === selectedSchedule.value);
+            const isOneHour = document.getElementById('one-hour-only').checked;
+
+            const reservationData = {
+                scheduleId: scheduleData.id,
+                scheduleDate: scheduleData.date,
+                scheduleTime: scheduleData.time,
+                scheduleLocation: scheduleData.location,
+                participantName: document.getElementById('participant-last').value + " " + document.getElementById('participant-first').value,
+                parentName: document.getElementById('parent-last').value + " " + document.getElementById('parent-first').value,
                 phone: document.getElementById('phone').value,
-                plan: document.getElementById('plan').value
+                plan: isOneHour ? "1時間のみ" : "2時間利用",
+                lineUserId: lineUserId
             };
 
-            if (!data.participantName || !data.parentName || !data.phone) {
-                alert("未入力の項目があります");
-                return;
-            }
-
-            const schedule = allSchedules.find(s => s.id === data.scheduleId);
+            const btn = document.getElementById('btn-submit');
+            btn.innerHTML = "送信中...";
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>送信中...';
+
+            const requestBody = {
+                action: 'saveReservation',
+                data: reservationData
+            };
 
             fetch(GAS_URL, {
-                method: "POST",
-                body: JSON.stringify({
-                    action: "saveReservation",
-                    data: {
-                        ...data,
-                        scheduleLocation: schedule.location,
-                        scheduleDate: schedule.date,
-                        scheduleTime: schedule.time,
-                        lineUserId: "" // 必要に応じて
-                    }
-                })
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(requestBody)
             })
-            .then(res => res.json())
-            .then(res => {
-                if(res.status === "success") document.getElementById('success-modal').classList.remove('hidden');
+            .then(response => response.json())
+            .then(result => {
+                if(result.status === "success") {
+                    document.getElementById('view-confirm').classList.add('hidden');
+                    document.getElementById('view-success').classList.remove('hidden');
+                    window.scrollTo(0, 0);
+                } else {
+                    throw new Error(result.message || '保存に失敗しました');
+                }
             })
-            .catch(() => {
-                alert("エラーが発生しました");
+            .catch(error => {
+                alert("送信エラー: " + error.message);
+                btn.innerHTML = "予約を確定する";
                 btn.disabled = false;
-                btn.innerText = "予約を確定する";
             });
+        }
+
+        function submitCancel() {
+            const btn = document.getElementById('btn-cancel-submit');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>処理中...';
+            btn.disabled = true;
+
+            const requestBody = {
+                action: 'cancelReservation',
+                cancelId: cancelReservationId
+            };
+
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(requestBody)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if(result.status === "success") {
+                    document.getElementById('view-cancel').classList.add('hidden');
+                    document.getElementById('view-cancel-success').classList.remove('hidden');
+                    window.scrollTo(0, 0);
+                } else {
+                    throw new Error(result.message || '処理に失敗しました');
+                }
+            })
+            .catch(error => {
+                alert("エラーが発生しました: " + error.message);
+                btn.innerHTML = "キャンセルする";
+                btn.disabled = false;
+            });
+        }
+
+        function closeApp() {
+            setTimeout(() => {
+                try {
+                    if (typeof liff !== 'undefined' && liff.isInClient()) { 
+                        liff.closeWindow(); 
+                    } else { 
+                        window.close(); 
+                        alert("画面右上の「×」ボタンを押して閉じてください。"); 
+                    }
+                } catch (e) {
+                    window.close();
+                    alert("画面右上の「×」ボタンを押して閉じてください。"); 
+                }
+            }, 100);
         }
     </script>
 </body>
