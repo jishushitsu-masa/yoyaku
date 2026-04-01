@@ -136,7 +136,7 @@
 
     <script>
         // ★新しくLINE Developersで作った「すざか用」のLIFF IDを貼り付けてください
-        const LIFF_ID = "2009652448-3y5lLswa";
+        const LIFF_ID = "ここに新しいLIFF IDを貼り付ける";
         
         // データベース（GAS）は共通なのでそのまま使います
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
@@ -146,7 +146,7 @@
         let cancelReservationId = "";
 
         window.onload = function() {
-            if (LIFF_ID && LIFF_ID !== "ここに新しいLIFF IDを貼り付ける") {
+            if (LIFF_ID && LIFF_ID !== "2009652448-3y5lLswa") {
                 liff.init({ liffId: LIFF_ID })
                     .then(() => {
                         if (liff.isLoggedIn()) {
@@ -209,7 +209,7 @@
             }
             schedules.forEach(schedule => {
                 const cardHtml = `
-                    <label class="block border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition flex items-start space-x-3 schedule-card" onclick="selectCard(this)">
+                    <label class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition flex items-start space-x-3 schedule-card" onclick="selectCard(this)">
                         <div class="pt-1">
                             <input type="radio" name="schedule_id" value="${schedule.id}" class="w-5 h-5 text-brand focus:ring-brand border-gray-300 accent-brand">
                         </div>
@@ -231,15 +231,15 @@
         }
 
         function selectCard(labelElement) {
-            // ★進化ポイント：選ばれたら他の日程を「隠す（hidden）」
+            // ★進化ポイント：確実に隠れるように「flex」クラスを外して「hidden」をつける
             document.querySelectorAll('.schedule-card').forEach(el => {
-                el.classList.remove('border-brand', 'bg-indigo-50');
+                el.classList.remove('border-brand', 'bg-indigo-50', 'flex');
                 el.classList.add('border-gray-200', 'hidden'); 
             });
             
             // 選ばれたものだけ表示して色を変える
             labelElement.classList.remove('border-gray-200', 'hidden');
-            labelElement.classList.add('border-brand', 'bg-indigo-50');
+            labelElement.classList.add('border-brand', 'bg-indigo-50', 'flex');
 
             // 「他の日程を表示する」ボタンを出す
             document.getElementById('reselect-container').classList.remove('hidden');
@@ -250,6 +250,7 @@
             // 隠れていたすべての日程を再表示する
             document.querySelectorAll('.schedule-card').forEach(el => {
                 el.classList.remove('hidden');
+                el.classList.add('flex');
             });
             // ボタン自身は隠す
             document.getElementById('reselect-container').classList.add('hidden');
