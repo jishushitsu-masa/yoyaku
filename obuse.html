@@ -290,12 +290,22 @@
                 }
             };
 
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+            // ★重要修正：送信時に "headers" を設定しないとGASで弾かれてしまいます
+            fetch(GAS_URL, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(payload) 
+            })
                 .then(res => res.json())
                 .then(res => {
                     if(res.status === "success") {
                         document.getElementById('view-confirm').classList.add('hidden');
                         document.getElementById('view-success').classList.remove('hidden');
+                        window.scrollTo(0, 0);
+                    } else {
+                        alert("システムでエラーが発生しました。");
+                        btn.innerHTML = "予約を確定する";
+                        btn.disabled = false;
                     }
                 }).catch(() => {
                     alert("送信に失敗しました");
@@ -307,10 +317,23 @@
         function submitCancel() {
             const btn = document.getElementById('btn-cancel-submit');
             btn.disabled = true;
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'cancelReservation', cancelId: cancelReservationId }) })
-                .then(() => {
-                    document.getElementById('view-cancel').classList.add('hidden');
-                    document.getElementById('view-cancel-success').classList.remove('hidden');
+            
+            // ★重要修正：ここも同様に "headers" を追加
+            fetch(GAS_URL, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ action: 'cancelReservation', cancelId: cancelReservationId }) 
+            })
+                .then(res => res.json())
+                .then(res => {
+                    if(res.status === "success") {
+                        document.getElementById('view-cancel').classList.add('hidden');
+                        document.getElementById('view-cancel-success').classList.remove('hidden');
+                        window.scrollTo(0, 0);
+                    }
+                }).catch(() => {
+                    alert("キャンセルの送信に失敗しました");
+                    btn.disabled = false;
                 });
         }
 
