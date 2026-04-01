@@ -32,6 +32,14 @@
                 <div class="space-y-3" id="schedule-list">
                     <!-- ここに日程が表示されます -->
                 </div>
+                
+                <!-- ★追加：他の日程を表示するためのボタン（初期は非表示） -->
+                <div id="reselect-container" class="text-center mt-3 hidden">
+                    <button type="button" onclick="showAllSchedules()" class="text-brand hover:text-brand-dark text-sm font-bold bg-indigo-50 border border-indigo-100 py-2 px-4 rounded-full transition shadow-sm">
+                        <i class="fas fa-chevron-down mr-1"></i>他の日程を表示する
+                    </button>
+                </div>
+
                 <p id="error-schedule" class="text-red-500 text-sm mt-1 hidden">日程を選択してください。</p>
             </section>
 
@@ -128,7 +136,7 @@
 
     <script>
         // ★新しくLINE Developersで作った「すざか用」のLIFF IDを貼り付けてください
-        const LIFF_ID = "ここに新しいLIFF IDを貼り付ける";
+        const LIFF_ID = "2009652448-3y5lLswa";
         
         // データベース（GAS）は共通なのでそのまま使います
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
@@ -191,6 +199,10 @@
         function renderSchedules(listContainer) {
             listContainer.innerHTML = ''; 
             
+            // ★追加：一覧を再読み込みした時は「他の日程を表示」ボタンを隠す
+            const reselectContainer = document.getElementById('reselect-container');
+            if (reselectContainer) reselectContainer.classList.add('hidden');
+
             if (schedules.length === 0) {
                 listContainer.innerHTML = '<div class="text-center py-4 text-gray-500 border border-gray-200 rounded-lg">現在、予約できる日程はありません。</div>';
                 return;
@@ -219,12 +231,28 @@
         }
 
         function selectCard(labelElement) {
+            // ★進化ポイント：選ばれたら他の日程を「隠す（hidden）」
             document.querySelectorAll('.schedule-card').forEach(el => {
                 el.classList.remove('border-brand', 'bg-indigo-50');
-                el.classList.add('border-gray-200');
+                el.classList.add('border-gray-200', 'hidden'); 
             });
-            labelElement.classList.remove('border-gray-200');
+            
+            // 選ばれたものだけ表示して色を変える
+            labelElement.classList.remove('border-gray-200', 'hidden');
             labelElement.classList.add('border-brand', 'bg-indigo-50');
+
+            // 「他の日程を表示する」ボタンを出す
+            document.getElementById('reselect-container').classList.remove('hidden');
+        }
+
+        // ★追加：アコーディオンを再度開くための機能
+        function showAllSchedules() {
+            // 隠れていたすべての日程を再表示する
+            document.querySelectorAll('.schedule-card').forEach(el => {
+                el.classList.remove('hidden');
+            });
+            // ボタン自身は隠す
+            document.getElementById('reselect-container').classList.add('hidden');
         }
 
         function goToConfirm() {
