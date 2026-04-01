@@ -13,7 +13,6 @@
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; }
         .required-badge { background-color: #68c3a3; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: bold;}
-        /* アコーディオン用アニメーション */
         .accordion-content { transition: max-height 0.3s ease-out; overflow: hidden; max-height: 0; }
         .accordion-open .accordion-content { max-height: 2000px; transition: max-height 0.5s ease-in; }
         .accordion-chevron { transition: transform 0.3s; }
@@ -26,7 +25,7 @@
         
         <header class="border-b border-gray-200 p-4 flex justify-between items-center bg-white sticky top-0 z-10">
             <h1 class="text-lg font-bold">おぶせ 春の自習室</h1>
-            </header>
+        </header>
 
         <div id="view-input" class="p-4 space-y-6 block">
             <section>
@@ -104,7 +103,7 @@
             <div class="w-20 h-20 bg-brand text-white rounded-full flex items-center justify-center mb-6 shadow-lg"><i class="fas fa-check text-4xl"></i></div>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">予約完了</h2>
             <p class="text-gray-600 text-center mb-8 font-bold">公式アカウントからの通知を確認してください。<br><br>このままLINEのトーク画面へ戻ってください。</p>
-            </div>
+        </div>
 
         <div id="view-cancel" class="p-8 hidden flex flex-col items-center justify-center min-h-[70vh]">
             <div class="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-6 shadow-lg"><i class="fas fa-exclamation-triangle text-4xl"></i></div>
@@ -120,130 +119,138 @@
             <div class="w-20 h-20 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center mb-6 shadow-lg"><i class="fas fa-trash-alt text-4xl"></i></div>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">キャンセル完了</h2>
             <p class="text-gray-600 text-center mb-8">予約のキャンセルを受け付けました。</p>
-            <p class="text-gray-500 text-sm text-center">このままLINEのトーク画面へ戻ってください。</p>
         </div>
     </div>
 
     <script>
         const LIFF_ID = "2009652448-yEc3eycW";
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
+        const STORAGE_KEY = "obuse_jishu_user_v1";
 
         let schedules = [];
         let lineUserId = "";
         let cancelReservationId = "";
 
+        // ページ読み込み時の処理
         window.onload = function() {
+            initForm();
             if (LIFF_ID) {
                 liff.init({ liffId: LIFF_ID })
                     .then(() => {
-                        if (liff.isLoggedIn()) {
-                            lineUserId = liff.getContext().userId;
-                        } else {
-                            liff.login();
-                        }
+                        if (liff.isLoggedIn()) { lineUserId = liff.getContext().userId; }
+                        else { liff.login(); }
                         routePage();
-                    })
-                    .catch((err) => {
-                        routePage();
-                    });
+                    }).catch(routePage);
             } else {
                 routePage();
             }
         };
 
-        function routePage() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const action = urlParams.get('action');
-            const cancelId = urlParams.get('id');
-
-            if (action === 'cancel' && cancelId) {
-                cancelReservationId = cancelId;
-                document.getElementById('view-input').classList.add('hidden');
-                document.getElementById('view-cancel').classList.remove('hidden');
-            } else {
-                const listContainer = document.getElementById('schedule-list');
-                listContainer.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fas fa-spinner fa-spin mr-2 text-brand text-2xl"></i><br>日程を読み込んでいます...</div>';
-                loadSchedulesFromGAS(listContainer);
+        // フォームの初期化（保存データの読み込み）
+        function initForm() {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    document.getElementById('participant-last').value = data.pLast || "";
+                    document.getElementById('participant-first').value = data.pFirst || "";
+                    document.getElementById('parent-last').value = data.prLast || "";
+                    document.getElementById('parent-first').value = data.prFirst || "";
+                    document.getElementById('phone').value = data.phone || "";
+                } catch (e) { console.error("Storage load error", e); }
             }
         }
 
-        function loadSchedulesFromGAS(listContainer) {
-            fetch(GAS_URL + "?action=getSchedules")
-                .then(response => {
-                    if (!response.ok) throw new Error('Network error');
-                    return response.json();
-                })
-                .then(data => {
-                    schedules = data;
-                    renderSchedules(listContainer);
-                })
-                .catch(error => {
-                    listContainer.innerHTML = '<div class="text-center py-4 text-red-500 font-bold">通信エラーが発生しました。<br>時間をおいて開き直してください。</div>';
-                });
-        }
-
-        function renderSchedules(listContainer) {
-            listContainer.innerHTML = ''; 
-            if (schedules.length === 0) {
-                listContainer.innerHTML = '<div class="text-center py-4 text-gray-500 border border-gray-200 rounded-lg">現在、予約できる日程はありません。</div>';
-                return;
-            }
-            schedules.forEach(schedule => {
-                const cardHtml = `
-                    <label class="block border border-gray-200 rounded-lg p-4 cursor-pointer bg-white hover:bg-gray-50 transition flex items-start space-x-3 schedule-card" onclick="selectCard(this, '${schedule.id}')">
-                        <div class="pt-1"><input type="radio" name="schedule_id" value="${schedule.id}" class="w-5 h-5 text-brand accent-brand"></div>
-                        <div class="flex-1">
-                            <div class="flex text-sm text-gray-500 mb-1"><span class="w-12 font-bold">場所</span><span>${schedule.location}</span></div>
-                            <div class="flex text-sm text-gray-500 mb-1"><span class="w-12 font-bold">日程</span><span>${schedule.date}</span></div>
-                            <div class="flex text-sm text-gray-500"><span class="w-12 font-bold">時間</span><span>${schedule.time}</span></div>
-                        </div>
-                    </label>
-                `;
-                listContainer.insertAdjacentHTML('beforeend', cardHtml);
-            });
+        // 入力内容をブラウザに保存
+        function saveToStorage() {
+            const data = {
+                pLast: document.getElementById('participant-last').value,
+                pFirst: document.getElementById('participant-first').value,
+                prLast: document.getElementById('parent-last').value,
+                prFirst: document.getElementById('parent-first').value,
+                phone: document.getElementById('phone').value
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
 
         function toggleAccordion() {
             document.getElementById('accordion-container').classList.toggle('accordion-open');
         }
 
-        function selectCard(labelElement, scheduleId) {
-            document.querySelectorAll('.schedule-card').forEach(el => el.classList.remove('border-brand', 'bg-emerald-50'));
-            labelElement.classList.add('border-brand', 'bg-emerald-50');
-            labelElement.querySelector('input[type="radio"]').checked = true;
+        function routePage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const action = urlParams.get('action');
+            const cancelId = urlParams.get('id');
+            if (action === 'cancel' && cancelId) {
+                cancelReservationId = cancelId;
+                document.getElementById('view-input').classList.add('hidden');
+                document.getElementById('view-cancel').classList.remove('hidden');
+            } else {
+                const listContainer = document.getElementById('schedule-list');
+                loadSchedulesFromGAS(listContainer);
+            }
+        }
 
-            const scheduleData = schedules.find(s => s.id === scheduleId);
-            document.getElementById('selected-schedule-label').innerHTML = `
-                <div class="text-gray-800">
-                    <span class="font-bold text-brand">${scheduleData.location}</span><br>
-                    <span class="text-xs">${scheduleData.date} ${scheduleData.time}</span>
-                </div>
-            `;
+        function loadSchedulesFromGAS(listContainer) {
+            fetch(GAS_URL + "?action=getSchedules")
+                .then(res => res.json())
+                .then(data => {
+                    schedules = data;
+                    renderSchedules(listContainer);
+                });
+        }
 
-            setTimeout(() => {
-                document.getElementById('accordion-container').classList.remove('accordion-open');
-            }, 200);
+        function renderSchedules(listContainer) {
+            listContainer.innerHTML = ''; 
+            if (schedules.length === 0) {
+                listContainer.innerHTML = '<div class="text-center py-4 text-gray-500">案内中の日程はありません。</div>';
+                return;
+            }
+            schedules.forEach(s => {
+                const html = `
+                    <label class="block border border-gray-200 rounded-lg p-4 cursor-pointer bg-white hover:bg-gray-50 transition flex items-start space-x-3 schedule-card" onclick="selectCard(this, '${s.id}')">
+                        <div class="pt-1"><input type="radio" name="schedule_id" value="${s.id}" class="w-5 h-5 accent-brand"></div>
+                        <div class="flex-1 text-sm text-gray-500">
+                            <div><span class="font-bold w-12 inline-block text-gray-400">場所</span>${s.location}</div>
+                            <div><span class="font-bold w-12 inline-block text-gray-400">日程</span>${s.date}</div>
+                            <div><span class="font-bold w-12 inline-block text-gray-400">時間</span>${s.time}</div>
+                        </div>
+                    </label>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function selectCard(el, id) {
+            document.querySelectorAll('.schedule-card').forEach(c => c.classList.remove('border-brand', 'bg-emerald-50'));
+            el.classList.add('border-brand', 'bg-emerald-50');
+            el.querySelector('input').checked = true;
+            const s = schedules.find(x => x.id === id);
+            document.getElementById('selected-schedule-label').innerHTML = `<div class="text-gray-800 font-bold text-brand">${s.location}</div><div class="text-xs text-gray-600">${s.date} ${s.time}</div>`;
+            setTimeout(() => document.getElementById('accordion-container').classList.remove('accordion-open'), 200);
         }
 
         function goToConfirm() {
-            const selectedSchedule = document.querySelector('input[name="schedule_id"]:checked');
-            if (!selectedSchedule) { alert("日程を選択してください"); return; }
-            
-            const scheduleData = schedules.find(s => s.id === selectedSchedule.value);
+            const selected = document.querySelector('input[name="schedule_id"]:checked');
+            if (!selected) { alert("日程を選択してください"); return; }
+            if (!document.getElementById('participant-last').value || !document.getElementById('phone').value) { alert("必須項目を入力してください"); return; }
+
+            // 確認画面へ進む際に保存
+            saveToStorage();
+
+            const s = schedules.find(x => x.id === selected.value);
             const pName = document.getElementById('participant-last').value + " " + document.getElementById('participant-first').value;
-            const parName = document.getElementById('parent-last').value + " " + document.getElementById('parent-first').value;
+            const prName = document.getElementById('parent-last').value + " " + document.getElementById('parent-first').value;
             const phone = document.getElementById('phone').value;
-            const isOneHour = document.getElementById('one-hour-only').checked;
+            const isOne = document.getElementById('one-hour-only').checked;
 
-            if (!document.getElementById('participant-last').value || !phone) { alert("必須項目を入力してください"); return; }
-
-            document.getElementById('confirm-location').innerText = scheduleData.location;
-            document.getElementById('confirm-date').innerText = scheduleData.date;
-            document.getElementById('confirm-time').innerText = scheduleData.time;
+            document.getElementById('confirm-location').innerText = s.location;
+            document.getElementById('confirm-date').innerText = s.date;
+            document.getElementById('confirm-time').innerText = s.time;
             document.getElementById('confirm-participant').innerText = pName;
-            document.getElementById('confirm-parent').innerText = parName;
+            document.getElementById('confirm-parent').innerText = prName;
             document.getElementById('confirm-phone').innerText = phone;
-            document.getElementById('confirm-plan').innerText = isOneHour ? "1時間のみ利用" : "2時間利用";
+            document.getElementById('confirm-plan').innerText = isOne ? "1時間のみ利用" : "2時間利用";
 
             document.getElementById('view-input').classList.add('hidden');
             document.getElementById('view-confirm').classList.remove('hidden');
@@ -256,91 +263,50 @@
         }
 
         function submitReservation() {
-            const selectedSchedule = document.querySelector('input[name="schedule_id"]:checked');
-            const scheduleData = schedules.find(s => s.id === selectedSchedule.value);
-            const isOneHour = document.getElementById('one-hour-only').checked;
-
-            const reservationData = {
-                scheduleId: scheduleData.id,
-                scheduleDate: scheduleData.date,
-                scheduleTime: scheduleData.time,
-                scheduleLocation: scheduleData.location,
-                participantName: document.getElementById('participant-last').value + " " + document.getElementById('participant-first').value,
-                parentName: document.getElementById('parent-last').value + " " + document.getElementById('parent-first').value,
-                phone: document.getElementById('phone').value,
-                plan: isOneHour ? "1時間のみ" : "2時間利用",
-                lineUserId: lineUserId
-            };
-
+            const selected = document.querySelector('input[name="schedule_id"]:checked');
+            const s = schedules.find(x => x.id === selected.value);
+            const isOne = document.getElementById('one-hour-only').checked;
             const btn = document.getElementById('btn-submit');
+            
             btn.innerHTML = "送信中...";
             btn.disabled = true;
 
-            const requestBody = {
+            const payload = {
                 action: 'saveReservation',
-                data: reservationData
+                data: {
+                    scheduleId: s.id, scheduleDate: s.date, scheduleTime: s.time, scheduleLocation: s.location,
+                    participantName: document.getElementById('participant-last').value + " " + document.getElementById('participant-first').value,
+                    parentName: document.getElementById('parent-last').value + " " + document.getElementById('parent-first').value,
+                    phone: document.getElementById('phone').value,
+                    plan: isOne ? "1時間のみ" : "2時間利用", lineUserId: lineUserId
+                }
             };
 
-            fetch(GAS_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify(requestBody)
-            })
-            .then(response => response.json())
-            .then(result => {
-                if(result.status === "success") {
-                    document.getElementById('view-confirm').classList.add('hidden');
-                    document.getElementById('view-success').classList.remove('hidden');
-                    window.scrollTo(0, 0);
-                } else {
-                    throw new Error(result.message || '保存に失敗しました');
-                }
-            })
-            .catch(error => {
-                alert("送信エラー: " + error.message);
-                btn.innerHTML = "予約を確定する";
-                btn.disabled = false;
-            });
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+                .then(res => res.json())
+                .then(res => {
+                    if(res.status === "success") {
+                        document.getElementById('view-confirm').classList.add('hidden');
+                        document.getElementById('view-success').classList.remove('hidden');
+                    }
+                }).catch(() => {
+                    alert("送信に失敗しました");
+                    btn.innerHTML = "予約を確定する";
+                    btn.disabled = false;
+                });
         }
 
         function submitCancel() {
             const btn = document.getElementById('btn-cancel-submit');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>処理中...';
             btn.disabled = true;
-
-            const requestBody = {
-                action: 'cancelReservation',
-                cancelId: cancelReservationId
-            };
-
-            fetch(GAS_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify(requestBody)
-            })
-            .then(response => response.json())
-            .then(result => {
-                if(result.status === "success") {
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'cancelReservation', cancelId: cancelReservationId }) })
+                .then(() => {
                     document.getElementById('view-cancel').classList.add('hidden');
                     document.getElementById('view-cancel-success').classList.remove('hidden');
-                    window.scrollTo(0, 0);
-                } else {
-                    throw new Error(result.message || '処理に失敗しました');
-                }
-            })
-            .catch(error => {
-                alert("エラーが発生しました: " + error.message);
-                btn.innerHTML = "キャンセルする";
-                btn.disabled = false;
-            });
+                });
         }
 
-        function closeApp() {
-            // 他の画面の「やめる」ボタン等で使う可能性を残しつつ、エラーを避けるために中身は空に近づけています
-            if (typeof liff !== 'undefined' && liff.isInClient()) { 
-                liff.closeWindow(); 
-            }
-        }
+        function closeApp() { if (typeof liff !== 'undefined' && liff.isInClient()) { liff.closeWindow(); } }
     </script>
 </body>
 </html>
