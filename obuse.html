@@ -6,60 +6,48 @@
     <title>自習室予約（おぶせ）</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .selected-card { border-color: #3b82f6; background-color: #eff6ff; }
-        .disabled-card { pointer-events: none; opacity: 0.6; background-color: #f3f4f6; color: #9ca3af; }
-    </style>
 </head>
-<body class="bg-gray-50 pb-10">
-    <div class="max-w-md mx-auto p-4">
-        <header class="mb-6 text-center">
-            <h1 class="text-2xl font-bold text-blue-700">元塾講師マサちゃんの自習室</h1>
-            <p class="text-gray-500">おぶせ会場 予約フォーム</p>
-        </header>
+<body class="bg-white p-4">
+    <div class="max-w-md mx-auto">
+        <h1 class="text-xl font-bold mb-4">自習室予約（おぶせ）</h1>
 
-        <div id="loading" class="text-center py-10">
-            <div class="inline-block animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
-            <p class="mt-2 text-gray-500">読み込み中...</p>
-        </div>
+        <div id="loading">読み込み中...</div>
 
-        <div id="bookingForm" class="hidden space-y-6">
-            <section>
-                <h2 class="text-lg font-bold mb-3">1. 日程を選択してください</h2>
-                <div id="scheduleList" class="grid grid-cols-1 gap-3">
-                    </div>
-            </section>
+        <div id="mainForm" class="hidden">
+            <p class="mb-2 font-bold">1. 日程を選択してください</p>
+            <div id="scheduleList" class="space-y-2 mb-6">
+                </div>
 
-            <section class="space-y-4">
-                <h2 class="text-lg font-bold">2. 情報を入力してください</h2>
+            <div class="space-y-4">
+                <p class="font-bold">2. 情報を入力してください</p>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">参加者名（生徒名）</label>
-                    <input type="text" id="participantName" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="例：山田 太郎">
+                    <label class="block text-sm">参加者名</label>
+                    <input type="text" id="participantName" class="w-full border p-2 rounded">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">保護者名</label>
-                    <input type="text" id="parentName" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="例：山田 花子">
+                    <label class="block text-sm">保護者名</label>
+                    <input type="text" id="parentName" class="w-full border p-2 rounded">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">電話番号</label>
-                    <input type="tel" id="phone" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="例：09012345678">
+                    <label class="block text-sm">電話番号</label>
+                    <input type="tel" id="phone" class="w-full border p-2 rounded" placeholder="09012345678">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">プラン</label>
-                    <select id="plan" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                    <label class="block text-sm">プラン</label>
+                    <select id="plan" class="w-full border p-2 rounded">
                         <option value="1時間 500円（都度払い）">1時間 500円（都度払い）</option>
                     </select>
                 </div>
-            </section>
+            </div>
 
-            <button id="submitBtn" onclick="submitReservation()" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:bg-blue-700 transition">
+            <button id="submitBtn" onclick="submitReservation()" class="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded mt-6">
                 予約を確定する
             </button>
         </div>
     </div>
 
     <script>
-        // ★ご自身の情報を貼り付けてください
+        // ★ご自身のURLとIDに書き換えてください
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec"; 
         const LIFF_ID = "2009652448-yEc3eycW"; 
 
@@ -75,62 +63,43 @@
                 }
                 const profile = await liff.getProfile();
                 lineUserId = profile.userId;
-                loadSchedules();
+                fetchSchedules();
             } catch (err) {
-                console.error(err);
-                alert("初期化エラーが発生しました。");
+                alert("エラーが発生しました。");
             }
         }
 
-        async function loadSchedules() {
+        async function fetchSchedules() {
             try {
                 const response = await fetch(`${GAS_URL}?action=getSchedules&venue=obuse`);
-                const schedules = await response.json();
+                const data = await response.json();
                 
-                const listArea = document.getElementById('scheduleList');
+                const list = document.getElementById('scheduleList');
                 document.getElementById('loading').classList.add('hidden');
-                document.getElementById('bookingForm').classList.remove('hidden');
+                document.getElementById('mainForm').classList.remove('hidden');
 
-                if (schedules.length === 0) {
-                    listArea.innerHTML = '<p class="text-center text-gray-500 py-4">現在案内可能な日程がありません。</p>';
-                    return;
-                }
-
-                schedules.forEach(res => {
-                    const card = document.createElement('div');
+                data.forEach(item => {
+                    const div = document.createElement('div');
                     
-                    if (res.isDisabled) {
-                        // 【休み】の場合の表示
-                        card.className = "p-4 border rounded-xl disabled-card shadow-sm";
-                        card.innerHTML = `
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <div class="font-bold text-gray-400">${res.date}</div>
-                                    <div class="text-sm text-gray-400">${res.time}</div>
-                                </div>
-                                <div class="text-xs font-bold bg-gray-200 text-gray-500 px-2 py-1 rounded">休み</div>
-                            </div>
-                        `;
+                    if (item.isDisabled) {
+                        // お休みの場合（グレー表示・クリック不可）
+                        div.className = "p-3 border rounded bg-gray-100 text-gray-400";
+                        div.innerText = `${item.date} ${item.time} （休み）`;
                     } else {
-                        // 【通常】の場合の表示
-                        card.className = "p-4 border rounded-xl bg-white shadow-sm cursor-pointer hover:border-blue-300 transition schedule-card";
-                        card.onclick = () => selectSchedule(card, res);
-                        card.innerHTML = `
-                            <div class="font-bold">${res.date}</div>
-                            <div class="text-blue-600">${res.time}</div>
-                        `;
+                        // 通常の場合
+                        div.className = "p-3 border rounded cursor-pointer hover:bg-gray-50 schedule-item";
+                        div.innerText = `${item.date} ${item.time}`;
+                        div.onclick = () => {
+                            document.querySelectorAll('.schedule-item').forEach(el => el.classList.remove('bg-blue-100', 'border-blue-500'));
+                            div.classList.add('bg-blue-100', 'border-blue-500');
+                            selectedSchedule = item;
+                        };
                     }
-                    listArea.appendChild(card);
+                    list.appendChild(div);
                 });
             } catch (err) {
-                alert("日程の読み込みに失敗しました。");
+                alert("日程の取得に失敗しました。");
             }
-        }
-
-        function selectSchedule(element, schedule) {
-            document.querySelectorAll('.schedule-card').forEach(el => el.classList.remove('selected-card'));
-            element.classList.add('selected-card');
-            selectedSchedule = schedule;
         }
 
         async function submitReservation() {
@@ -140,7 +109,7 @@
             const plan = document.getElementById('plan').value;
 
             if (!selectedSchedule || !pName || !paName || !phone) {
-                alert("すべての項目を入力し、日程を選択してください。");
+                alert("未入力の項目があります。");
                 return;
             }
 
@@ -148,7 +117,7 @@
             btn.innerText = "送信中...";
             btn.disabled = true;
 
-            const data = {
+            const payload = {
                 action: "saveReservation",
                 data: {
                     scheduleId: selectedSchedule.id,
@@ -165,19 +134,16 @@
             };
 
             try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
                 if (result.status === "success") {
-                    alert("予約が完了しました！LINEに通知を送りました。");
+                    alert("予約が完了しました。");
                     liff.closeWindow();
                 } else {
                     throw new Error();
                 }
-            } catch (err) {
-                alert("エラーが発生しました。事務局までお問い合わせください。");
+            } catch (e) {
+                alert("送信エラーが発生しました。");
                 btn.innerText = "予約を確定する";
                 btn.disabled = false;
             }
