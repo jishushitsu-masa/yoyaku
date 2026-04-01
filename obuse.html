@@ -3,51 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>自習室予約（おぶせ）</title>
+    <title>自習室予約フォーム</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .accordion-content { display: none; }
+        .accordion-content.active { display: block; }
+        .schedule-item.selected { border-color: #3b82f6; background-color: #eff6ff; }
+        .schedule-item.disabled { background-color: #f3f4f6; color: #9ca3af; cursor: not-allowed; opacity: 0.7; }
+    </style>
 </head>
 <body class="bg-white p-4">
+
     <div class="max-w-md mx-auto">
-        <h1 class="text-xl font-bold mb-4">自習室予約（おぶせ）</h1>
+        <h1 class="text-xl font-bold mb-6 text-center">自習室予約フォーム</h1>
 
-        <div id="loading">読み込み中...</div>
-
-        <div id="mainForm" class="hidden">
-            <p class="mb-2 font-bold">1. 日程を選択してください</p>
-            <div id="scheduleList" class="space-y-2 mb-6">
-                </div>
-
-            <div class="space-y-4">
-                <p class="font-bold">2. 情報を入力してください</p>
-                <div>
-                    <label class="block text-sm">参加者名</label>
-                    <input type="text" id="participantName" class="w-full border p-2 rounded">
-                </div>
-                <div>
-                    <label class="block text-sm">保護者名</label>
-                    <input type="text" id="parentName" class="w-full border p-2 rounded">
-                </div>
-                <div>
-                    <label class="block text-sm">電話番号</label>
-                    <input type="tel" id="phone" class="w-full border p-2 rounded" placeholder="09012345678">
-                </div>
-                <div>
-                    <label class="block text-sm">プラン</label>
-                    <select id="plan" class="w-full border p-2 rounded">
-                        <option value="1時間 500円（都度払い）">1時間 500円（都度払い）</option>
-                    </select>
-                </div>
-            </div>
-
-            <button id="submitBtn" onclick="submitReservation()" class="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded mt-6">
-                予約を確定する
+        <div class="border rounded-t-lg">
+            <button onclick="toggleAccordion('obuse-content')" class="w-full text-left p-4 font-bold bg-gray-50 flex justify-between items-center">
+                おぶせ日程（岩松院）
+                <span id="obuse-icon">▼</span>
             </button>
+            <div id="obuse-content" class="accordion-content p-4 border-t">
+                <div id="obuse-list" class="space-y-2">読み込み中...</div>
+            </div>
         </div>
+
+        <div class="border rounded-b-lg border-t-0">
+            <button onclick="toggleAccordion('suzaka-content')" class="w-full text-left p-4 font-bold bg-gray-50 flex justify-between items-center">
+                すざか日程（bota）
+                <span id="suzaka-icon">▼</span>
+            </button>
+            <div id="suzaka-content" class="accordion-content p-4 border-t">
+                <div id="suzaka-list" class="space-y-2">読み込み中...</div>
+            </div>
+        </div>
+
+        <div class="mt-8 space-y-4">
+            <div>
+                <label class="block text-sm font-bold">参加者名（生徒名）</label>
+                <input type="text" id="participantName" class="w-full border p-2 rounded" placeholder="例：山田太郎">
+            </div>
+            <div>
+                <label class="block text-sm font-bold">保護者名</label>
+                <input type="text" id="parentName" class="w-full border p-2 rounded" placeholder="例：山田花子">
+            </div>
+            <div>
+                <label class="block text-sm font-bold">電話番号</label>
+                <input type="tel" id="phone" class="w-full border p-2 rounded" placeholder="09012345678">
+            </div>
+            
+            <div class="flex items-center space-x-2 py-2">
+                <input type="checkbox" id="oneHourPlan" class="h-5 w-5">
+                <label for="oneHourPlan" class="text-sm font-bold">1時間のみ利用（500円）</label>
+            </div>
+        </div>
+
+        <button id="submitBtn" onclick="submitReservation()" class="w-full bg-blue-600 text-white font-bold py-4 px-4 rounded-lg mt-8 shadow-lg hover:bg-blue-700">
+            予約を確定する
+        </button>
     </div>
 
     <script>
-        // ★ご自身のURLとIDに書き換えてください
+        // ★ご自身のGAS URLと、このページのLIFF IDを貼り付けてください
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec"; 
         const LIFF_ID = "2009652448-yEc3eycW"; 
 
@@ -63,42 +80,62 @@
                 }
                 const profile = await liff.getProfile();
                 lineUserId = profile.userId;
-                fetchSchedules();
+                
+                // 両方の会場の日程を読み込み
+                loadSchedules('obuse', 'obuse-list');
+                loadSchedules('suzaka', 'suzaka-list');
             } catch (err) {
-                alert("エラーが発生しました。");
+                alert("初期化に失敗しました。");
             }
         }
 
-        async function fetchSchedules() {
+        function toggleAccordion(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById(id.split('-')[0] + '-icon');
+            const isActive = content.classList.contains('active');
+            
+            // すべて閉じる
+            document.querySelectorAll('.accordion-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('span[id$="-icon"]').forEach(el => el.innerText = '▼');
+
+            if (!isActive) {
+                content.classList.add('active');
+                icon.innerText = '▲';
+            }
+        }
+
+        async function loadSchedules(venue, listId) {
             try {
-                const response = await fetch(`${GAS_URL}?action=getSchedules&venue=obuse`);
+                const response = await fetch(`${GAS_URL}?action=getSchedules&venue=${venue}`);
                 const data = await response.json();
-                
-                const list = document.getElementById('scheduleList');
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('mainForm').classList.remove('hidden');
+                const list = document.getElementById(listId);
+                list.innerHTML = "";
+
+                if (data.length === 0) {
+                    list.innerHTML = '<p class="text-sm text-gray-400 text-center">予定なし</p>';
+                    return;
+                }
 
                 data.forEach(item => {
                     const div = document.createElement('div');
-                    
                     if (item.isDisabled) {
-                        // お休みの場合（グレー表示・クリック不可）
-                        div.className = "p-3 border rounded bg-gray-100 text-gray-400";
+                        // お休み（グレーアウト）
+                        div.className = "p-3 border rounded disabled";
                         div.innerText = `${item.date} ${item.time} （休み）`;
                     } else {
-                        // 通常の場合
-                        div.className = "p-3 border rounded cursor-pointer hover:bg-gray-50 schedule-item";
+                        // 通常（クリック可能）
+                        div.className = "p-3 border rounded cursor-pointer schedule-item";
                         div.innerText = `${item.date} ${item.time}`;
                         div.onclick = () => {
-                            document.querySelectorAll('.schedule-item').forEach(el => el.classList.remove('bg-blue-100', 'border-blue-500'));
-                            div.classList.add('bg-blue-100', 'border-blue-500');
+                            document.querySelectorAll('.schedule-item').forEach(el => el.classList.remove('selected'));
+                            div.classList.add('selected');
                             selectedSchedule = item;
                         };
                     }
                     list.appendChild(div);
                 });
             } catch (err) {
-                alert("日程の取得に失敗しました。");
+                document.getElementById(listId).innerText = "取得エラー";
             }
         }
 
@@ -106,16 +143,18 @@
             const pName = document.getElementById('participantName').value;
             const paName = document.getElementById('parentName').value;
             const phone = document.getElementById('phone').value;
-            const plan = document.getElementById('plan').value;
+            const isOneHour = document.getElementById('oneHourPlan').checked;
 
             if (!selectedSchedule || !pName || !paName || !phone) {
-                alert("未入力の項目があります。");
+                alert("日程の選択と、お名前・電話番号の入力をお願いします。");
                 return;
             }
 
             const btn = document.getElementById('submitBtn');
             btn.innerText = "送信中...";
             btn.disabled = true;
+
+            const planText = isOneHour ? "1時間のみ利用（500円）" : "通常利用（都度払い）";
 
             const payload = {
                 action: "saveReservation",
@@ -127,7 +166,7 @@
                     participantName: pName,
                     parentName: paName,
                     phone: phone,
-                    plan: plan,
+                    plan: planText,
                     lineUserId: lineUserId,
                     liffId: LIFF_ID
                 }
@@ -137,13 +176,13 @@
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const result = await res.json();
                 if (result.status === "success") {
-                    alert("予約が完了しました。");
+                    alert("予約を完了しました！");
                     liff.closeWindow();
                 } else {
                     throw new Error();
                 }
             } catch (e) {
-                alert("送信エラーが発生しました。");
+                alert("送信に失敗しました。");
                 btn.innerText = "予約を確定する";
                 btn.disabled = false;
             }
