@@ -18,7 +18,7 @@
         .accordion-open .accordion-content { max-height: 2000px; transition: max-height 0.5s ease-in; }
         .accordion-chevron { transition: transform 0.3s; }
         .accordion-open .accordion-chevron { transform: rotate(180deg); }
-        /* 休み（無効）のスタイル */
+        /* 休み・満席（無効）のスタイル */
         .schedule-disabled { opacity: 0.5; background-color: #f9fafb; cursor: not-allowed; pointer-events: none; }
     </style>
 </head>
@@ -208,12 +208,23 @@
                 return;
             }
             schedules.forEach(s => {
-                const isDisabled = s.isDisabled;
+                const isDisabled = s.isDisabled; // GAS側からの「休み」判定
+                const isFull = s.isFull;         // GAS側からの「満席」判定（※GASの修正が必要です）
+                const isUnavailable = isDisabled || isFull; // 休み、または満席なら選択不可にする
+
+                // バッジの表示切り替え
+                let statusBadge = '';
+                if (isDisabled) {
+                    statusBadge = '<span class="text-red-500 ml-2 font-bold">【休み】</span>';
+                } else if (isFull) {
+                    statusBadge = '<span class="text-gray-500 ml-2 font-bold text-xs">【満席のため選択できません】</span>';
+                }
+
                 const html = `
-                    <label class="block border border-gray-200 rounded-lg p-4 cursor-pointer bg-white hover:bg-gray-50 transition flex items-start space-x-3 schedule-card ${isDisabled ? 'schedule-disabled' : ''}" onclick="${isDisabled ? '' : `selectCard(this, '${s.id}')`}">
-                        <div class="pt-1"><input type="radio" name="schedule_id" value="${s.id}" ${isDisabled ? 'disabled' : ''} class="w-5 h-5 accent-brand"></div>
+                    <label class="block border border-gray-200 rounded-lg p-4 cursor-pointer bg-white hover:bg-gray-50 transition flex items-start space-x-3 schedule-card ${isUnavailable ? 'schedule-disabled' : ''}" onclick="${isUnavailable ? '' : `selectCard(this, '${s.id}')`}">
+                        <div class="pt-1"><input type="radio" name="schedule_id" value="${s.id}" ${isUnavailable ? 'disabled' : ''} class="w-5 h-5 accent-brand"></div>
                         <div class="flex-1 text-sm text-gray-500">
-                            <div><span class="font-bold w-12 inline-block text-gray-400">場所</span>${s.location} ${isDisabled ? '<span class="text-red-500 ml-2 font-bold">【休み】</span>' : ''}</div>
+                            <div><span class="font-bold w-12 inline-block text-gray-400">場所</span>${s.location} ${statusBadge}</div>
                             <div><span class="font-bold w-12 inline-block text-gray-400">日程</span>${s.date}</div>
                             <div><span class="font-bold w-12 inline-block text-gray-400">時間</span>${s.time}</div>
                         </div>
