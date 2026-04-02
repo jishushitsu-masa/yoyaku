@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -26,7 +25,26 @@
 
         <div id="noReservation" class="hidden text-center py-10">
             <p class="text-gray-500">現在、予定されている予約はありません。</p>
-            <button onclick="liff.closeWindow()" class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg shadow">閉じる</button>
+            <button onclick="liff.closeWindow()" class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg shadow font-bold">閉じる</button>
+        </div>
+
+        <div id="custom-alert" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg p-6 max-w-sm w-[90%] shadow-xl">
+                <h3 class="text-lg font-bold text-center text-gray-800 mb-3 mt-2">確認</h3>
+                <p id="custom-alert-message" class="text-center text-gray-600 mb-6 text-sm font-medium"></p>
+                <button onclick="closeCustomAlert()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg shadow">OK</button>
+            </div>
+        </div>
+
+        <div id="custom-confirm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg p-6 max-w-sm w-[90%] shadow-xl">
+                <h3 class="text-lg font-bold text-center text-gray-800 mb-3 mt-2">確認</h3>
+                <p class="text-center text-gray-600 mb-6 text-sm font-medium">この予約をキャンセルしてもよろしいですか？</p>
+                <div class="flex space-x-3">
+                    <button onclick="closeCustomConfirm()" class="w-1/2 bg-gray-200 text-gray-800 font-bold py-3 rounded-lg">やめる</button>
+                    <button onclick="executeCancel()" class="w-1/2 bg-red-500 text-white font-bold py-3 rounded-lg shadow">キャンセル</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -35,6 +53,38 @@
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec"; 
         // ★この確認ページ用のLIFF IDを貼り付けてください
         const MY_LIFF_ID = "2009652448-8WjGp7jc"; 
+
+        let targetCancelId = null;
+        let targetCancelBtn = null;
+        let alertCallback = null;
+
+        // カスタムアラートの制御
+        function showCustomAlert(message, callback = null) {
+            document.getElementById('custom-alert-message').innerHTML = message;
+            document.getElementById('custom-alert').classList.remove('hidden');
+            alertCallback = callback;
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('custom-alert').classList.add('hidden');
+            if (alertCallback) {
+                alertCallback(); // OKボタンを押した後に実行したい処理（リロードなど）
+                alertCallback = null;
+            }
+        }
+
+        // カスタム確認モーダルの制御
+        function openConfirmModal(cancelId, btnElement) {
+            targetCancelId = cancelId;
+            targetCancelBtn = btnElement;
+            document.getElementById('custom-confirm').classList.remove('hidden');
+        }
+
+        function closeCustomConfirm() {
+            document.getElementById('custom-confirm').classList.add('hidden');
+            targetCancelId = null;
+            targetCancelBtn = null;
+        }
 
         async function main() {
             try {
@@ -47,7 +97,7 @@
                 loadMyReservations(profile.userId);
             } catch (err) {
                 console.error("LIFFの初期化に失敗しました", err);
-                alert("エラーが発生しました。時間を置いて再度お試しください。");
+                showCustomAlert("エラーが発生しました。<br>時間を置いて再度お試しください。");
             }
         }
 
@@ -79,8 +129,8 @@
                                 <div class="text-gray-600">${res.time}</div>
                                 <div class="text-xs text-gray-400 mt-1">参加者: ${res.participantName}さん</div>
                             </div>
-                            <button onclick="confirmCancel('${res.cancelId}')" 
-                                class="bg-red-50 text-red-600 px-3 py-2 rounded-lg text-sm font-medium border border-red-100 hover:bg-red-100 transition">
+                            <button onclick="openConfirmModal('${res.cancelId}', this)" 
+                                class="bg-red-50 text-red-600 px-3 py-2 rounded-lg text-sm font-bold border border-red-100 hover:bg-red-100 transition">
                                 キャンセル
                             </button>
                         </div>
@@ -90,35 +140,38 @@
                 listArea.classList.remove('hidden');
 
             } catch (err) {
-                alert("データの取得に失敗しました。");
+                showCustomAlert("データの取得に失敗しました。");
             }
         }
 
-        async function confirmCancel(cancelId) {
-            if (!confirm("この予約をキャンセルしてもよろしいですか？")) return;
+        async function executeCancel() {
+            // モーダルを閉じて処理開始
+            document.getElementById('custom-confirm').classList.add('hidden');
+            
+            if (!targetCancelId || !targetCancelBtn) return;
 
-            // キャンセル実行中表示
-            const btn = event.target;
-            btn.innerText = "処理中...";
-            btn.disabled = true;
+            targetCancelBtn.innerText = "処理中...";
+            targetCancelBtn.disabled = true;
 
             try {
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: "cancelReservation", cancelId: cancelId })
+                    body: JSON.stringify({ action: "cancelReservation", cancelId: targetCancelId })
                 });
                 const result = await response.json();
 
                 if (result.status === "success") {
-                    alert("予約をキャンセルしました。");
-                    location.reload(); // 画面を更新して最新の状態にする
+                    // OKを押したらリロードさせる
+                    showCustomAlert("予約をキャンセルしました。", () => {
+                        location.reload(); 
+                    });
                 } else {
                     throw new Error();
                 }
             } catch (err) {
-                alert("キャンセル処理に失敗しました。事務局へお問い合わせください。");
-                btn.innerText = "キャンセル";
-                btn.disabled = false;
+                showCustomAlert("キャンセル処理に失敗しました。<br>事務局へお問い合わせください。");
+                targetCancelBtn.innerText = "キャンセル";
+                targetCancelBtn.disabled = false;
             }
         }
 
