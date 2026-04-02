@@ -125,10 +125,7 @@
 
         <div id="custom-alert" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
             <div class="bg-white rounded-lg p-6 max-w-sm w-[90%] shadow-xl">
-                <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 text-red-500 rounded-full mb-4">
-                    <i class="fas fa-exclamation-triangle text-2xl"></i>
-                </div>
-                <h3 class="text-lg font-bold text-center text-gray-800 mb-2">確認</h3>
+                <h3 class="text-lg font-bold text-center text-gray-800 mb-3 mt-2">確認</h3>
                 <p id="custom-alert-message" class="text-center text-gray-600 mb-6 text-sm font-medium"></p>
                 <button onclick="closeCustomAlert()" class="w-full bg-brand text-white font-bold py-3 rounded-lg shadow">OK</button>
             </div>
@@ -159,13 +156,11 @@
             }
         };
 
-        // ★追加：カスタムアラートを表示する関数
         function showCustomAlert(message) {
             document.getElementById('custom-alert-message').innerHTML = message;
             document.getElementById('custom-alert').classList.remove('hidden');
         }
 
-        // ★追加：カスタムアラートを閉じる関数
         function closeCustomAlert() {
             document.getElementById('custom-alert').classList.add('hidden');
         }
@@ -266,7 +261,6 @@
 
         function goToConfirm() {
             const selected = document.querySelector('input[name="schedule_id"]:checked');
-            // ★変更：alertをカスタムアラートに変更
             if (!selected) { showCustomAlert("日程を選択してください"); return; }
             if (!document.getElementById('participant-last').value || !document.getElementById('phone').value) { showCustomAlert("必須項目を入力してください"); return; }
 
@@ -326,18 +320,15 @@
                         document.getElementById('view-confirm').classList.add('hidden');
                         document.getElementById('view-success').classList.remove('hidden');
                     } else if (res.status === "error" && res.message === "duplicate") {
-                        // ★変更：alertをカスタムアラートに変更（改行タグ <br> を使用）
                         showCustomAlert("「" + pName + "」さんは、同じ日にすでに予約が入っています。<br>重複して予約することはできません。");
                         btn.innerHTML = "予約を確定する";
                         btn.disabled = false;
                     } else {
-                        // ★変更：alertをカスタムアラートに変更
                         showCustomAlert("送信に失敗しました");
                         btn.innerHTML = "予約を確定する";
                         btn.disabled = false;
                     }
                 }).catch(() => {
-                    // ★変更：alertをカスタムアラートに変更
                     showCustomAlert("通信エラーが発生しました");
                     btn.innerHTML = "予約を確定する";
                     btn.disabled = false;
