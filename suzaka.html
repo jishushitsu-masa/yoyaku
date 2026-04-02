@@ -228,7 +228,7 @@
             el.classList.add('border-brand', 'bg-indigo-50');
             el.querySelector('input').checked = true;
             const s = schedules.find(x => x.id === id);
-            document.getElementById('selected-schedule-label').innerHTML = `<div class="text-gray-800 font-bold text-brand">${s.location}</div><div class="text-xs text-gray-600">${s.date} ${s.time}</div>`;
+            document.getElementById('selected-schedule-label').innerHTML = `<div class="text-gray-800 font-bold text-brand text-sm">${s.location}</div><div class="mt-1"><span class="text-lg font-bold text-gray-800">${s.date}</span> <span class="text-xs text-gray-600 ml-2">${s.time}</span></div>`;
             setTimeout(() => document.getElementById('accordion-container').classList.remove('accordion-open'), 200);
         }
 
