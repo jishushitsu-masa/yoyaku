@@ -14,6 +14,9 @@
         .calendar-cell { min-height: 80px; transition: all 0.2s; }
         @media (max-width: 640px) { .calendar-cell { min-height: 70px; } }
         .day-off-cell { background-color: #ebebeb !important; border-color: #d1d5db !important; }
+        /* モーダルのアニメーション */
+        .modal-enter { animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="text-gray-800">
@@ -21,7 +24,7 @@
     <div class="max-w-3xl mx-auto bg-white min-h-screen relative shadow-lg overflow-hidden pb-10">
         
         <header class="bg-gray-800 text-white p-4 flex justify-between items-center sticky top-0 z-10">
-            <h1 class="text-lg font-bold"><i class="fas fa-lock mr-2"></i>自習室　予約確認カレンダー</h1>
+            <h1 class="text-lg font-bold"><i class="fas fa-lock mr-2"></i>自習室　予約管理カレンダー</h1>
             <button id="btn-refresh" onclick="fetchReservations()" class="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded hidden"><i class="fas fa-sync-alt mr-1"></i>更新</button>
         </header>
 
@@ -55,6 +58,21 @@
                 <span id="detail-count-badge" class="ml-2 bg-brand text-white text-xs font-bold px-2 py-1 rounded-full">0件</span>
             </div>
             <div id="reservation-list" class="space-y-3"></div>
+        </div>
+    </div>
+
+    <div id="student-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50" onclick="closeModal()"></div>
+        <div class="bg-white w-11/12 max-w-md rounded-xl shadow-2xl z-10 overflow-hidden modal-enter">
+            <div class="bg-brand text-white px-5 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fas fa-id-card mr-2"></i>生徒カルテ</h3>
+                <button onclick="closeModal()" class="text-white hover:text-gray-200 text-2xl">&times;</button>
+            </div>
+            <div id="modal-content" class="p-6 space-y-4 max-h-[70vh] overflow-y-auto text-sm">
+                </div>
+            <div class="bg-gray-50 p-4 border-t border-gray-100 text-right">
+                <button onclick="closeModal()" class="bg-gray-500 text-white px-6 py-2 rounded-lg font-bold">閉じる</button>
+            </div>
         </div>
     </div>
 
@@ -163,7 +181,7 @@
                             <div class="flex flex-wrap items-center justify-between gap-2">
                                 <div class="flex-1 min-w-[200px]">
                                     <div class="flex items-baseline gap-2 mb-1">
-                                        <span class="text-lg font-bold text-blue-600 cursor-pointer underline" onclick="showStudentHistory('${res.participantName}')">${res.participantName}</span>
+                                        <span class="text-lg font-bold text-blue-600 cursor-pointer hover:text-brand-dark underline" onclick="showStudentHistory('${res.participantName}')">${res.participantName}</span>
                                         <span class="text-xs text-gray-500">様</span>
                                         <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded font-bold ml-1">${res.plan}</span>
                                     </div>
@@ -182,22 +200,58 @@
             document.getElementById('view-details').classList.remove('hidden');
         }
 
+        // ★ポップアップ表示のメイン処理
         async function showStudentHistory(name) {
+            const modal = document.getElementById('student-modal');
+            const content = document.getElementById('modal-content');
+            
+            content.innerHTML = `<div class="text-center py-10"><i class="fas fa-spinner fa-spin text-3xl text-brand"></i><br><span class="mt-2 text-gray-500">読み込み中...</span></div>`;
+            modal.classList.remove('hidden');
+
             try {
                 const response = await fetch(`${GAS_URL}?action=getStudentDetails&name=${encodeURIComponent(name)}`);
                 const info = await response.json();
-                if (!info) { alert(name + " さんのデータが「生徒名簿」シートに見つかりません。"); return; }
-                alert(
-                    `【${name} さんの生徒カルテ】\n\n` +
-                    `● 中学校：${info.school}\n` +
-                    `● 学年：${info.grade}\n` +
-                    `● 得意科目：${info.good}\n` +
-                    `● 苦手科目：${info.bad}\n` +
-                    `● 定期テスト得点：${info.score}\n` +
-                    `● 志望校：${info.target}\n` +
-                    `● その他：${info.memo}`
-                );
-            } catch (e) { alert("データの取得に失敗しました。"); }
+                
+                if (!info) {
+                    content.innerHTML = `<div class="text-center py-10 text-red-500"><i class="fas fa-exclamation-triangle text-3xl mb-2"></i><br>「生徒名簿」シートに<br><strong>${name}</strong> さんのデータが<br>見つかりませんでした。</div>`;
+                    return;
+                }
+
+                content.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3 border-b pb-3 border-gray-100">
+                            <div class="bg-brand text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold">${name[0]}</div>
+                            <div>
+                                <div class="text-xl font-bold">${name}</div>
+                                <div class="text-xs text-gray-500">${info.school} / ${info.grade}</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-3">
+                            <div class="p-3 bg-blue-50 rounded-lg">
+                                <div class="text-[10px] text-blue-600 font-bold mb-1 uppercase tracking-wider">得意科目 / 苦手科目</div>
+                                <div class="font-bold text-gray-800">得意：${info.good || '-'} / 苦手：${info.bad || '-'}</div>
+                            </div>
+                            <div class="p-3 bg-green-50 rounded-lg">
+                                <div class="text-[10px] text-green-600 font-bold mb-1 uppercase tracking-wider">定期テスト得点</div>
+                                <div class="font-bold text-gray-800">${info.score || '-'}</div>
+                            </div>
+                            <div class="p-3 bg-orange-50 rounded-lg">
+                                <div class="text-[10px] text-orange-600 font-bold mb-1 uppercase tracking-wider">志望校</div>
+                                <div class="font-bold text-gray-800">${info.target || '-'}</div>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                <div class="text-[10px] text-gray-500 font-bold mb-1 uppercase tracking-wider">その他・備考</div>
+                                <div class="text-gray-700 whitespace-pre-wrap leading-relaxed">${info.memo || 'なし'}</div>
+                            </div>
+                        </div>
+                    </div>`;
+            } catch (e) {
+                content.innerHTML = `<div class="text-center py-10 text-red-500">エラーが発生しました。</div>`;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('student-modal').classList.add('hidden');
         }
 
         function goBackToCalendar() { document.getElementById('view-details').classList.add('hidden'); document.getElementById('view-calendar').classList.remove('hidden'); }
