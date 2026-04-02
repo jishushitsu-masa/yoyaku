@@ -11,10 +11,11 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; }
-        .calendar-cell { min-height: 80px; }
+        .calendar-cell { min-height: 80px; transition: all 0.2s; }
         @media (max-width: 640px) { .calendar-cell { min-height: 70px; } }
-        /* 休み用のスタイルを追加 */
-        .day-off { background-color: #f3f4f6 !important; color: #9ca3af !important; pointer-events: none; }
+        /* 休み（グレーアウト）用の専用スタイル */
+        .day-off-cell { background-color: #ebebeb !important; border-color: #d1d5db !important; }
+        .day-off-text { color: #9ca3af !important; }
     </style>
 </head>
 <body class="text-gray-800">
@@ -22,7 +23,7 @@
     <div class="max-w-3xl mx-auto bg-white min-h-screen relative shadow-lg overflow-hidden pb-10">
         
         <header class="bg-gray-800 text-white p-4 flex justify-between items-center sticky top-0 z-10">
-            <h1 class="text-lg font-bold"><i class="fas fa-lock mr-2"></i>自習室　予約確認カレンダー</h1>
+            <h1 class="text-lg font-bold"><i class="fas fa-lock mr-2"></i>自習室　予約確認カレンダー［管理画面］</h1>
             <button id="btn-refresh" onclick="fetchReservations()" class="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded hidden"><i class="fas fa-sync-alt mr-1"></i>更新</button>
         </header>
 
@@ -35,10 +36,9 @@
         </div>
 
         <div id="view-calendar" class="p-4 hidden">
-            
             <div class="flex justify-between items-center mb-4 mt-2">
                 <button onclick="changeMonth(-1)" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600"><i class="fas fa-chevron-left"></i></button>
-                <h2 id="current-month-label" class="text-xl font-bold text-gray-800">2026年 4月</h2>
+                <h2 id="current-month-label" class="text-xl font-bold text-gray-800">----年 --月</h2>
                 <button onclick="changeMonth(1)" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600"><i class="fas fa-chevron-right"></i></button>
             </div>
 
@@ -46,8 +46,7 @@
                 <div class="text-red-500">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="text-blue-500">土</div>
             </div>
 
-            <div id="calendar-grid" class="grid grid-cols-7 gap-1">
-                </div>
+            <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
             
             <div id="loading-message" class="text-center py-8 text-gray-500 hidden">
                 <i class="fas fa-spinner fa-spin mr-2 text-brand text-2xl"></i><br>予約データを読み込んでいます...
@@ -62,21 +61,13 @@
                 <h2 id="detail-date-label" class="text-lg font-bold text-gray-800 ml-4">--月--日 の予約</h2>
                 <span id="detail-count-badge" class="ml-2 bg-brand text-white text-xs font-bold px-2 py-1 rounded-full">0件</span>
             </div>
-
-            <div id="reservation-list" class="space-y-3">
-                </div>
+            <div id="reservation-list" class="space-y-3"></div>
         </div>
-
     </div>
 
     <script>
-        // ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-        // 【重要】設定エリア
-        // ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
-        
         const ADMIN_PASSWORD = "0202"; 
-        // ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 
         let allReservations = [];
         let groupedReservations = {}; 
@@ -116,13 +107,10 @@
             groupedReservations = {};
             allReservations.forEach(res => {
                 let dateKey = null;
-                const match = res.date.replace(/[０-９：]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
-                                      .match(/(\d{4})[-\/年](\d{1,2})[-\/月](\d{1,2})/);
+                const cleanDate = res.date.replace(/[０-９：]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+                const match = cleanDate.match(/(\d{4})[-\/年](\d{1,2})[-\/月](\d{1,2})/);
                 if (match) {
-                    const y = match[1];
-                    const m = match[2].padStart(2, '0');
-                    const d = match[3].padStart(2, '0');
-                    dateKey = `${y}-${m}-${d}`;
+                    dateKey = `${match[1]}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}`;
                 }
 
                 if (dateKey) {
@@ -156,50 +144,40 @@
                 const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const dayItems = groupedReservations[dateKey] || [];
                 
-                // ★追加：この日が「休み」設定されているか判定
+                // 「休み」というステータスを持つデータがあるかチェック
                 const isHoliday = dayItems.some(item => item.status === "休み");
-                // 予約件数（休み設定を除いた純粋な予約数）
+                // 休みを除いた予約件数
                 const resCount = dayItems.filter(item => item.status !== "休み").length;
                 
                 const dayOfWeek = new Date(year, month, day).getDay();
-                let locationText = '';
-                let locationClass = 'text-[10px] mt-0.5 font-bold ';
+                let locationText = (dayOfWeek === 1 || dayOfWeek === 4) ? 'すざか' : (dayOfWeek === 2 || dayOfWeek === 5) ? 'おぶせ' : '';
+                let locationClass = 'text-[10px] mt-0.5 font-bold ' + (locationText === 'すざか' ? 'text-orange-500' : 'text-green-600');
 
-                if (dayOfWeek === 1 || dayOfWeek === 4) { 
-                    locationText = 'すざか';
-                    locationClass += 'text-orange-500';
-                } else if (dayOfWeek === 2 || dayOfWeek === 5) { 
-                    locationText = 'おぶせ';
-                    locationClass += 'text-green-600';
-                }
-
-                let isTodayClass = (dateKey === todayStr) ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200';
+                let cellClass = (dateKey === todayStr) ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200';
                 
-                // ★追加：休みの場合のスタイル
-                let holidayClass = isHoliday ? 'day-off' : '';
+                // 休みの場合の処理
                 let badgeHtml = '';
-                
                 if (isHoliday) {
+                    cellClass += ' day-off-cell pointer-events-none'; // グレーアウトとクリック不可
                     badgeHtml = `<div class="mt-1 bg-gray-400 text-white text-[10px] font-bold rounded px-1.5 py-0.5">休み</div>`;
                 } else if (resCount > 0) {
                     badgeHtml = `<div class="mt-1 bg-brand text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 shadow-sm">${resCount}件</div>`;
                 }
 
-                const cellHtml = `
-                    <div class="border rounded p-1 sm:p-2 calendar-cell flex flex-col items-center cursor-pointer hover:bg-gray-100 transition shadow-sm ${isTodayClass} ${holidayClass}" onclick="${isHoliday ? '' : `showDetails('${dateKey}', ${year}, ${month + 1}, ${day})`}">
-                        <span class="text-sm font-bold text-gray-700">${day}</span>
-                        <span class="${locationClass}">${isHoliday ? '' : locationText}</span>
+                grid.innerHTML += `
+                    <div class="border rounded p-1 sm:p-2 calendar-cell flex flex-col items-center cursor-pointer hover:bg-gray-100 transition shadow-sm ${cellClass}" 
+                         onclick="${isHoliday ? '' : `showDetails('${dateKey}', ${year}, ${month + 1}, ${day})`}">
+                        <span class="text-sm font-bold ${isHoliday ? 'text-gray-400' : 'text-gray-700'}">${day}</span>
+                        <span class="${locationClass} ${isHoliday ? 'hidden' : ''}">${locationText}</span>
                         ${badgeHtml}
                     </div>
                 `;
-                grid.innerHTML += cellHtml;
             }
         }
 
         function showDetails(dateKey, y, m, d) {
             const listContainer = document.getElementById('reservation-list');
             listContainer.innerHTML = '';
-            // 休み設定以外の予約のみを表示対象にする
             const reservations = (groupedReservations[dateKey] || []).filter(item => item.status !== "休み");
             
             document.getElementById('detail-date-label').innerText = `${m}月${d}日 の予約`;
@@ -209,41 +187,25 @@
                 listContainer.innerHTML = `<div class="text-center py-10 bg-white rounded-lg border border-gray-200 text-gray-500">この日の予約はありません。</div>`;
             } else {
                 reservations.forEach(res => {
-                    const cardHtml = `
+                    listContainer.insertAdjacentHTML('beforeend', `
                         <div class="bg-white border border-gray-200 rounded-lg p-3 shadow-sm relative overflow-hidden">
                             <div class="absolute top-0 left-0 w-1.5 h-full bg-brand"></div>
                             <div class="flex flex-wrap items-center justify-between gap-2">
                                 <div class="flex-1 min-w-[200px]">
                                     <div class="flex items-baseline gap-2 mb-1">
                                         <span class="text-lg font-bold text-gray-800">${res.participantName}</span>
-                                        <span class="text-xs text-gray-500">様</span>
                                         <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded font-bold ml-1">${res.plan}</span>
                                     </div>
                                     <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600">
-                                        <div class="flex items-center gap-1.5">
-                                            <i class="far fa-clock text-brand w-3.5"></i>
-                                            <span class="font-medium">${res.time}</span>
-                                        </div>
-                                        <div class="flex items-center gap-1.5">
-                                            <i class="fas fa-map-marker-alt text-red-400 w-3.5"></i>
-                                            <span class="truncate">${res.location}</span>
-                                        </div>
-                                        <div class="flex items-center gap-1.5">
-                                            <i class="fas fa-user-shield text-gray-400 w-3.5"></i>
-                                            <span class="text-xs">保護者: ${res.parentName}</span>
-                                        </div>
+                                        <div><i class="far fa-clock text-brand mr-1"></i>${res.time}</div>
+                                        <div><i class="fas fa-map-marker-alt text-red-400 mr-1"></i>${res.location}</div>
+                                        <div class="col-span-2 text-xs text-gray-400">保護者: ${res.parentName}</div>
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-2 border-l border-gray-100 pl-3">
-                                    <a href="tel:${res.phone}" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-md hover:bg-blue-100 transition flex items-center gap-2 border border-blue-100">
-                                        <i class="fas fa-phone-alt text-sm"></i>
-                                        <span class="text-xs font-bold whitespace-nowrap">電話</span>
-                                    </a>
-                                </div>
+                                <a href="tel:${res.phone}" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-md border border-blue-100 italic font-bold text-xs"><i class="fas fa-phone-alt mr-1"></i>電話</a>
                             </div>
                         </div>
-                    `;
-                    listContainer.insertAdjacentHTML('beforeend', cardHtml);
+                    `);
                 });
             }
             document.getElementById('view-calendar').classList.add('hidden');
