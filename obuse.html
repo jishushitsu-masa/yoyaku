@@ -126,11 +126,9 @@
     </div>
 
     <script>
-        // ★おぶせ用のLIFF ID
         const LIFF_ID = "2009652448-yEc3eycW";
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
         
-        // おぶせ用の保存キー
         const STORAGE_KEY = "obuse_jishu_user_v1";
 
         let schedules = [];
@@ -192,7 +190,6 @@
         }
 
         function loadSchedulesFromGAS() {
-            // おぶせの会場のみを取得
             fetch(GAS_URL + "?action=getSchedules&venue=obuse")
                 .then(res => res.json())
                 .then(data => {
@@ -209,18 +206,16 @@
                 return;
             }
             schedules.forEach(s => {
-                const isDisabled = s.isDisabled; // GAS側からの「休み」判定
-                const isFull = s.isFull;         // GAS側からの「満席」判定
-                const isUnavailable = isDisabled || isFull; // 休み、または満席なら選択不可にする
+                const isDisabled = s.isDisabled;
+                const isFull = s.isFull;
+                const isUnavailable = isDisabled || isFull;
 
-                // バッジ・メッセージの表示切り替え
                 let locationBadge = '';
                 let bottomMessage = '';
 
                 if (isDisabled) {
                     locationBadge = '<span class="text-red-500 ml-2 font-bold">【休み】</span>';
                 } else if (isFull) {
-                    // ★ 満席の場合は下に赤字で表示
                     bottomMessage = '<div class="mt-2 text-red-500 font-bold text-sm">満席のため選択できません</div>';
                 }
 
@@ -288,11 +283,13 @@
             btn.innerHTML = "送信中...";
             btn.disabled = true;
 
+            const pName = document.getElementById('participant-last').value + " " + document.getElementById('participant-first').value;
+
             const payload = {
                 action: 'saveReservation',
                 data: {
                     scheduleId: s.id, scheduleDate: s.date, scheduleTime: s.time, scheduleLocation: s.location,
-                    participantName: document.getElementById('participant-last').value + " " + document.getElementById('participant-first').value,
+                    participantName: pName,
                     parentName: document.getElementById('parent-last').value + " " + document.getElementById('parent-first').value,
                     phone: document.getElementById('phone').value,
                     plan: isOne ? "1時間のみ" : "2時間利用", lineUserId: lineUserId,
@@ -306,9 +303,18 @@
                     if(res.status === "success") {
                         document.getElementById('view-confirm').classList.add('hidden');
                         document.getElementById('view-success').classList.remove('hidden');
+                    // ★追加：エラーで理由が重複（duplicate）だった場合の処理
+                    } else if (res.status === "error" && res.message === "duplicate") {
+                        alert("エラー：「" + pName + "」さんは、同じ日にすでに予約が入っています。\\n重複して予約することはできません。");
+                        btn.innerHTML = "予約を確定する";
+                        btn.disabled = false;
+                    } else {
+                        alert("送信に失敗しました");
+                        btn.innerHTML = "予約を確定する";
+                        btn.disabled = false;
                     }
                 }).catch(() => {
-                    alert("送信に失敗しました");
+                    alert("通信エラーが発生しました");
                     btn.innerHTML = "予約を確定する";
                     btn.disabled = false;
                 });
