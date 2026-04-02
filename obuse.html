@@ -113,7 +113,7 @@
             <p class="text-gray-600 text-center mb-8">この操作は取り消せません。</p>
             <div class="w-full flex space-x-3">
                 <button onclick="closeApp()" class="w-1/2 bg-gray-200 text-gray-800 font-bold py-3 rounded-lg">やめる</button>
-                <button id="btn-cancel-submit" onclick="submitCancel()" class="w-1/2 bg-red-500 text-white font-bold py-3 rounded-lg shadow">キャンセルする</button>
+                <button id="btn-cancel-submit" onclick="submitCancel()" class="w-1/2 bg-red-500 text-white font-bold py-3 rounded-lg shadow transition-opacity duration-200">キャンセルする</button>
             </div>
         </div>
 
@@ -298,6 +298,7 @@
             
             btn.innerHTML = "送信中...";
             btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
 
             const pName = document.getElementById('participant-last').value + " " + document.getElementById('participant-first').value;
 
@@ -323,25 +324,38 @@
                         showCustomAlert("「" + pName + "」さんは、同じ日にすでに予約が入っています。<br>重複して予約することはできません。");
                         btn.innerHTML = "予約を確定する";
                         btn.disabled = false;
+                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
                     } else {
                         showCustomAlert("送信に失敗しました");
                         btn.innerHTML = "予約を確定する";
                         btn.disabled = false;
+                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
                     }
                 }).catch(() => {
                     showCustomAlert("通信エラーが発生しました");
                     btn.innerHTML = "予約を確定する";
                     btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
                 });
         }
 
         function submitCancel() {
             const btn = document.getElementById('btn-cancel-submit');
+            // ★追加：視覚的なフィードバック
+            btn.innerHTML = "処理中...";
             btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'cancelReservation', cancelId: cancelReservationId }) })
                 .then(() => {
                     document.getElementById('view-cancel').classList.add('hidden');
                     document.getElementById('view-cancel-success').classList.remove('hidden');
+                }).catch(() => {
+                    // ★追加：エラー時の復帰処理
+                    showCustomAlert("通信エラーが発生しました");
+                    btn.innerHTML = "キャンセルする";
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
                 });
         }
 
