@@ -2,81 +2,259 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>予約管理画面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>マサちゃんの自習室　予約管理画面</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { brand: '#4F46E5', 'brand-dark': '#4338CA' } } } }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; }
+        .calendar-cell { min-height: 80px; }
+        @media (max-width: 640px) { .calendar-cell { min-height: 70px; } }
+        /* 休み用のスタイルを追加 */
+        .day-off { background-color: #f3f4f6 !important; color: #9ca3af !important; pointer-events: none; }
+    </style>
 </head>
-<body class="bg-gray-100 p-4">
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-2xl font-bold mb-6">予約台帳（管理者用）</h1>
+<body class="text-gray-800">
+
+    <div class="max-w-3xl mx-auto bg-white min-h-screen relative shadow-lg overflow-hidden pb-10">
         
-        <div class="bg-white shadow rounded-lg overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead class="bg-gray-200">
-                    <tr>
-                        <th class="p-3 border text-sm">日時</th>
-                        <th class="p-3 border text-sm">会場</th>
-                        <th class="p-3 border text-sm">日程・時間</th>
-                        <th class="p-3 border text-sm">参加者</th>
-                        <th class="p-3 border text-sm">電話番号</th>
-                        <th class="p-3 border text-sm">プラン</th>
-                    </tr>
-                </thead>
-                <tbody id="reservationTable">
-                    <tr>
-                        <td colspan="6" class="p-10 text-center text-gray-500">読み込み中...</td>
-                    </tr>
-                </tbody>
-            </table>
+        <header class="bg-gray-800 text-white p-4 flex justify-between items-center sticky top-0 z-10">
+            <h1 class="text-lg font-bold"><i class="fas fa-lock mr-2"></i>自習室　予約確認カレンダー［管理画面］</h1>
+            <button id="btn-refresh" onclick="fetchReservations()" class="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded hidden"><i class="fas fa-sync-alt mr-1"></i>更新</button>
+        </header>
+
+        <div id="view-login" class="p-8 mt-10 max-w-sm mx-auto bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+            <div class="text-center mb-6 text-gray-400"><i class="fas fa-user-shield text-5xl"></i></div>
+            <h2 class="text-center font-bold text-gray-700 mb-6">パスワードを入力してください</h2>
+            <input type="password" id="admin-password" placeholder="パスワード" class="w-full border border-gray-300 rounded p-3 text-center mb-4 focus:outline-none focus:border-brand">
+            <button onclick="checkPassword()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 rounded shadow">ログイン</button>
+            <p id="login-error" class="text-red-500 text-sm text-center mt-3 hidden">パスワードが違います</p>
         </div>
+
+        <div id="view-calendar" class="p-4 hidden">
+            
+            <div class="flex justify-between items-center mb-4 mt-2">
+                <button onclick="changeMonth(-1)" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600"><i class="fas fa-chevron-left"></i></button>
+                <h2 id="current-month-label" class="text-xl font-bold text-gray-800">2026年 4月</h2>
+                <button onclick="changeMonth(1)" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600"><i class="fas fa-chevron-right"></i></button>
+            </div>
+
+            <div class="grid grid-cols-7 gap-1 mb-1 text-center font-bold text-xs text-gray-500">
+                <div class="text-red-500">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="text-blue-500">土</div>
+            </div>
+
+            <div id="calendar-grid" class="grid grid-cols-7 gap-1">
+                </div>
+            
+            <div id="loading-message" class="text-center py-8 text-gray-500 hidden">
+                <i class="fas fa-spinner fa-spin mr-2 text-brand text-2xl"></i><br>予約データを読み込んでいます...
+            </div>
+        </div>
+
+        <div id="view-details" class="p-4 hidden bg-gray-100 min-h-screen">
+            <div class="flex items-center mb-4 mt-2">
+                <button onclick="goBackToCalendar()" class="bg-white border border-gray-300 text-gray-600 px-4 py-2 rounded shadow-sm hover:bg-gray-50 flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>戻る
+                </button>
+                <h2 id="detail-date-label" class="text-lg font-bold text-gray-800 ml-4">--月--日 の予約</h2>
+                <span id="detail-count-badge" class="ml-2 bg-brand text-white text-xs font-bold px-2 py-1 rounded-full">0件</span>
+            </div>
+
+            <div id="reservation-list" class="space-y-3">
+                </div>
+        </div>
+
     </div>
 
     <script>
-        // ★ご自身のGAS URLを貼り付けてください
+        // ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+        // 【重要】設定エリア
+        // ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
+        
+        const ADMIN_PASSWORD = "0202"; 
+        // ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 
-        async function fetchAll() {
-            try {
-                const response = await fetch(`${GAS_URL}?action=getAllReservations`);
-                const data = await response.json();
-                
-                const table = document.getElementById('reservationTable');
-                table.innerHTML = '';
+        let allReservations = [];
+        let groupedReservations = {}; 
+        let currentDate = new Date();
 
-                if (data.length === 0) {
-                    table.innerHTML = '<tr><td colspan="6" class="p-10 text-center">予約はありません</td></tr>';
-                    return;
-                }
-
-                // タイムスタンプの新しい順に並び替え
-                data.reverse();
-
-                data.forEach(res => {
-                    const tr = document.createElement('tr');
-                    
-                    // 「休み」設定の行はグレーアウト
-                    if (res.status === "休み") {
-                        tr.className = "bg-gray-100 text-gray-400 italic";
-                    } else {
-                        tr.className = "hover:bg-gray-50";
-                    }
-
-                    tr.innerHTML = `
-                        <td class="p-3 border text-xs">${res.timestamp}</td>
-                        <td class="p-3 border text-sm">${res.location}${res.status === "休み" ? ' <span class="text-red-400 not-italic font-bold text-xs">[休み設定]</span>' : ''}</td>
-                        <td class="p-3 border text-sm">${res.date}<br>${res.time}</td>
-                        <td class="p-3 border text-sm font-bold">${res.participantName}<br><span class="text-xs font-normal text-gray-500">保護者: ${res.parentName}</span></td>
-                        <td class="p-3 border text-sm">${res.phone}</td>
-                        <td class="p-3 border text-sm">${res.plan}</td>
-                    `;
-                    table.appendChild(tr);
-                });
-            } catch (err) {
-                alert("データの取得に失敗しました。");
+        function checkPassword() {
+            const input = document.getElementById('admin-password').value;
+            if (input === ADMIN_PASSWORD) {
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('view-calendar').classList.remove('hidden');
+                document.getElementById('btn-refresh').classList.remove('hidden');
+                fetchReservations();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
             }
         }
 
-        fetchAll();
+        function fetchReservations() {
+            document.getElementById('calendar-grid').innerHTML = '';
+            document.getElementById('loading-message').classList.remove('hidden');
+
+            fetch(GAS_URL + "?action=getAllReservations")
+                .then(response => response.json())
+                .then(data => {
+                    allReservations = data;
+                    groupReservationsByDate();
+                    renderCalendar();
+                    document.getElementById('loading-message').classList.add('hidden');
+                })
+                .catch(error => {
+                    alert('データの読み込みに失敗しました。');
+                    document.getElementById('loading-message').classList.add('hidden');
+                });
+        }
+
+        function groupReservationsByDate() {
+            groupedReservations = {};
+            allReservations.forEach(res => {
+                let dateKey = null;
+                const match = res.date.replace(/[０-９：]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+                                      .match(/(\d{4})[-\/年](\d{1,2})[-\/月](\d{1,2})/);
+                if (match) {
+                    const y = match[1];
+                    const m = match[2].padStart(2, '0');
+                    const d = match[3].padStart(2, '0');
+                    dateKey = `${y}-${m}-${d}`;
+                }
+
+                if (dateKey) {
+                    if (!groupedReservations[dateKey]) groupedReservations[dateKey] = [];
+                    groupedReservations[dateKey].push(res);
+                }
+            });
+        }
+
+        function changeMonth(diff) {
+            currentDate.setMonth(currentDate.getMonth() + diff);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            document.getElementById('current-month-label').innerText = `${year}年 ${month + 1}月`;
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+            for (let i = 0; i < firstDay; i++) {
+                grid.innerHTML += `<div class="bg-gray-50 border border-gray-100 rounded"></div>`;
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayItems = groupedReservations[dateKey] || [];
+                
+                // ★追加：この日が「休み」設定されているか判定
+                const isHoliday = dayItems.some(item => item.status === "休み");
+                // 予約件数（休み設定を除いた純粋な予約数）
+                const resCount = dayItems.filter(item => item.status !== "休み").length;
+                
+                const dayOfWeek = new Date(year, month, day).getDay();
+                let locationText = '';
+                let locationClass = 'text-[10px] mt-0.5 font-bold ';
+
+                if (dayOfWeek === 1 || dayOfWeek === 4) { 
+                    locationText = 'すざか';
+                    locationClass += 'text-orange-500';
+                } else if (dayOfWeek === 2 || dayOfWeek === 5) { 
+                    locationText = 'おぶせ';
+                    locationClass += 'text-green-600';
+                }
+
+                let isTodayClass = (dateKey === todayStr) ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200';
+                
+                // ★追加：休みの場合のスタイル
+                let holidayClass = isHoliday ? 'day-off' : '';
+                let badgeHtml = '';
+                
+                if (isHoliday) {
+                    badgeHtml = `<div class="mt-1 bg-gray-400 text-white text-[10px] font-bold rounded px-1.5 py-0.5">休み</div>`;
+                } else if (resCount > 0) {
+                    badgeHtml = `<div class="mt-1 bg-brand text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 shadow-sm">${resCount}件</div>`;
+                }
+
+                const cellHtml = `
+                    <div class="border rounded p-1 sm:p-2 calendar-cell flex flex-col items-center cursor-pointer hover:bg-gray-100 transition shadow-sm ${isTodayClass} ${holidayClass}" onclick="${isHoliday ? '' : `showDetails('${dateKey}', ${year}, ${month + 1}, ${day})`}">
+                        <span class="text-sm font-bold text-gray-700">${day}</span>
+                        <span class="${locationClass}">${isHoliday ? '' : locationText}</span>
+                        ${badgeHtml}
+                    </div>
+                `;
+                grid.innerHTML += cellHtml;
+            }
+        }
+
+        function showDetails(dateKey, y, m, d) {
+            const listContainer = document.getElementById('reservation-list');
+            listContainer.innerHTML = '';
+            // 休み設定以外の予約のみを表示対象にする
+            const reservations = (groupedReservations[dateKey] || []).filter(item => item.status !== "休み");
+            
+            document.getElementById('detail-date-label').innerText = `${m}月${d}日 の予約`;
+            document.getElementById('detail-count-badge').innerText = `${reservations.length}件`;
+
+            if (reservations.length === 0) {
+                listContainer.innerHTML = `<div class="text-center py-10 bg-white rounded-lg border border-gray-200 text-gray-500">この日の予約はありません。</div>`;
+            } else {
+                reservations.forEach(res => {
+                    const cardHtml = `
+                        <div class="bg-white border border-gray-200 rounded-lg p-3 shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-1.5 h-full bg-brand"></div>
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <div class="flex-1 min-w-[200px]">
+                                    <div class="flex items-baseline gap-2 mb-1">
+                                        <span class="text-lg font-bold text-gray-800">${res.participantName}</span>
+                                        <span class="text-xs text-gray-500">様</span>
+                                        <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded font-bold ml-1">${res.plan}</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600">
+                                        <div class="flex items-center gap-1.5">
+                                            <i class="far fa-clock text-brand w-3.5"></i>
+                                            <span class="font-medium">${res.time}</span>
+                                        </div>
+                                        <div class="flex items-center gap-1.5">
+                                            <i class="fas fa-map-marker-alt text-red-400 w-3.5"></i>
+                                            <span class="truncate">${res.location}</span>
+                                        </div>
+                                        <div class="flex items-center gap-1.5">
+                                            <i class="fas fa-user-shield text-gray-400 w-3.5"></i>
+                                            <span class="text-xs">保護者: ${res.parentName}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 border-l border-gray-100 pl-3">
+                                    <a href="tel:${res.phone}" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-md hover:bg-blue-100 transition flex items-center gap-2 border border-blue-100">
+                                        <i class="fas fa-phone-alt text-sm"></i>
+                                        <span class="text-xs font-bold whitespace-nowrap">電話</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    listContainer.insertAdjacentHTML('beforeend', cardHtml);
+                });
+            }
+            document.getElementById('view-calendar').classList.add('hidden');
+            document.getElementById('view-details').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function goBackToCalendar() {
+            document.getElementById('view-details').classList.add('hidden');
+            document.getElementById('view-calendar').classList.remove('hidden');
+        }
     </script>
 </body>
 </html>
