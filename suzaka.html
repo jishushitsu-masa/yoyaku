@@ -18,6 +18,7 @@
         .accordion-open .accordion-content { max-height: 2000px; transition: max-height 0.5s ease-in; }
         .accordion-chevron { transition: transform 0.3s; }
         .accordion-open .accordion-chevron { transform: rotate(180deg); }
+        /* 休み・満席（無効）のスタイル */
         .schedule-disabled { opacity: 0.5; background-color: #f9fafb; cursor: not-allowed; pointer-events: none; }
     </style>
 </head>
@@ -122,14 +123,6 @@
             <h2 class="text-2xl font-bold text-gray-800 mb-2 text-center">キャンセル完了</h2>
             <p class="text-gray-600 text-center mb-8">予約のキャンセルを受け付けました。</p>
         </div>
-
-        <div id="custom-alert" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-            <div class="bg-white rounded-lg p-6 max-w-sm w-[90%] shadow-xl">
-                <h3 class="text-lg font-bold text-center text-gray-800 mb-3 mt-2">確認</h3>
-                <p id="custom-alert-message" class="text-center text-gray-600 mb-6 text-sm font-medium"></p>
-                <button onclick="closeCustomAlert()" class="w-full bg-brand text-white font-bold py-3 rounded-lg shadow">OK</button>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -155,15 +148,6 @@
                 routePage();
             }
         };
-
-        function showCustomAlert(message) {
-            document.getElementById('custom-alert-message').innerHTML = message;
-            document.getElementById('custom-alert').classList.remove('hidden');
-        }
-
-        function closeCustomAlert() {
-            document.getElementById('custom-alert').classList.add('hidden');
-        }
 
         function initForm() {
             const savedData = localStorage.getItem(STORAGE_KEY);
@@ -261,9 +245,92 @@
 
         function goToConfirm() {
             const selected = document.querySelector('input[name="schedule_id"]:checked');
-            if (!selected) { showCustomAlert("日程を選択してください"); return; }
-            if (!document.getElementById('participant-last').value || !document.getElementById('phone').value) { showCustomAlert("必須項目を入力してください"); return; }
+            if (!selected) { alert("日程を選択してください"); return; }
+            if (!document.getElementById('participant-last').value || !document.getElementById('phone').value) { alert("必須項目を入力してください"); return; }
 
             saveToStorage();
 
             const s = schedules.find(x => x.id === selected.value);
+            const pName = document.getElementById('participant-last').value + " " + document.getElementById('participant-first').value;
+            const prName = document.getElementById('parent-last').value + " " + document.getElementById('parent-first').value;
+            const phone = document.getElementById('phone').value;
+            const isOne = document.getElementById('one-hour-only').checked;
+
+            document.getElementById('confirm-location').innerText = s.location;
+            document.getElementById('confirm-date').innerText = s.date;
+            document.getElementById('confirm-time').innerText = s.time;
+            document.getElementById('confirm-participant').innerText = pName;
+            document.getElementById('confirm-parent').innerText = prName;
+            document.getElementById('confirm-phone').innerText = phone;
+            document.getElementById('confirm-plan').innerText = isOne ? "1時間のみ利用" : "2時間利用";
+
+            document.getElementById('view-input').classList.add('hidden');
+            document.getElementById('view-confirm').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function goBackToInput() {
+            document.getElementById('view-confirm').classList.add('hidden');
+            document.getElementById('view-input').classList.remove('hidden');
+        }
+
+        function submitReservation() {
+            const selected = document.querySelector('input[name="schedule_id"]:checked');
+            const s = schedules.find(x => x.id === selected.value);
+            const isOne = document.getElementById('one-hour-only').checked;
+            const btn = document.getElementById('btn-submit');
+            
+            btn.innerHTML = "送信中...";
+            btn.disabled = true;
+
+            const pName = document.getElementById('participant-last').value + " " + document.getElementById('participant-first').value;
+
+            const payload = {
+                action: 'saveReservation',
+                data: {
+                    scheduleId: s.id, scheduleDate: s.date, scheduleTime: s.time, scheduleLocation: s.location,
+                    participantName: pName,
+                    parentName: document.getElementById('parent-last').value + " " + document.getElementById('parent-first').value,
+                    phone: document.getElementById('phone').value,
+                    plan: isOne ? "1時間のみ" : "2時間利用", lineUserId: lineUserId,
+                    liffId: LIFF_ID
+                }
+            };
+
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+                .then(res => res.json())
+                .then(res => {
+                    if(res.status === "success") {
+                        document.getElementById('view-confirm').classList.add('hidden');
+                        document.getElementById('view-success').classList.remove('hidden');
+                    // ★追加：エラーで理由が重複（duplicate）だった場合の処理
+                    } else if (res.status === "error" && res.message === "duplicate") {
+                        alert("エラー：「" + pName + "」さんは、同じ日にすでに予約が入っています。重複して予約することはできません。");
+                        btn.innerHTML = "予約を確定する";
+                        btn.disabled = false;
+                    } else {
+                        alert("送信に失敗しました");
+                        btn.innerHTML = "予約を確定する";
+                        btn.disabled = false;
+                    }
+                }).catch(() => {
+                    alert("通信エラーが発生しました");
+                    btn.innerHTML = "予約を確定する";
+                    btn.disabled = false;
+                });
+        }
+
+        function submitCancel() {
+            const btn = document.getElementById('btn-cancel-submit');
+            btn.disabled = true;
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'cancelReservation', cancelId: cancelReservationId }) })
+                .then(() => {
+                    document.getElementById('view-cancel').classList.add('hidden');
+                    document.getElementById('view-cancel-success').classList.remove('hidden');
+                });
+        }
+
+        function closeApp() { if (typeof liff !== 'undefined' && liff.isInClient()) { liff.closeWindow(); } }
+    </script>
+</body>
+</html>
