@@ -18,7 +18,6 @@
         .accordion-open .accordion-content { max-height: 2000px; transition: max-height 0.5s ease-in; }
         .accordion-chevron { transition: transform 0.3s; }
         .accordion-open .accordion-chevron { transform: rotate(180deg); }
-        /* 休み・満席（無効）のスタイル */
         .schedule-disabled { opacity: 0.5; background-color: #f9fafb; cursor: not-allowed; pointer-events: none; }
     </style>
 </head>
@@ -114,7 +113,7 @@
             <p class="text-gray-600 text-center mb-8">この操作は取り消せません。</p>
             <div class="w-full flex space-x-3">
                 <button onclick="closeApp()" class="w-1/2 bg-gray-200 text-gray-800 font-bold py-3 rounded-lg">やめる</button>
-                <button id="btn-cancel-submit" onclick="submitCancel()" class="w-1/2 bg-red-500 text-white font-bold py-3 rounded-lg shadow">キャンセルする</button>
+                <button id="btn-cancel-submit" onclick="submitCancel()" class="w-1/2 bg-red-500 text-white font-bold py-3 rounded-lg shadow transition-opacity duration-200">キャンセルする</button>
             </div>
         </div>
 
@@ -157,13 +156,11 @@
             }
         };
 
-        // ★追加：カスタムアラートを表示する関数
         function showCustomAlert(message) {
             document.getElementById('custom-alert-message').innerHTML = message;
             document.getElementById('custom-alert').classList.remove('hidden');
         }
 
-        // ★追加：カスタムアラートを閉じる関数
         function closeCustomAlert() {
             document.getElementById('custom-alert').classList.add('hidden');
         }
@@ -264,7 +261,6 @@
 
         function goToConfirm() {
             const selected = document.querySelector('input[name="schedule_id"]:checked');
-            // ★変更：alertをカスタムアラートに変更
             if (!selected) { showCustomAlert("日程を選択してください"); return; }
             if (!document.getElementById('participant-last').value || !document.getElementById('phone').value) { showCustomAlert("必須項目を入力してください"); return; }
 
@@ -302,6 +298,7 @@
             
             btn.innerHTML = "送信中...";
             btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
 
             const pName = document.getElementById('participant-last').value + " " + document.getElementById('participant-first').value;
 
@@ -323,32 +320,42 @@
                     if(res.status === "success") {
                         document.getElementById('view-confirm').classList.add('hidden');
                         document.getElementById('view-success').classList.remove('hidden');
-                    // ★変更：alertをカスタムアラートに変更（改行タグ <br> を使用）
                     } else if (res.status === "error" && res.message === "duplicate") {
                         showCustomAlert("「" + pName + "」さんは、同じ日にすでに予約が入っています。<br>重複して予約することはできません。");
                         btn.innerHTML = "予約を確定する";
                         btn.disabled = false;
+                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
                     } else {
-                        // ★変更：alertをカスタムアラートに変更
                         showCustomAlert("送信に失敗しました");
                         btn.innerHTML = "予約を確定する";
                         btn.disabled = false;
+                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
                     }
                 }).catch(() => {
-                    // ★変更：alertをカスタムアラートに変更
                     showCustomAlert("通信エラーが発生しました");
                     btn.innerHTML = "予約を確定する";
                     btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
                 });
         }
 
         function submitCancel() {
             const btn = document.getElementById('btn-cancel-submit');
+            // ★追加：視覚的なフィードバック
+            btn.innerHTML = "処理中...";
             btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'cancelReservation', cancelId: cancelReservationId }) })
                 .then(() => {
                     document.getElementById('view-cancel').classList.add('hidden');
                     document.getElementById('view-cancel-success').classList.remove('hidden');
+                }).catch(() => {
+                    // ★追加：エラー時の復帰処理
+                    showCustomAlert("通信エラーが発生しました");
+                    btn.innerHTML = "キャンセルする";
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
                 });
         }
 
