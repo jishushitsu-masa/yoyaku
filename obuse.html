@@ -305,7 +305,7 @@
                         document.getElementById('view-success').classList.remove('hidden');
                     // ★追加：エラーで理由が重複（duplicate）だった場合の処理
                     } else if (res.status === "error" && res.message === "duplicate") {
-                        alert("エラー：「" + pName + "」さんは、同じ日にすでに予約が入っています。\\n重複して予約することはできません。");
+                        alert("エラー：「" + pName + "」さんは、同じ日にすでに予約が入っています。重複して予約することはできません。");
                         btn.innerHTML = "予約を確定する";
                         btn.disabled = false;
                     } else {
