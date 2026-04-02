@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>マサちゃんの自習室　予約確認 カレンダー</title>
+    <title>マサちゃんの自習室　予約管理画面</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { theme: { extend: { colors: { brand: '#4F46E5', 'brand-dark': '#4338CA' } } } }
@@ -13,9 +13,7 @@
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; }
         .calendar-cell { min-height: 80px; transition: all 0.2s; }
         @media (max-width: 640px) { .calendar-cell { min-height: 70px; } }
-        /* 休み（グレーアウト）用の専用スタイル */
         .day-off-cell { background-color: #ebebeb !important; border-color: #d1d5db !important; }
-        .day-off-text { color: #9ca3af !important; }
     </style>
 </head>
 <body class="text-gray-800">
@@ -41,16 +39,11 @@
                 <h2 id="current-month-label" class="text-xl font-bold text-gray-800">----年 --月</h2>
                 <button onclick="changeMonth(1)" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600"><i class="fas fa-chevron-right"></i></button>
             </div>
-
             <div class="grid grid-cols-7 gap-1 mb-1 text-center font-bold text-xs text-gray-500">
                 <div class="text-red-500">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="text-blue-500">土</div>
             </div>
-
             <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
-            
-            <div id="loading-message" class="text-center py-8 text-gray-500 hidden">
-                <i class="fas fa-spinner fa-spin mr-2 text-brand text-2xl"></i><br>予約データを読み込んでいます...
-            </div>
+            <div id="loading-message" class="text-center py-8 text-gray-500 hidden"><i class="fas fa-spinner fa-spin mr-2 text-brand text-2xl"></i><br>予約データを読み込んでいます...</div>
         </div>
 
         <div id="view-details" class="p-4 hidden bg-gray-100 min-h-screen">
@@ -88,17 +81,12 @@
         function fetchReservations() {
             document.getElementById('calendar-grid').innerHTML = '';
             document.getElementById('loading-message').classList.remove('hidden');
-
             fetch(GAS_URL + "?action=getAllReservations")
                 .then(response => response.json())
                 .then(data => {
                     allReservations = data;
                     groupReservationsByDate();
                     renderCalendar();
-                    document.getElementById('loading-message').classList.add('hidden');
-                })
-                .catch(error => {
-                    alert('データの読み込みに失敗しました。');
                     document.getElementById('loading-message').classList.add('hidden');
                 });
         }
@@ -109,10 +97,7 @@
                 let dateKey = null;
                 const cleanDate = res.date.replace(/[０-９：]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
                 const match = cleanDate.match(/(\d{4})[-\/年](\d{1,2})[-\/月](\d{1,2})/);
-                if (match) {
-                    dateKey = `${match[1]}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}`;
-                }
-
+                if (match) { dateKey = `${match[1]}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}`; }
                 if (dateKey) {
                     if (!groupedReservations[dateKey]) groupedReservations[dateKey] = [];
                     groupedReservations[dateKey].push(res);
@@ -133,45 +118,31 @@
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const grid = document.getElementById('calendar-grid');
             grid.innerHTML = '';
-            const today = new Date();
-            const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+            const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`;
 
-            for (let i = 0; i < firstDay; i++) {
-                grid.innerHTML += `<div class="bg-gray-50 border border-gray-100 rounded"></div>`;
-            }
+            for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div class="bg-gray-50 border border-gray-100 rounded"></div>`;
 
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const dayItems = groupedReservations[dateKey] || [];
-                
-                // 「休み」というステータスを持つデータがあるかチェック
                 const isHoliday = dayItems.some(item => item.status === "休み");
-                // 休みを除いた予約件数
                 const resCount = dayItems.filter(item => item.status !== "休み").length;
-                
                 const dayOfWeek = new Date(year, month, day).getDay();
                 let locationText = (dayOfWeek === 1 || dayOfWeek === 4) ? 'すざか' : (dayOfWeek === 2 || dayOfWeek === 5) ? 'おぶせ' : '';
-                let locationClass = 'text-[10px] mt-0.5 font-bold ' + (locationText === 'すざか' ? 'text-orange-500' : 'text-green-600');
-
                 let cellClass = (dateKey === todayStr) ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200';
-                
-                // 休みの場合の処理
                 let badgeHtml = '';
                 if (isHoliday) {
-                    cellClass += ' day-off-cell pointer-events-none'; // グレーアウトとクリック不可
+                    cellClass += ' day-off-cell pointer-events-none';
                     badgeHtml = `<div class="mt-1 bg-gray-400 text-white text-[10px] font-bold rounded px-1.5 py-0.5">休み</div>`;
                 } else if (resCount > 0) {
                     badgeHtml = `<div class="mt-1 bg-brand text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 shadow-sm">${resCount}件</div>`;
                 }
-
                 grid.innerHTML += `
-                    <div class="border rounded p-1 sm:p-2 calendar-cell flex flex-col items-center cursor-pointer hover:bg-gray-100 transition shadow-sm ${cellClass}" 
-                         onclick="${isHoliday ? '' : `showDetails('${dateKey}', ${year}, ${month + 1}, ${day})`}">
+                    <div class="border rounded p-1 sm:p-2 calendar-cell flex flex-col items-center cursor-pointer hover:bg-gray-100 transition shadow-sm ${cellClass}" onclick="${isHoliday ? '' : `showDetails('${dateKey}', ${year}, ${month+1}, ${day})`}">
                         <span class="text-sm font-bold ${isHoliday ? 'text-gray-400' : 'text-gray-700'}">${day}</span>
-                        <span class="${locationClass} ${isHoliday ? 'hidden' : ''}">${locationText}</span>
+                        <span class="text-[10px] mt-0.5 font-bold ${locationText === 'すざか' ? 'text-orange-500' : 'text-green-600'} ${isHoliday ? 'hidden' : ''}">${locationText}</span>
                         ${badgeHtml}
-                    </div>
-                `;
+                    </div>`;
             }
         }
 
@@ -179,7 +150,6 @@
             const listContainer = document.getElementById('reservation-list');
             listContainer.innerHTML = '';
             const reservations = (groupedReservations[dateKey] || []).filter(item => item.status !== "休み");
-            
             document.getElementById('detail-date-label').innerText = `${m}月${d}日 の予約`;
             document.getElementById('detail-count-badge').innerText = `${reservations.length}件`;
 
@@ -193,7 +163,8 @@
                             <div class="flex flex-wrap items-center justify-between gap-2">
                                 <div class="flex-1 min-w-[200px]">
                                     <div class="flex items-baseline gap-2 mb-1">
-                                        <span class="text-lg font-bold text-gray-800">${res.participantName}</span>
+                                        <span class="text-lg font-bold text-blue-600 cursor-pointer underline" onclick="showStudentHistory('${res.participantName}')">${res.participantName}</span>
+                                        <span class="text-xs text-gray-500">様</span>
                                         <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded font-bold ml-1">${res.plan}</span>
                                     </div>
                                     <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600">
@@ -204,19 +175,32 @@
                                 </div>
                                 <a href="tel:${res.phone}" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-md border border-blue-100 italic font-bold text-xs"><i class="fas fa-phone-alt mr-1"></i>電話</a>
                             </div>
-                        </div>
-                    `);
+                        </div>`);
                 });
             }
             document.getElementById('view-calendar').classList.add('hidden');
             document.getElementById('view-details').classList.remove('hidden');
-            window.scrollTo(0, 0);
         }
 
-        function goBackToCalendar() {
-            document.getElementById('view-details').classList.add('hidden');
-            document.getElementById('view-calendar').classList.remove('hidden');
+        async function showStudentHistory(name) {
+            try {
+                const response = await fetch(`${GAS_URL}?action=getStudentDetails&name=${encodeURIComponent(name)}`);
+                const info = await response.json();
+                if (!info) { alert(name + " さんのデータが「生徒名簿」シートに見つかりません。"); return; }
+                alert(
+                    `【${name} さんの生徒カルテ】\n\n` +
+                    `● 中学校：${info.school}\n` +
+                    `● 学年：${info.grade}\n` +
+                    `● 得意科目：${info.good}\n` +
+                    `● 苦手科目：${info.bad}\n` +
+                    `● 定期テスト得点：${info.score}\n` +
+                    `● 志望校：${info.target}\n` +
+                    `● その他：${info.memo}`
+                );
+            } catch (e) { alert("データの取得に失敗しました。"); }
         }
+
+        function goBackToCalendar() { document.getElementById('view-details').classList.add('hidden'); document.getElementById('view-calendar').classList.remove('hidden'); }
     </script>
 </body>
 </html>
