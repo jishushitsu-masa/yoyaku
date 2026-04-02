@@ -252,7 +252,7 @@
             document.getElementById('confirm-participant').innerText = pName;
             document.getElementById('confirm-parent').innerText = prName;
             document.getElementById('confirm-phone').innerText = phone;
-            document.getElementById('confirm-plan').innerText = isOne ? "1時間のみ利用" : "都度払い";
+            document.getElementById('confirm-plan').innerText = isOne ? "1時間のみ利用" : "2時間利用";
 
             document.getElementById('view-input').classList.add('hidden');
             document.getElementById('view-confirm').classList.remove('hidden');
@@ -280,7 +280,7 @@
                     participantName: document.getElementById('participant-last').value + " " + document.getElementById('participant-first').value,
                     parentName: document.getElementById('parent-last').value + " " + document.getElementById('parent-first').value,
                     phone: document.getElementById('phone').value,
-                    plan: isOne ? "1時間のみ" : "都度払い", lineUserId: lineUserId,
+                    plan: isOne ? "1時間のみ" : "2時間利用", lineUserId: lineUserId,
                     liffId: LIFF_ID
                 }
             };
