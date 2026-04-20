@@ -33,7 +33,7 @@
         <div id="view-login" class="p-8 mt-10 max-w-sm mx-auto bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
             <div class="text-center mb-6 text-gray-400"><i class="fas fa-user-shield text-5xl"></i></div>
             <h2 class="text-center font-bold text-gray-700 mb-6">パスワードを入力してください</h2>
-            <input type="password" id="admin-password" placeholder="パスワード" class="w-full border border-gray-300 rounded p-3 text-center mb-4 focus:outline-none focus:border-brand">
+            <input type="password" inputmode="numeric" pattern="[0-9]*" id="admin-password" placeholder="パスワード" class="w-full border border-gray-300 rounded p-3 text-center mb-4 focus:outline-none focus:border-brand">
             <button onclick="checkPassword()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 rounded shadow">ログイン</button>
             <p id="login-error" class="text-red-500 text-sm text-center mt-3 hidden">パスワードが違います</p>
         </div>
@@ -49,10 +49,10 @@
             </div>
             <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
             
-            <div class="mt-8 space-y-3 px-4">
+            <div class="mt-8 px-4">
                 <button onclick="showStudentList()" class="w-full bg-white border-2 border-brand text-brand hover:bg-brand hover:text-white font-bold py-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
                     <i class="fas fa-users text-lg"></i>
-                    生徒名簿を表示・管理
+                    生徒一覧（名簿）を表示
                 </button>
             </div>
 
@@ -71,15 +71,14 @@
         </div>
 
         <div id="view-student-list" class="p-4 hidden bg-gray-100 min-h-screen">
-            <div class="flex items-center justify-between mb-4 mt-2">
-                <button onclick="goBackToCalendarFromList()" class="bg-white border border-gray-300 text-gray-600 px-4 py-2 rounded shadow-sm hover:bg-gray-50 flex items-center font-bold text-sm">
-                    <i class="fas fa-arrow-left mr-2"></i>戻る
+            <div class="flex items-center mb-4 mt-2">
+                <button onclick="goBackToCalendarFromList()" class="bg-white border border-gray-300 text-gray-600 px-4 py-2 rounded shadow-sm hover:bg-gray-50 flex items-center font-bold">
+                    <i class="fas fa-arrow-left mr-2"></i>カレンダーに戻る
                 </button>
-                <button onclick="openStudentEditModal()" class="bg-orange-500 text-white px-4 py-2 rounded shadow font-bold text-sm flex items-center">
-                    <i class="fas fa-plus mr-2"></i>新規登録
-                </button>
+                <h2 class="text-lg font-bold text-gray-800 ml-4">生徒一覧</h2>
             </div>
-            <div id="student-name-list" class="grid grid-cols-1 gap-2"></div>
+            <div id="student-name-list" class="grid grid-cols-1 gap-2">
+                </div>
             <div id="student-list-loading" class="text-center py-20 text-gray-500">
                 <i class="fas fa-spinner fa-spin text-3xl text-brand mb-2"></i><br>名簿を読み込んでいます...
             </div>
@@ -91,81 +90,12 @@
         <div class="bg-white w-11/12 max-w-lg rounded-xl shadow-2xl z-10 overflow-hidden modal-enter">
             <div class="bg-brand text-white px-5 py-4 flex justify-between items-center">
                 <h3 class="font-bold text-lg"><i class="fas fa-id-card mr-2"></i>生徒カルテ</h3>
-                <div class="flex items-center gap-3">
-                   <button id="btn-edit-student" class="text-white hover:text-orange-200 text-sm font-bold"><i class="fas fa-edit mr-1"></i>編集</button>
-                   <button onclick="closeModal()" class="text-white hover:text-gray-200 text-2xl">&times;</button>
-                </div>
+                <button onclick="closeModal()" class="text-white hover:text-gray-200 text-2xl">&times;</button>
             </div>
-            <div id="modal-content" class="p-6 space-y-5 max-h-[75vh] overflow-y-auto"></div>
-            <div class="bg-gray-50 p-4 border-t border-gray-100 flex justify-between">
-                <button id="btn-delete-student" class="bg-red-50 text-red-500 px-4 py-2 rounded font-bold text-sm border border-red-100">削除</button>
-                <button onclick="closeModal()" class="bg-gray-500 text-white px-6 py-2 rounded font-bold shadow">閉じる</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="edit-student-modal" class="fixed inset-0 z-[60] flex items-center justify-center hidden">
-        <div class="absolute inset-0 bg-black bg-opacity-60" onclick="closeEditModal()"></div>
-        <div class="bg-white w-11/12 max-w-lg rounded-xl shadow-2xl z-10 overflow-hidden modal-enter">
-            <div class="bg-orange-500 text-white px-5 py-4 flex justify-between items-center">
-                <h3 class="font-bold text-lg"><i class="fas fa-user-edit mr-2"></i>生徒情報の登録・編集</h3>
-                <button onclick="closeEditModal()" class="text-white text-2xl">&times;</button>
-            </div>
-            <form id="student-edit-form" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1">氏名（フルネーム）※必須</label>
-                    <input type="text" name="name" required class="w-full border border-gray-300 rounded p-2 focus:border-brand outline-none">
+            <div id="modal-content" class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1">ふりがな</label>
-                    <input type="text" name="furigana" class="w-full border border-gray-300 rounded p-2 focus:border-brand outline-none">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 mb-1">学校名</label>
-                        <input type="text" name="school" class="w-full border border-gray-300 rounded p-2 focus:border-brand outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 mb-1">学年</label>
-                        <input type="text" name="grade" class="w-full border border-gray-300 rounded p-2 focus:border-brand outline-none">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1">性別</label>
-                    <select name="gender" class="w-full border border-gray-300 rounded p-2 focus:border-brand outline-none">
-                        <option value="">未選択</option>
-                        <option value="男子">男子</option>
-                        <option value="女子">女子</option>
-                    </select>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 mb-1">得意科目</label>
-                        <input type="text" name="good" class="w-full border border-gray-300 rounded p-2 focus:border-brand outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 mb-1">苦手科目</label>
-                        <input type="text" name="bad" class="w-full border border-gray-300 rounded p-2 focus:border-brand outline-none">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1">志望校（第1・第2）</label>
-                    <div class="flex gap-2">
-                        <input type="text" name="target1" placeholder="第1" class="w-1/2 border border-gray-300 rounded p-2 focus:border-brand outline-none">
-                        <input type="text" name="target2" placeholder="第2" class="w-1/2 border border-gray-300 rounded p-2 focus:border-brand outline-none">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1">部活動</label>
-                    <input type="text" name="club" class="w-full border border-gray-300 rounded p-2 focus:border-brand outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1">備考・メモ</label>
-                    <textarea name="memo" rows="3" class="w-full border border-gray-300 rounded p-2 focus:border-brand outline-none"></textarea>
-                </div>
-            </form>
-            <div class="bg-gray-50 p-4 border-t border-gray-100">
-                <button onclick="saveStudent()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded shadow transition">情報を保存する</button>
+            <div class="bg-gray-50 p-4 border-t border-gray-100 text-right">
+                <button onclick="closeModal()" class="bg-gray-500 text-white px-6 py-2 rounded-lg font-bold shadow">閉じる</button>
             </div>
         </div>
     </div>
@@ -176,6 +106,11 @@
 
         function checkPassword() {
             let input = document.getElementById('admin-password').value;
+            if (input) {
+                input = input.replace(/[０-９]/g, function(s) {
+                    return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+                }).trim();
+            }
             if (input === ADMIN_PASSWORD) {
                 document.getElementById('view-login').classList.add('hidden');
                 document.getElementById('view-calendar').classList.remove('hidden');
@@ -231,7 +166,9 @@
             const grid = document.getElementById('calendar-grid');
             grid.innerHTML = '';
             const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`;
+
             for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div class="bg-gray-50 border border-gray-100 rounded"></div>`;
+
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const dayItems = groupedReservations[dateKey] || [];
@@ -241,13 +178,18 @@
                 let locationText = (dayOfWeek === 1 || dayOfWeek === 4) ? 'すざか' : (dayOfWeek === 2 || dayOfWeek === 5) ? 'おぶせ' : '';
                 let cellClass = (dateKey === todayStr) ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200';
                 let badgeHtml = '';
-                if (isHoliday) { cellClass += ' day-off-cell pointer-events-none'; badgeHtml = `<div class="mt-1 bg-gray-400 text-white text-[10px] font-bold rounded px-1.5 py-0.5">休み</div>`; }
-                else if (resCount > 0) { badgeHtml = `<div class="mt-1 bg-brand text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 shadow-sm">${resCount}名</div>`; }
-                grid.innerHTML += `<div class="border rounded p-1 sm:p-2 calendar-cell flex flex-col items-center cursor-pointer hover:bg-gray-100 transition shadow-sm ${cellClass}" onclick="${isHoliday ? '' : `showDetails('${dateKey}', ${year}, ${month+1}, ${day})`}">
-                    <span class="text-sm font-bold ${isHoliday ? 'text-gray-400' : 'text-gray-700'}">${day}</span>
-                    <span class="text-[10px] mt-0.5 font-bold ${locationText === 'すざか' ? 'text-orange-500' : 'text-green-600'} ${isHoliday ? 'hidden' : ''}">${locationText}</span>
-                    ${badgeHtml}
-                </div>`;
+                if (isHoliday) {
+                    cellClass += ' day-off-cell pointer-events-none';
+                    badgeHtml = `<div class="mt-1 bg-gray-400 text-white text-[10px] font-bold rounded px-1.5 py-0.5">休み</div>`;
+                } else if (resCount > 0) {
+                    badgeHtml = `<div class="mt-1 bg-brand text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 shadow-sm">${resCount}名</div>`;
+                }
+                grid.innerHTML += `
+                    <div class="border rounded p-1 sm:p-2 calendar-cell flex flex-col items-center cursor-pointer hover:bg-gray-100 transition shadow-sm ${cellClass}" onclick="${isHoliday ? '' : `showDetails('${dateKey}', ${year}, ${month+1}, ${day})`}">
+                        <span class="text-sm font-bold ${isHoliday ? 'text-gray-400' : 'text-gray-700'}">${day}</span>
+                        <span class="text-[10px] mt-0.5 font-bold ${locationText === 'すざか' ? 'text-orange-500' : 'text-green-600'} ${isHoliday ? 'hidden' : ''}">${locationText}</span>
+                        ${badgeHtml}
+                    </div>`;
             }
         }
 
@@ -257,11 +199,14 @@
             const reservations = (groupedReservations[dateKey] || []).filter(item => item.status !== "休み");
             document.getElementById('detail-date-label').innerText = `${m}月${d}日 の予約`;
             document.getElementById('detail-count-badge').innerText = `${reservations.length}名`;
+
             if (reservations.length === 0) {
                 listContainer.innerHTML = `<div class="text-center py-10 bg-white rounded-lg border border-gray-200 text-gray-500">この日の予約はありません。</div>`;
             } else {
                 reservations.forEach(res => {
+                    // ★追加：体験フラグの表示ロジック
                     const experienceBadge = res.experience ? `<span class="ml-2 bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">無料体験</span>` : '';
+                    
                     listContainer.insertAdjacentHTML('beforeend', `
                         <div class="bg-white border border-gray-200 rounded-lg p-3 shadow-sm relative overflow-hidden">
                             <div class="absolute top-0 left-0 w-1.5 h-full bg-brand"></div>
@@ -293,116 +238,130 @@
             document.getElementById('view-student-list').classList.remove('hidden');
             const listContainer = document.getElementById('student-name-list');
             const loading = document.getElementById('student-list-loading');
+            
             listContainer.innerHTML = '';
             loading.classList.remove('hidden');
+
             fetch(GAS_URL + "?action=getStudentList")
                 .then(res => res.json())
                 .then(students => {
                     loading.classList.add('hidden');
-                    students.sort((a, b) => (a.furigana || a.name).localeCompare(b.furigana || b.name, 'ja'));
+                    if (students.length === 0) {
+                        listContainer.innerHTML = '<p class="text-center py-10 text-gray-400">登録されている生徒はいません。</p>';
+                        return;
+                    }
+                    
+                    students.sort((a, b) => {
+                        const strA = a.furigana ? a.furigana : a.name;
+                        const strB = b.furigana ? b.furigana : b.name;
+                        return strA.localeCompare(strB, 'ja');
+                    });
+
                     students.forEach(student => {
                         const row = document.createElement('div');
-                        row.className = "bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 flex items-center justify-between";
-                        const infoHtml = `<span class="text-xs text-gray-400 ml-2">${student.school} ${student.grade}</span>`;
-                        row.innerHTML = `<div class="flex items-center"><span class="font-bold text-gray-800">${student.name}</span>${infoHtml}</div><i class="fas fa-chevron-right text-gray-300 text-xs"></i>`;
+                        row.className = "bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition active:bg-gray-100 flex items-center justify-between";
+                        const furiganaHtml = student.furigana ? `<span class="text-xs text-gray-400 font-normal ml-2">(${student.furigana})</span>` : '';
+                        const genderHtml = student.gender ? `<span class="text-[10px] px-2 py-0.5 rounded ml-2 font-bold ${student.gender.includes('女') ? 'bg-pink-50 text-pink-600' : student.gender.includes('男') ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}">${student.gender}</span>` : '';
+                        row.innerHTML = `<div class="flex items-center"><span class="font-bold text-gray-800">${student.name}</span>${furiganaHtml}${genderHtml}</div><i class="fas fa-chevron-right text-gray-300 text-xs"></i>`;
                         row.onclick = () => showStudentHistory(student.name);
                         listContainer.appendChild(row);
                     });
+                })
+                .catch(() => {
+                    loading.innerHTML = '<p class="text-red-500">読み込みに失敗しました。</p>';
                 });
         }
-
-        let currentEditingStudent = null;
 
         async function showStudentHistory(name) {
             const modal = document.getElementById('student-modal');
             const content = document.getElementById('modal-content');
-            content.innerHTML = '<div class="text-center py-10"><i class="fas fa-spinner fa-spin text-3xl text-brand"></i></div>';
+            content.innerHTML = `<div class="text-center py-10"><i class="fas fa-spinner fa-spin text-3xl text-brand"></i><br><span class="mt-2 text-gray-500">読み込み中...</span></div>`;
             modal.classList.remove('hidden');
+
             try {
-                const res = await fetch(`${GAS_URL}?action=getStudentDetails&name=${encodeURIComponent(name)}`);
-                const result = await res.json();
-                currentEditingStudent = result.info;
+                const response = await fetch(`${GAS_URL}?action=getStudentDetails&name=${encodeURIComponent(name)}`);
+                const result = await response.json();
+                if (!result || !result.info) {
+                    content.innerHTML = `<div class="text-center py-10 text-red-500"><i class="fas fa-exclamation-triangle text-3xl mb-2"></i><br>「生徒名簿」シートに<br><strong>${name}</strong> さんのデータが<br>見つかりませんでした。</div>`;
+                    return;
+                }
                 const info = result.info;
                 const scores = result.scores;
-                
-                // 削除・編集ボタンのイベント設定
-                document.getElementById('btn-edit-student').onclick = () => openStudentEditModal(info);
-                document.getElementById('btn-delete-student').onclick = () => deleteStudent(info.name);
-
-                let scoreHtml = '<p class="text-gray-400 text-center py-4 italic">テスト結果なし</p>';
+                if (scores && scores.length > 0) {
+                    scores.sort((a, b) => {
+                        function getWeight(testName) {
+                            let w = 0;
+                            if (testName.includes("中3")) w += 3000;
+                            else if (testName.includes("中2")) w += 2000;
+                            else if (testName.includes("中1")) w += 1000;
+                            if (testName.includes("3学期") || testName.includes("後期")) w += 300;
+                            else if (testName.includes("2学期")) w += 200;
+                            else if (testName.includes("1学期") || testName.includes("前期")) w += 100;
+                            if (testName.includes("期末") || testName.includes("学年末")) w += 20;
+                            else if (testName.includes("中間")) w += 10;
+                            return w;
+                        }
+                        return getWeight(b.testName) - getWeight(a.testName);
+                    });
+                }
+                let scoreHtml = '<p class="text-gray-400 text-center py-4 italic">過去のテスト結果はありません。</p>';
                 if (scores && scores.length > 0) {
                     let rows = scores.map(s => {
                         const sum = [s.kokugo, s.suugaku, s.eigo, s.rika, s.shakai].reduce((a, b) => a + (parseInt(b) || 0), 0);
-                        return `<tr><td class="font-bold text-left">${s.testName}</td><td>${s.kokugo}</td><td>${s.suugaku}</td><td>${s.eigo}</td><td>${s.rika}</td><td>${s.shakai}</td><td class="score-total">${sum}</td></tr>`;
+                        return `<tr><td class="font-bold text-left">${s.testName}</td><td>${s.kokugo || '-'}</td><td>${s.suugaku || '-'}</td><td>${s.eigo || '-'}</td><td>${s.rika || '-'}</td><td>${s.shakai || '-'}</td><td class="score-total">${sum || '-'}</td></tr>`;
                     }).join('');
-                    scoreHtml = `<div class="overflow-x-auto border rounded-lg"><table class="w-full score-table"><thead><tr><th class="text-left">テスト名</th><th>国</th><th>数</th><th>英</th><th>理</th><th>社</th><th class="score-total">計</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+                    scoreHtml = `<div class="overflow-x-auto border border-gray-100 rounded-lg"><table class="w-full score-table"><thead><tr><th class="text-left">テスト名</th><th>国</th><th>数</th><th>英</th><th>理</th><th>社</th><th class="score-total">計</th></tr></thead><tbody>${rows}</tbody></table></div>`;
                 }
-
+                const genderBadge = info.gender ? `<span class="align-middle text-[10px] px-2 py-0.5 rounded font-bold ${info.gender.includes('女') ? 'bg-pink-50 text-pink-600' : info.gender.includes('男') ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}">${info.gender}</span>` : '';
                 content.innerHTML = `
                     <div class="space-y-6">
                         <div class="border-b pb-4 border-gray-100">
-                            <div class="text-[10px] text-gray-400 font-bold mb-[-4px]">${info.furigana || ''}</div>
-                            <div class="text-2xl font-bold text-gray-800">${info.name} <span class="text-sm font-normal text-gray-500">${info.gender || ''}</span></div>
-                            <div class="text-sm text-gray-500 mt-1">${info.school} / ${info.grade}</div>
+                            <div class="text-[10px] text-gray-400 font-bold mb-[-4px] pl-0.5">${info.furigana || ''}</div>
+                            <div class="flex items-baseline gap-3 mt-1">
+                                <div class="text-2xl font-bold text-gray-800">${name}</div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-500 font-medium">${info.school} / ${info.grade}</span>
+                                    ${genderBadge}
+                                </div>
+                            </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
-                           <div class="p-3 bg-blue-50 rounded-lg border border-blue-100"><div class="text-[10px] text-blue-600 font-bold">得意</div><div class="font-bold text-sm">${info.good || '-'}</div></div>
-                           <div class="p-3 bg-red-50 rounded-lg border border-red-100"><div class="text-[10px] text-red-600 font-bold">苦手</div><div class="font-bold text-sm">${info.bad || '-'}</div></div>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="p-3 bg-orange-50 rounded-lg border border-orange-100 flex flex-col justify-center">
+                                    <div class="text-[10px] text-orange-600 font-bold mb-1 uppercase tracking-wider"><i class="fas fa-bullseye mr-1"></i>志望校</div>
+                                    <div class="font-bold text-gray-800 text-sm">
+                                        <div class="flex items-center"><span class="text-[9px] text-white bg-orange-400 rounded-full w-3 h-3 flex items-center justify-center mr-1">1</span>${info.target1 || '未設定'}</div>
+                                        ${info.target2 ? `<div class="flex items-center mt-1"><span class="text-[9px] text-white bg-orange-400 rounded-full w-3 h-3 flex items-center justify-center mr-1">2</span>${info.target2}</div>` : ''}
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-green-50 rounded-lg border border-green-100 flex flex-col justify-center">
+                                    <div class="text-[10px] text-green-600 font-bold mb-1 uppercase tracking-wider"><i class="fas fa-running mr-1"></i>部活動</div>
+                                    <div class="font-bold text-gray-800 text-sm">${info.club || '-'}</div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-gray-500 font-bold mb-2 uppercase tracking-wider px-1"><i class="fas fa-chart-line mr-1"></i>過去の定期テスト結果</div>
+                                ${scoreHtml}
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                    <div class="text-[10px] text-blue-600 font-bold mb-1 uppercase tracking-wider">得意科目</div>
+                                    <div class="font-bold text-gray-800 text-sm">${info.good || '-'}</div>
+                                </div>
+                                <div class="p-3 bg-red-50 rounded-lg border border-red-100">
+                                    <div class="text-[10px] text-red-600 font-bold mb-1 uppercase tracking-wider">苦手科目</div>
+                                    <div class="font-bold text-gray-800 text-sm">${info.bad || '-'}</div>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <div class="text-[10px] text-gray-500 font-bold mb-1 uppercase tracking-wider"><i class="fas fa-sticky-note mr-1"></i>備考</div>
+                                <div class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">${info.memo || 'なし'}</div>
+                            </div>
                         </div>
-                        <div><div class="text-[10px] text-gray-500 font-bold mb-2">テスト結果</div>${scoreHtml}</div>
-                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-100"><div class="text-[10px] text-gray-500 font-bold mb-1">備考</div><div class="text-sm whitespace-pre-wrap">${info.memo || 'なし'}</div></div>
                     </div>`;
-            } catch (e) { content.innerHTML = '<div class="text-center py-10 text-red-500">取得失敗</div>'; }
+            } catch (e) { content.innerHTML = `<div class="text-center py-10 text-red-500">通信エラーが発生しました。</div>`; }
         }
 
-        function openStudentEditModal(studentData = null) {
-            const modal = document.getElementById('edit-student-modal');
-            const form = document.getElementById('student-edit-form');
-            form.reset();
-            if (studentData) {
-                form.name.value = studentData.name;
-                form.name.readOnly = true; // 編集時は名前は変えない（シートの検索キーのため）
-                form.furigana.value = studentData.furigana || '';
-                form.school.value = studentData.school || '';
-                form.grade.value = studentData.grade || '';
-                form.gender.value = studentData.gender || '';
-                form.good.value = studentData.good || '';
-                form.bad.value = studentData.bad || '';
-                form.target1.value = studentData.target1 || '';
-                form.target2.value = studentData.target2 || '';
-                form.club.value = studentData.club || '';
-                form.memo.value = studentData.memo || '';
-            } else {
-                form.name.readOnly = false;
-            }
-            modal.classList.remove('hidden');
-        }
-
-        async function saveStudent() {
-            const form = document.getElementById('student-edit-form');
-            if (!form.name.value) { alert("名前は必須です"); return; }
-            const studentData = {
-                name: form.name.value, furigana: form.furigana.value, school: form.school.value, grade: form.grade.value,
-                gender: form.gender.value, good: form.good.value, bad: form.bad.value, target1: form.target1.value,
-                target2: form.target2.value, club: form.club.value, memo: form.memo.value
-            };
-            try {
-                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateStudent", studentData: studentData }) });
-                const result = await res.json();
-                if (result.status === "success") { alert("保存しました"); closeEditModal(); closeModal(); showStudentList(); }
-            } catch (e) { alert("エラーが発生しました"); }
-        }
-
-        async function deleteStudent(name) {
-            if (!confirm(name + " さんの名簿データを完全に削除しますか？")) return;
-            try {
-                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "deleteStudent", name: name }) });
-                const result = await res.json();
-                if (result.status === "success") { alert("削除しました"); closeModal(); showStudentList(); }
-            } catch (e) { alert("エラーが発生しました"); }
-        }
-
-        function closeEditModal() { document.getElementById('edit-student-modal').classList.add('hidden'); }
         function closeModal() { document.getElementById('student-modal').classList.add('hidden'); }
         function goBackToCalendar() { document.getElementById('view-details').classList.add('hidden'); document.getElementById('view-calendar').classList.remove('hidden'); }
         function goBackToCalendarFromList() { document.getElementById('view-student-list').classList.add('hidden'); document.getElementById('view-calendar').classList.remove('hidden'); }
