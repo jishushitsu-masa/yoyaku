@@ -68,7 +68,7 @@
         function closeCustomAlert() {
             document.getElementById('custom-alert').classList.add('hidden');
             if (alertCallback) {
-                alertCallback(); // OKボタンを押した後に実行したい処理（リロードなど）
+                alertCallback(); 
                 alertCallback = null;
             }
         }
@@ -110,10 +110,10 @@
                 const response = await fetch(`${GAS_URL}?action=getMyReservations&userId=${userId}`);
                 let reservations = await response.json();
 
-                // ★追加：過去の日程（昨日以前）を非表示にする処理
                 const now = new Date();
                 const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
+                // 1. 過去の日程（昨日以前）を除外
                 reservations = reservations.filter(res => {
                     if (!res.date) return true;
                     const cleanDate = res.date.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
@@ -123,12 +123,30 @@
                         const m = parseInt(match[2], 10) - 1;
                         const d = parseInt(match[3], 10);
                         const resDateObj = new Date(y, m, d);
-                        
                         if (resDateObj.getTime() < today.getTime()) {
-                            return false; // 昨日以前の日程は除外する
+                            return false; 
                         }
                     }
                     return true;
+                });
+
+                // 2. 日程が近い順（昇順）に並び替え
+                reservations.sort((a, b) => {
+                    const getDateTime = (res) => {
+                        if (!res.date) return 8640000000000000;
+                        const cleanD = res.date.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+                        const dM = cleanD.match(/(\d{4})[-\/年](\d{1,2})[-\/月](\d{1,2})/);
+                        if (!dM) return 8640000000000000;
+                        
+                        let h = 0, m = 0;
+                        if (res.time) {
+                            const cleanT = res.time.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+                            const tM = cleanT.match(/(\d{1,2}):(\d{2})/);
+                            if (tM) { h = parseInt(tM[1], 10); m = parseInt(tM[2], 10); }
+                        }
+                        return new Date(parseInt(dM[1]), parseInt(dM[2]) - 1, parseInt(dM[3]), h, m).getTime();
+                    };
+                    return getDateTime(a) - getDateTime(b);
                 });
 
                 loading.classList.add('hidden');
@@ -138,7 +156,7 @@
                     return;
                 }
 
-                listArea.innerHTML = ''; // クリア
+                listArea.innerHTML = ''; 
                 reservations.forEach(res => {
                     const card = document.createElement('div');
                     card.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100";
@@ -166,7 +184,6 @@
         }
 
         async function executeCancel() {
-            // モーダルを閉じて処理開始
             document.getElementById('custom-confirm').classList.add('hidden');
             
             if (!targetCancelId || !targetCancelBtn) return;
@@ -182,7 +199,6 @@
                 const result = await response.json();
 
                 if (result.status === "success") {
-                    // OKを押したらリロードさせる
                     showCustomAlert("予約をキャンセルしました。", () => {
                         location.reload(); 
                     });
