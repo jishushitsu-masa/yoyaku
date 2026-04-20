@@ -261,9 +261,18 @@
                         </div>
 
                         <div class="grid grid-cols-1 gap-4">
-                            <div class="p-4 bg-orange-50 rounded-xl border border-orange-100 shadow-sm">
-                                <div class="text-[10px] text-orange-600 font-bold mb-1 uppercase tracking-wider"><i class="fas fa-bullseye mr-1"></i>志望校</div>
-                                <div class="text-lg font-bold text-gray-800">${info.target || '未設定'}</div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="p-3 bg-orange-50 rounded-lg border border-orange-100 flex flex-col justify-center">
+                                    <div class="text-[10px] text-orange-600 font-bold mb-1 uppercase tracking-wider"><i class="fas fa-bullseye mr-1"></i>志望校</div>
+                                    <div class="font-bold text-gray-800 text-sm">
+                                        <div class="flex items-center"><span class="text-[9px] text-white bg-orange-400 rounded-full w-3 h-3 flex items-center justify-center mr-1">1</span>${info.target1 || '未設定'}</div>
+                                        ${info.target2 ? `<div class="flex items-center mt-1"><span class="text-[9px] text-white bg-orange-400 rounded-full w-3 h-3 flex items-center justify-center mr-1">2</span>${info.target2}</div>` : ''}
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-green-50 rounded-lg border border-green-100 flex flex-col justify-center">
+                                    <div class="text-[10px] text-green-600 font-bold mb-1 uppercase tracking-wider"><i class="fas fa-running mr-1"></i>部活動</div>
+                                    <div class="font-bold text-gray-800 text-sm">${info.club || '-'}</div>
+                                </div>
                             </div>
                             
                             <div>
@@ -279,10 +288,6 @@
                                 <div class="p-3 bg-red-50 rounded-lg border border-red-100">
                                     <div class="text-[10px] text-red-600 font-bold mb-1 uppercase tracking-wider">苦手科目</div>
                                     <div class="font-bold text-gray-800 text-sm">${info.bad || '-'}</div>
-                                </div>
-                                <div class="p-3 bg-green-50 rounded-lg border border-green-100 col-span-2">
-                                    <div class="text-[10px] text-green-600 font-bold mb-1 uppercase tracking-wider"><i class="fas fa-running mr-1"></i>部活動</div>
-                                    <div class="font-bold text-gray-800 text-sm">${info.club || '-'}</div>
                                 </div>
                             </div>
 
