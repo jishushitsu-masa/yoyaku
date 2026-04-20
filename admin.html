@@ -30,75 +30,243 @@
             <button id="btn-refresh" onclick="fetchReservations()" class="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded hidden"><i class="fas fa-sync-alt mr-1"></i>更新</button>
         </header>
 
+        <div id="view-login" class="p-8 mt-10 max-w-sm mx-auto bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+            <div class="text-center mb-6 text-gray-400"><i class="fas fa-user-shield text-5xl"></i></div>
+            <h2 class="text-center font-bold text-gray-700 mb-6">パスワードを入力してください</h2>
+            <input type="password" id="admin-password" placeholder="パスワード" class="w-full border border-gray-300 rounded p-3 text-center mb-4 focus:outline-none focus:border-brand">
+            <button onclick="checkPassword()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 rounded shadow">ログイン</button>
+            <p id="login-error" class="text-red-500 text-sm text-center mt-3 hidden">パスワードが違います</p>
+        </div>
+
+        <div id="view-calendar" class="p-4 hidden">
+            <div class="flex justify-between items-center mb-4 mt-2">
+                <button onclick="changeMonth(-1)" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600"><i class="fas fa-chevron-left"></i></button>
+                <h2 id="current-month-label" class="text-xl font-bold text-gray-800">----年 --月</h2>
+                <button onclick="changeMonth(1)" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="grid grid-cols-7 gap-1 mb-1 text-center font-bold text-xs text-gray-500">
+                <div class="text-red-500">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="text-blue-500">土</div>
+            </div>
+            <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
+            
+            <div class="mt-8 space-y-3 px-4">
+                <button onclick="showStudentList()" class="w-full bg-white border-2 border-brand text-brand hover:bg-brand hover:text-white font-bold py-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-users text-lg"></i>
+                    生徒名簿を表示・管理
+                </button>
+            </div>
+            <div id="loading-message" class="text-center py-8 text-gray-500 hidden"><i class="fas fa-spinner fa-spin mr-2 text-brand text-2xl"></i><br>予約データを読み込んでいます...</div>
+        </div>
+
+        <div id="view-details" class="p-4 hidden bg-gray-100 min-h-screen">
+            <div class="flex items-center mb-4 mt-2">
+                <button onclick="goBackToCalendar()" class="bg-white border border-gray-300 text-gray-600 px-4 py-2 rounded shadow-sm hover:bg-gray-50 flex items-center"><i class="fas fa-arrow-left mr-2"></i>戻る</button>
+                <h2 id="detail-date-label" class="text-lg font-bold text-gray-800 ml-4">--月--日 の予約</h2>
+                <span id="detail-count-badge" class="ml-2 bg-brand text-white text-xs font-bold px-2 py-1 rounded-full">0名</span>
+            </div>
+            <div id="reservation-list" class="space-y-3"></div>
+        </div>
+
         <div id="view-student-list" class="p-4 hidden bg-gray-100 min-h-screen">
             <div class="flex items-center justify-between mb-4 mt-2">
-                <button onclick="goBackToCalendarFromList()" class="bg-white border border-gray-300 text-gray-600 px-4 py-2 rounded shadow-sm hover:bg-gray-50 flex items-center font-bold text-sm">
-                    <i class="fas fa-arrow-left mr-2"></i>戻る
-                </button>
+                <button onclick="goBackToCalendarFromList()" class="bg-white border border-gray-300 text-gray-600 px-4 py-2 rounded shadow-sm hover:bg-gray-50 flex items-center font-bold text-sm"><i class="fas fa-arrow-left mr-2"></i>戻る</button>
                 <button onclick="openStudentEditModal()" class="bg-orange-500 text-white px-4 py-2 rounded shadow font-bold text-sm">新規登録</button>
             </div>
             <div id="student-name-list" class="grid grid-cols-1 gap-2"></div>
+            <div id="student-list-loading" class="text-center py-20 text-gray-500"><i class="fas fa-spinner fa-spin text-3xl text-brand mb-2"></i><br>名簿を読み込んでいます...</div>
         </div>
+    </div>
 
-        <div id="student-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
-            <div class="absolute inset-0 bg-black bg-opacity-50" onclick="closeModal()"></div>
-            <div class="bg-white w-11/12 max-w-lg rounded-xl shadow-2xl z-10 overflow-hidden modal-enter">
-                <div class="bg-brand text-white px-5 py-4 flex justify-between items-center">
-                    <h3 class="font-bold text-lg">生徒カルテ</h3>
-                    <div class="flex items-center gap-3">
-                        <button id="btn-edit-student" class="text-white hover:text-orange-200 text-sm font-bold"><i class="fas fa-edit"></i> 編集</button>
-                        <button onclick="closeModal()" class="text-white text-2xl">&times;</button>
-                    </div>
-                </div>
-                <div id="modal-content" class="p-6 space-y-5 max-h-[75vh] overflow-y-auto"></div>
-                <div class="bg-gray-50 p-4 border-t border-gray-100 flex justify-between">
-                    <button id="btn-delete-student" class="text-red-500 text-sm font-bold">データを削除</button>
-                    <button onclick="closeModal()" class="bg-gray-500 text-white px-6 py-2 rounded font-bold">閉じる</button>
+    <div id="student-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50" onclick="closeModal()"></div>
+        <div class="bg-white w-11/12 max-w-lg rounded-xl shadow-2xl z-10 overflow-hidden modal-enter">
+            <div class="bg-brand text-white px-5 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg">生徒カルテ</h3>
+                <div class="flex items-center gap-3">
+                   <button id="btn-edit-student" class="text-white hover:text-orange-200 text-sm font-bold"><i class="fas fa-edit mr-1"></i>編集</button>
+                   <button onclick="closeModal()" class="text-white text-2xl">&times;</button>
                 </div>
             </div>
-        </div>
-
-        <div id="edit-student-modal" class="fixed inset-0 z-[60] flex items-center justify-center hidden">
-            <div class="absolute inset-0 bg-black bg-opacity-60" onclick="closeEditModal()"></div>
-            <div class="bg-white w-11/12 max-w-lg rounded-xl shadow-2xl z-10 overflow-hidden">
-                <div class="bg-orange-500 text-white px-5 py-4 flex justify-between items-center">
-                    <h3 class="font-bold">生徒情報の編集</h3>
-                    <button onclick="closeEditModal()" class="text-2xl">&times;</button>
-                </div>
-                <form id="student-edit-form" class="p-6 space-y-3 overflow-y-auto max-h-[60vh]">
-                    <input type="hidden" name="name"> <div><label class="text-xs text-gray-400">氏名</label><input type="text" id="edit-name-display" disabled class="w-full border p-2 bg-gray-50"></div>
-                    <div><label class="text-xs text-gray-400">ふりがな</label><input type="text" name="furigana" class="w-full border p-2"></div>
-                    <div><label class="text-xs text-gray-400">学校</label><input type="text" name="school" class="w-full border p-2"></div>
-                    <div><label class="text-xs text-gray-400">学年</label><input type="text" name="grade" class="w-full border p-2"></div>
-                    <div><label class="text-xs text-gray-400">備考</label><textarea name="memo" class="w-full border p-2"></textarea></div>
-                </form>
-                <div class="p-4 border-t"><button onclick="saveStudent()" class="w-full bg-orange-500 text-white font-bold py-3 rounded">保存する</button></div>
+            <div id="modal-content" class="p-6 space-y-5 max-h-[75vh] overflow-y-auto"></div>
+            <div class="bg-gray-50 p-4 border-t border-gray-100 flex justify-between">
+                <button id="btn-delete-student" class="bg-red-50 text-red-500 px-4 py-2 rounded font-bold text-sm">削除</button>
+                <button onclick="closeModal()" class="bg-gray-500 text-white px-6 py-2 rounded font-bold shadow">閉じる</button>
             </div>
         </div>
     </div>
 
+    <div id="edit-student-modal" class="fixed inset-0 z-[60] flex items-center justify-center hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-60" onclick="closeEditModal()"></div>
+        <div class="bg-white w-11/12 max-w-lg rounded-xl shadow-2xl z-10 overflow-hidden modal-enter">
+            <div class="bg-orange-500 text-white px-5 py-4 flex justify-between items-center">
+                <h3 class="font-bold">生徒情報の編集</h3>
+                <button onclick="closeEditModal()" class="text-2xl">&times;</button>
+            </div>
+            <form id="student-edit-form" class="p-6 space-y-3 max-h-[60vh] overflow-y-auto">
+                <div id="edit-name-area">
+                    <label class="text-xs text-gray-400 font-bold">氏名 ※必須</label>
+                    <input type="text" name="name" required class="w-full border p-2 rounded">
+                </div>
+                <div><label class="text-xs text-gray-400 font-bold">ふりがな</label><input type="text" name="furigana" class="w-full border p-2 rounded"></div>
+                <div class="flex gap-2">
+                    <div class="w-1/2"><label class="text-xs text-gray-400 font-bold">学校</label><input type="text" name="school" class="w-full border p-2 rounded"></div>
+                    <div class="w-1/2"><label class="text-xs text-gray-400 font-bold">学年</label><input type="text" name="grade" class="w-full border p-2 rounded"></div>
+                </div>
+                <div><label class="text-xs text-gray-400 font-bold">性別</label><select name="gender" class="w-full border p-2 rounded"><option value="">選択</option><option value="男子">男子</option><option value="女子">女子</option></select></div>
+                <div class="flex gap-2">
+                    <div class="w-1/2"><label class="text-xs text-gray-400 font-bold">得意</label><input type="text" name="good" class="w-full border p-2 rounded"></div>
+                    <div class="w-1/2"><label class="text-xs text-gray-400 font-bold">苦手</label><input type="text" name="bad" class="w-full border p-2 rounded"></div>
+                </div>
+                <div><label class="text-xs text-gray-400 font-bold">備考</label><textarea name="memo" class="w-full border p-2 rounded"></textarea></div>
+            </form>
+            <div class="p-4 border-t bg-gray-50"><button onclick="saveStudent()" class="w-full bg-orange-500 text-white font-bold py-3 rounded shadow">情報を保存する</button></div>
+        </div>
+    </div>
+
     <script>
-        // JS部分は admin (3).html をベースに、saveStudent, deleteStudent などの処理関数を末尾に追加するだけです。
-        // (マサちゃんの環境に合わせて GAS_URL を設定してください)
-        
-        // ... (既存の fetchReservations, showDetails などの関数) ...
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
+        const ADMIN_PASSWORD = "0202"; 
+
+        function checkPassword() {
+            let input = document.getElementById('admin-password').value;
+            if (input === ADMIN_PASSWORD) {
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('view-calendar').classList.remove('hidden');
+                document.getElementById('btn-refresh').classList.remove('hidden');
+                fetchReservations();
+            } else { document.getElementById('login-error').classList.remove('hidden'); }
+        }
+
+        let allReservations = [];
+        let groupedReservations = {}; 
+        let currentDate = new Date();
+
+        function fetchReservations() {
+            document.getElementById('calendar-grid').innerHTML = '';
+            document.getElementById('loading-message').classList.remove('hidden');
+            fetch(GAS_URL + "?action=getAllReservations").then(r => r.json()).then(data => {
+                allReservations = data;
+                groupReservationsByDate();
+                renderCalendar();
+                document.getElementById('loading-message').classList.add('hidden');
+            });
+        }
+
+        function groupReservationsByDate() {
+            groupedReservations = {};
+            allReservations.forEach(res => {
+                const clean = res.date.replace(/[０-９：]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+                const match = clean.match(/(\d{4})[-\/年](\d{1,2})[-\/月](\d{1,2})/);
+                if (match) {
+                    const key = `${match[1]}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}`;
+                    if (!groupedReservations[key]) groupedReservations[key] = [];
+                    groupedReservations[key].push(res);
+                }
+            });
+        }
+
+        function changeMonth(diff) { currentDate.setMonth(currentDate.getMonth() + diff); renderCalendar(); }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            document.getElementById('current-month-label').innerText = `${year}年 ${month + 1}月`;
+            const first = new Date(year, month, 1).getDay();
+            const last = new Date(year, month + 1, 0).getDate();
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`;
+            for (let i = 0; i < first; i++) grid.innerHTML += `<div class="bg-gray-50 border border-gray-100 rounded"></div>`;
+            for (let day = 1; day <= last; day++) {
+                const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const items = groupedReservations[key] || [];
+                const resCount = items.filter(it => it.status !== "休み").length;
+                const isHoliday = items.some(it => it.status === "休み");
+                const dow = new Date(year, month, day).getDay();
+                let loc = (dow === 1 || dow === 4) ? 'すざか' : (dow === 2 || dow === 5) ? 'おぶせ' : '';
+                let cellCls = (key === todayStr) ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200';
+                if (isHoliday) cellCls += ' day-off-cell pointer-events-none';
+                grid.innerHTML += `<div class="border rounded p-1 sm:p-2 calendar-cell flex flex-col items-center cursor-pointer shadow-sm ${cellCls}" onclick="${isHoliday ? '' : `showDetails('${key}', ${year}, ${month+1}, ${day})`}">
+                    <span class="text-sm font-bold ${isHoliday ? 'text-gray-400' : 'text-gray-700'}">${day}</span>
+                    <span class="text-[10px] mt-0.5 font-bold ${loc === 'すざか' ? 'text-orange-500' : 'text-green-600'} ${isHoliday ? 'hidden' : ''}">${loc}</span>
+                    ${resCount > 0 && !isHoliday ? `<div class="mt-1 bg-brand text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">${resCount}名</div>` : ''}
+                    ${isHoliday ? `<div class="mt-1 bg-gray-400 text-white text-[10px] font-bold rounded px-1.5 py-0.5">休み</div>` : ''}
+                </div>`;
+            }
+        }
+
+        function showDetails(key, y, m, d) {
+            const container = document.getElementById('reservation-list');
+            container.innerHTML = '';
+            const res = (groupedReservations[key] || []).filter(it => it.status !== "休み");
+            document.getElementById('detail-date-label').innerText = `${m}月${d}日 の予約`;
+            document.getElementById('detail-count-badge').innerText = `${res.length}名`;
+            if (res.length === 0) container.innerHTML = `<div class="text-center py-10 bg-white rounded-lg text-gray-500">予約はありません。</div>`;
+            else {
+                res.forEach(r => {
+                    const exp = r.experience ? `<span class="ml-2 bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full">無料体験</span>` : '';
+                    container.insertAdjacentHTML('beforeend', `<div class="bg-white border rounded-lg p-3 shadow-sm relative overflow-hidden"><div class="absolute top-0 left-0 w-1.5 h-full bg-brand"></div><div class="flex flex-wrap items-center justify-between"><div class="flex-1"><div class="flex items-baseline gap-2 mb-1"><span class="text-lg font-bold text-blue-600 cursor-pointer underline" onclick="showStudentHistory('${r.participantName}')">${r.participantName}</span><span class="text-xs text-gray-500">様</span>${exp}<span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded font-bold ml-1">${r.plan}</span></div><div class="text-sm text-gray-600"><div>${r.time} / ${r.location}</div><div class="text-xs text-gray-400">保護者: ${r.parentName}</div></div></div><a href="tel:${r.phone}" class="bg-blue-50 text-blue-600 px-3 py-2 rounded text-xs font-bold italic">電話</a></div></div>`);
+                });
+            }
+            document.getElementById('view-calendar').classList.add('hidden');
+            document.getElementById('view-details').classList.remove('hidden');
+        }
+
+        function showStudentList() {
+            document.getElementById('view-calendar').classList.add('hidden');
+            document.getElementById('view-student-list').classList.remove('hidden');
+            const list = document.getElementById('student-name-list');
+            const load = document.getElementById('student-list-loading');
+            list.innerHTML = ''; load.classList.remove('hidden');
+            fetch(GAS_URL + "?action=getStudentList").then(r => r.json()).then(students => {
+                load.classList.add('hidden');
+                students.sort((a,b) => (a.furigana || a.name).localeCompare(b.furigana || b.name, 'ja'));
+                students.forEach(s => {
+                    const row = document.createElement('div');
+                    row.className = "bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 flex items-center justify-between";
+                    row.innerHTML = `<div class="flex items-center"><span class="font-bold text-gray-800">${s.name}</span><span class="text-xs text-gray-400 ml-2">${s.school} ${s.grade}</span></div><i class="fas fa-chevron-right text-gray-300"></i>`;
+                    row.onclick = () => showStudentHistory(s.name);
+                    list.appendChild(row);
+                });
+            });
+        }
+
+        async function showStudentHistory(name) {
+            const modal = document.getElementById('student-modal');
+            const content = document.getElementById('modal-content');
+            content.innerHTML = '<div class="text-center py-10"><i class="fas fa-spinner fa-spin text-3xl text-brand"></i></div>';
+            modal.classList.remove('hidden');
+            try {
+                const res = await fetch(`${GAS_URL}?action=getStudentDetails&name=${encodeURIComponent(name)}`);
+                const result = await res.json();
+                const info = result.info;
+                document.getElementById('btn-edit-student').onclick = () => openStudentEditModal(info);
+                document.getElementById('btn-delete-student').onclick = () => deleteStudent(info.name);
+                let scoreHtml = (result.scores.length > 0) ? `<div class="overflow-x-auto border rounded-lg"><table class="w-full score-table"><thead><tr><th class="text-left">テスト名</th><th>国</th><th>数</th><th>英</th><th>理</th><th>社</th><th class="score-total">計</th></tr></thead><tbody>${result.scores.map(s => { const sum = [s.kokugo, s.suugaku, s.eigo, s.rika, s.shakai].reduce((a,b)=>a+(parseInt(b)||0),0); return `<tr><td class="text-left font-bold">${s.testName}</td><td>${s.kokugo}</td><td>${s.suugaku}</td><td>${s.eigo}</td><td>${s.rika}</td><td>${s.shakai}</td><td class="score-total">${sum}</td></tr>`}).join('')}</tbody></table></div>` : '<p class="text-center italic text-gray-400">テスト結果なし</p>';
+                content.innerHTML = `<div class="space-y-6"><div class="border-b pb-4"><div class="text-[10px] text-gray-400 font-bold">${info.furigana || ''}</div><div class="text-2xl font-bold">${info.name} <span class="text-sm font-normal">${info.gender || ''}</span></div><div class="text-sm text-gray-500">${info.school} / ${info.grade}</div></div><div class="grid grid-cols-2 gap-3"><div class="p-3 bg-blue-50 rounded border border-blue-100"><div class="text-[10px] text-blue-600">得意</div><div class="text-sm font-bold">${info.good || '-'}</div></div><div class="p-3 bg-red-50 rounded border border-red-100"><div class="text-[10px] text-red-600">苦手</div><div class="text-sm font-bold">${info.bad || '-'}</div></div></div><div>${scoreHtml}</div><div class="p-4 bg-gray-50 rounded border text-sm whitespace-pre-wrap">${info.memo || 'なし'}</div></div>`;
+            } catch (e) { content.innerHTML = '<div class="text-center py-10 text-red-500">取得失敗</div>'; }
+        }
+
+        function openStudentEditModal(s = null) {
+            const form = document.getElementById('student-edit-form'); form.reset();
+            if (s) {
+                form.name.value = s.name; form.name.readOnly = true; form.name.classList.add('bg-gray-100');
+                form.furigana.value = s.furigana||''; form.school.value = s.school||''; form.grade.value = s.grade||''; form.gender.value = s.gender||''; form.good.value = s.good||''; form.bad.value = s.bad||''; form.memo.value = s.memo||'';
+            } else { form.name.readOnly = false; form.name.classList.remove('bg-gray-100'); }
+            document.getElementById('edit-student-modal').classList.remove('hidden');
+        }
 
         async function saveStudent() {
-            const form = document.getElementById('student-edit-form');
-            const studentData = {
-                name: form.name.value,
-                furigana: form.furigana.value,
-                school: form.school.value,
-                grade: form.grade.value,
-                memo: form.memo.value
-                // 他の項目も必要に応じて追加
-            };
-            const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateStudent", studentData }) });
-            const result = await res.json();
-            if (result.status === "success") { alert("保存しました"); location.reload(); }
+            const form = document.getElementById('student-edit-form'); if (!form.name.value) return alert("名前は必須です");
+            const d = { name: form.name.value, furigana: form.furigana.value, school: form.school.value, grade: form.grade.value, gender: form.gender.value, good: form.good.value, bad: form.bad.value, memo: form.memo.value };
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateStudent", studentData: d }) }).then(() => { alert("保存しました"); closeEditModal(); closeModal(); showStudentList(); });
         }
-        
-        // (以下、削除や編集画面を開くための補助関数を追加)
+
+        async function deleteStudent(name) { if (confirm(name + " さんのデータを完全に削除しますか？")) fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "deleteStudent", name }) }).then(() => { alert("削除しました"); closeModal(); showStudentList(); }); }
+        function closeEditModal() { document.getElementById('edit-student-modal').classList.add('hidden'); }
+        function closeModal() { document.getElementById('student-modal').classList.add('hidden'); }
+        function goBackToCalendar() { document.getElementById('view-details').classList.add('hidden'); document.getElementById('view-calendar').classList.remove('hidden'); }
+        function goBackToCalendarFromList() { document.getElementById('view-student-list').classList.add('hidden'); document.getElementById('view-calendar').classList.remove('hidden'); }
     </script>
 </body>
 </html>
