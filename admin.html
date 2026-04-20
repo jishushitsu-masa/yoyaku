@@ -249,7 +249,27 @@
                 document.getElementById('btn-edit-student').onclick = () => openStudentEditModal(info);
                 document.getElementById('btn-delete-student').onclick = () => deleteStudent(info.name);
                 
-                let scoreHtml = (result.scores.length > 0) ? `<div class="overflow-x-auto border rounded-lg"><table class="w-full score-table"><thead><tr><th class="text-left">テスト名</th><th>国</th><th>数</th><th>英</th><th>理</th><th>社</th><th class="score-total">計</th></tr></thead><tbody>${result.scores.map(s => { const sum = [s.kokugo, s.suugaku, s.eigo, s.rika, s.shakai].reduce((a,b)=>a+(parseInt(b)||0),0); return `<tr><td class="text-left font-bold">${s.testName}</td><td>${s.kokugo}</td><td>${s.suugaku}</td><td>${s.eigo}</td><td>${s.rika}</td><td>${s.shakai}</td><td class="score-total">${sum}</td></tr>`}).join('')}</tbody></table></div>` : '<p class="text-center italic text-gray-400">テスト結果なし</p>';
+                // ★テスト結果の並び替えロジック（admin (3).htmlから復元）
+                let scores = result.scores;
+                if (scores && scores.length > 0) {
+                    scores.sort((a, b) => {
+                        function getWeight(testName) {
+                            let w = 0;
+                            if (testName.includes("中3")) w += 3000;
+                            else if (testName.includes("中2")) w += 2000;
+                            else if (testName.includes("中1")) w += 1000;
+                            if (testName.includes("3学期") || testName.includes("後期")) w += 300;
+                            else if (testName.includes("2学期")) w += 200;
+                            else if (testName.includes("1学期") || testName.includes("前期")) w += 100;
+                            if (testName.includes("期末") || testName.includes("学年末")) w += 20;
+                            else if (testName.includes("中間")) w += 10;
+                            return w;
+                        }
+                        return getWeight(b.testName) - getWeight(a.testName);
+                    });
+                }
+
+                let scoreHtml = (scores.length > 0) ? `<div class="overflow-x-auto border rounded-lg"><table class="w-full score-table"><thead><tr><th class="text-left">テスト名</th><th>国</th><th>数</th><th>英</th><th>理</th><th>社</th><th class="score-total">計</th></tr></thead><tbody>${scores.map(s => { const sum = [s.kokugo, s.suugaku, s.eigo, s.rika, s.shakai].reduce((a,b)=>a+(parseInt(b)||0),0); return `<tr><td class="text-left font-bold">${s.testName}</td><td>${s.kokugo}</td><td>${s.suugaku}</td><td>${s.eigo}</td><td>${s.rika}</td><td>${s.shakai}</td><td class="score-total">${sum}</td></tr>`}).join('')}</tbody></table></div>` : '<p class="text-center italic text-gray-400">テスト結果なし</p>';
                 
                 const genderBadge = info.gender ? `<span class="align-middle text-[10px] px-2 py-0.5 rounded font-bold ${info.gender.includes('女') ? 'bg-pink-50 text-pink-600' : info.gender.includes('男') ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}">${info.gender}</span>` : '';
 
