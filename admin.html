@@ -84,7 +84,7 @@
                 <h3 class="font-bold text-lg">生徒カルテ</h3>
                 <div class="flex items-center gap-3">
                    <button id="btn-edit-student" class="text-white hover:text-orange-200 text-sm font-bold"><i class="fas fa-edit mr-1"></i>編集</button>
-                   <button onclick="closeModal()" class="text-white hover:text-gray-200 text-2xl">&times;</button>
+                   <button onclick="closeModal()" class="text-white text-2xl">&times;</button>
                 </div>
             </div>
             <div id="modal-content" class="p-6 space-y-5 max-h-[75vh] overflow-y-auto"></div>
@@ -130,8 +130,26 @@
                 <div class="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-100">
                     <h4 class="font-bold text-orange-600 border-b border-orange-100 pb-1 flex items-center"><i class="fas fa-plus-circle mr-2"></i>新しいテスト結果を追加</h4>
                     <div>
-                        <label class="text-xs text-gray-500 font-bold">テスト名（例: 中3 2学期 中間）</label>
-                        <input type="text" name="testName" placeholder="入力すると保存されます" class="w-full border p-2 rounded outline-none focus:border-orange-500 bg-white">
+                        <label class="text-xs text-gray-500 font-bold">テストの時期を選択</label>
+                        <div class="grid grid-cols-3 gap-1 mt-1">
+                            <select id="sel-grade" class="border p-2 rounded bg-white outline-none">
+                                <option value="">学年</option>
+                                <option value="中1">中1</option>
+                                <option value="中2">中2</option>
+                                <option value="中3">中3</option>
+                            </select>
+                            <select id="sel-term" class="border p-2 rounded bg-white outline-none">
+                                <option value="">学期</option>
+                                <option value="1学期">1学期</option>
+                                <option value="2学期">2学期</option>
+                                <option value="3学期">3学期</option>
+                            </select>
+                            <select id="sel-type" class="border p-2 rounded bg-white outline-none">
+                                <option value="">種類</option>
+                                <option value="中間">中間</option>
+                                <option value="期末">期末</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="grid grid-cols-5 gap-1 text-center">
                         <div><label class="text-[10px] text-gray-400 font-bold">国</label><input type="number" name="kokugo" class="w-full border p-1 rounded text-center bg-white"></div>
@@ -140,7 +158,7 @@
                         <div><label class="text-[10px] text-gray-400 font-bold">理</label><input type="number" name="rika" class="w-full border p-1 rounded text-center bg-white"></div>
                         <div><label class="text-[10px] text-gray-400 font-bold">社</label><input type="number" name="shakai" class="w-full border p-1 rounded text-center bg-white"></div>
                     </div>
-                    <p class="text-[9px] text-gray-400 italic text-right">※テスト名が空の場合は保存されません</p>
+                    <p class="text-[9px] text-gray-400 italic text-right">※「学年・学期・種類」すべて選ぶと保存されます</p>
                 </div>
             </form>
             <div class="p-4 border-t bg-gray-50"><button onclick="saveStudent()" class="w-full bg-orange-500 text-white font-bold py-3 rounded shadow">情報を保存する</button></div>
@@ -267,6 +285,7 @@
                 const info = result.info;
                 document.getElementById('btn-edit-student').onclick = () => openStudentEditModal(info);
                 document.getElementById('btn-delete-student').onclick = () => deleteStudent(info.name);
+                
                 let scores = result.scores;
                 if (scores && scores.length > 0) {
                     scores.sort((a, b) => {
@@ -285,9 +304,13 @@
                         return getWeight(b.testName) - getWeight(a.testName);
                     });
                 }
-                let scoreHtml = (scores.length > 0) ? `<div class="overflow-x-auto border rounded-lg"><table class="w-full score-table"><thead><tr><th class="text-left">テスト名</th><th>国</th><th>数</th><th>英</th><th>理</th><th>社</th><th class="score-total">計</th></tr></thead><tbody>${scores.map(s => { const sum = [s.kokugo, s.suugaku, s.eigo, s.rika, s.shakai].reduce((a,b)=>a+(parseInt(b)||0),0); return `<tr><td class="text-left font-bold">${s.testName}</td><td>${s.kokugo}</td><td>${s.suugaku}</td><td>${s.eigo}</td><td>${s.rika}</td><td>${s.shakai}</td><td class="score-total">${sum}</td></tr>`}).join('')}</tbody></table></div>` : '<p class="text-center italic text-gray-400">テスト結果なし</p>';
+                
+                // ★表示のズレを修正（全角2文字分の幅に統一）
+                let scoreHtml = (scores.length > 0) ? `<div class="overflow-x-auto border rounded-lg"><table class="w-full score-table"><thead><tr><th class="text-left">テスト名</th><th>国</th><th>数</th><th>英</th><th>理</th><th>社</th><th class="score-total">計</th></tr></thead><tbody>${scores.map(s => { const sum = [s.kokugo, s.suugaku, s.eigo, s.rika, s.shakai].reduce((a,b)=>a+(parseInt(b)||0),0); return `<tr><td class="text-left font-bold" style="white-space:pre;">${s.testName}</td><td>${s.kokugo}</td><td>${s.suugaku}</td><td>${s.eigo}</td><td>${s.rika}</td><td>${s.shakai}</td><td class="score-total">${sum}</td></tr>`}).join('')}</tbody></table></div>` : '<p class="text-center italic text-gray-400">テスト結果なし</p>';
+                
                 const genderBadge = info.gender ? `<span class="align-middle text-[10px] px-2 py-0.5 rounded font-bold ${info.gender.includes('女') ? 'bg-pink-50 text-pink-600' : info.gender.includes('男') ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}">${info.gender}</span>` : '';
-                content.innerHTML = `<div class="space-y-6"><div class="border-b pb-4 border-gray-100"><div class="text-[10px] text-gray-400 font-bold pl-0.5">${info.furigana || ''}</div><div class="flex items-baseline gap-3 mt-1"><div class="text-2xl font-bold text-gray-800">${info.name}</div><div class="flex items-center gap-2"><span class="text-sm text-gray-500 font-medium">${info.school} / ${info.grade}</span>${genderBadge}</div></div></div><div class="grid grid-cols-1 gap-4"><div class="grid grid-cols-2 gap-3"><div class="p-3 bg-orange-50 rounded border flex flex-col justify-center"><div class="text-[10px] text-orange-600 font-bold mb-1"><i class="fas fa-bullseye mr-1"></i>志望校</div><div class="font-bold text-gray-800 text-sm"><div>1: ${info.target1 || '未設定'}</div>${info.target2 ? `<div>2: ${info.target2}</div>` : ''}</div></div><div class="p-3 bg-green-50 rounded border flex flex-col justify-center"><div class="text-[10px] text-green-600 font-bold mb-1"><i class="fas fa-running mr-1"></i>部活動</div><div class="font-bold text-gray-800 text-sm">${info.club || '-'}</div></div></div><div><div class="text-[10px] text-gray-500 font-bold mb-2">過去の定期テスト結果</div>${scoreHtml}</div><div class="grid grid-cols-2 gap-3"><div class="p-3 bg-blue-50 rounded border"><div class="text-[10px] text-blue-600 font-bold uppercase">得意</div><div class="font-bold text-sm text-gray-800">${info.good || '-'}</div></div><div class="p-3 bg-red-50 rounded border"><div class="text-[10px] text-red-600 font-bold uppercase">苦手</div><div class="font-bold text-sm text-gray-800">${info.bad || '-'}</div></div></div><div class="p-4 bg-gray-50 rounded border text-sm text-gray-700 whitespace-pre-wrap">${info.memo || 'なし'}</div></div></div>`;
+
+                content.innerHTML = `<div class="space-y-6"><div class="border-b pb-4 border-gray-100"><div class="text-[10px] text-gray-400 font-bold pl-0.5">${info.furigana || ''}</div><div class="flex items-baseline gap-3 mt-1"><div class="text-2xl font-bold text-gray-800">${info.name}</div><div class="flex items-center gap-2"><span class="text-sm text-gray-500 font-medium">${info.school} / ${info.grade}</span>${genderBadge}</div></div></div><div class="grid grid-cols-1 gap-4"><div class="grid grid-cols-2 gap-3"><div class="p-3 bg-orange-50 rounded border flex flex-col justify-center"><div class="text-[10px] text-orange-600 font-bold mb-1 uppercase tracking-wider"><i class="fas fa-bullseye mr-1"></i>志望校</div><div class="font-bold text-gray-800 text-sm"><div class="flex items-center"><span class="text-[9px] text-white bg-orange-400 rounded-full w-3 h-3 flex items-center justify-center mr-1">1</span>${info.target1 || '未設定'}</div>${info.target2 ? `<div class="flex items-center mt-1"><span class="text-[9px] text-white bg-orange-400 rounded-full w-3 h-3 flex items-center justify-center mr-1">2</span>${info.target2}</div>` : ''}</div></div><div class="p-3 bg-green-50 rounded border flex flex-col justify-center"><div class="text-[10px] text-green-600 font-bold mb-1 uppercase tracking-wider"><i class="fas fa-running mr-1"></i>部活動</div><div class="font-bold text-gray-800 text-sm">${info.club || '-'}</div></div></div><div><div class="text-[10px] text-gray-500 font-bold mb-2 uppercase tracking-wider px-1"><i class="fas fa-chart-line mr-1"></i>過去の定期テスト結果</div>${scoreHtml}</div><div class="grid grid-cols-2 gap-3"><div class="p-3 bg-blue-50 rounded border"><div class="text-[10px] text-blue-600 font-bold uppercase">得意</div><div class="font-bold text-sm text-gray-800">${info.good || '-'}</div></div><div class="p-3 bg-red-50 rounded border"><div class="text-[10px] text-red-600 font-bold uppercase">苦手</div><div class="font-bold text-sm text-gray-800">${info.bad || '-'}</div></div></div><div class="p-4 bg-gray-50 rounded border text-sm text-gray-700 whitespace-pre-wrap">${info.memo || 'なし'}</div></div></div>`;
             } catch (e) { content.innerHTML = '<div class="text-center py-10 text-red-500">取得失敗</div>'; }
         }
 
@@ -303,12 +326,21 @@
 
         async function saveStudent() {
             const form = document.getElementById('student-edit-form'); if (!form.name.value) return alert("名前は必須です");
+            
+            // ★選択された項目からテスト名を生成（ズレを防ぐため全角スペースを調整）
+            let fullTestName = "";
+            const g = document.getElementById('sel-grade').value;
+            const t = document.getElementById('sel-term').value;
+            const type = document.getElementById('sel-type').value;
+            if (g && t && type) {
+                fullTestName = `${g}　${t}　${type}`; // 全角スペース2つで区切り
+            }
+
             const d = { 
                 name: form.name.value, furigana: form.furigana.value, school: form.school.value, grade: form.grade.value, 
                 gender: form.gender.value, good: form.good.value, bad: form.bad.value, target1: form.target1.value, 
                 target2: form.target2.value, club: form.club.value, memo: form.memo.value,
-                // テスト結果も一緒に送信
-                testName: form.testName.value, kokugo: form.kokugo.value, suugaku: form.suugaku.value, 
+                testName: fullTestName, kokugo: form.kokugo.value, suugaku: form.suugaku.value, 
                 eigo: form.eigo.value, rika: form.rika.value, shakai: form.shakai.value
             };
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateStudent", studentData: d }) }).then(() => { alert("保存しました"); closeEditModal(); closeModal(); showStudentList(); });
