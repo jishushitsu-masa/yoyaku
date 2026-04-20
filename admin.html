@@ -158,7 +158,6 @@
                         <div><label class="text-[10px] text-gray-400 font-bold">理</label><input type="number" name="rika" class="w-full border p-1 rounded text-center bg-white"></div>
                         <div><label class="text-[10px] text-gray-400 font-bold">社</label><input type="number" name="shakai" class="w-full border p-1 rounded text-center bg-white"></div>
                     </div>
-                    <p class="text-[9px] text-gray-400 italic text-right">※「学年・学期・種類」すべて選ぶと保存されます</p>
                 </div>
             </form>
             <div class="p-4 border-t bg-gray-50"><button onclick="saveStudent()" class="w-full bg-orange-500 text-white font-bold py-3 rounded shadow">情報を保存する</button></div>
@@ -254,6 +253,7 @@
             document.getElementById('view-details').classList.remove('hidden');
         }
 
+        // ★生徒一覧表示（ふりがな表示に修正）
         function showStudentList() {
             document.getElementById('view-calendar').classList.add('hidden');
             document.getElementById('view-student-list').classList.remove('hidden');
@@ -267,7 +267,10 @@
                     const row = document.createElement('div');
                     row.className = "bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 flex items-center justify-between";
                     const genderBadge = s.gender ? `<span class="text-[10px] px-2 py-0.5 rounded ml-2 font-bold ${s.gender.includes('女') ? 'bg-pink-50 text-pink-600' : s.gender.includes('男') ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}">${s.gender}</span>` : '';
-                    row.innerHTML = `<div class="flex items-center"><span class="font-bold text-gray-800">${s.name}</span><span class="text-xs text-gray-400 ml-2">${s.school} ${s.grade}</span>${genderBadge}</div><i class="fas fa-chevron-right text-gray-300"></i>`;
+                    
+                    // ここで「ふりがな」を表示するように変更
+                    row.innerHTML = `<div class="flex items-center"><span class="font-bold text-gray-800">${s.name}</span><span class="text-[11px] text-gray-400 ml-2 font-medium">（${s.furigana || 'ー'}）</span>${genderBadge}</div><i class="fas fa-chevron-right text-gray-300 text-xs"></i>`;
+                    
                     row.onclick = () => showStudentHistory(s.name);
                     list.appendChild(row);
                 });
@@ -305,8 +308,7 @@
                     });
                 }
                 
-                // ★表示のズレを修正（全角2文字分の幅に統一）
-                let scoreHtml = (scores.length > 0) ? `<div class="overflow-x-auto border rounded-lg"><table class="w-full score-table"><thead><tr><th class="text-left">テスト名</th><th>国</th><th>数</th><th>英</th><th>理</th><th>社</th><th class="score-total">計</th></tr></thead><tbody>${scores.map(s => { const sum = [s.kokugo, s.suugaku, s.eigo, s.rika, s.shakai].reduce((a,b)=>a+(parseInt(b)||0),0); return `<tr><td class="text-left font-bold" style="white-space:pre;">${s.testName}</td><td>${s.kokugo}</td><td>${s.suugaku}</td><td>${s.eigo}</td><td>${s.rika}</td><td>${s.shakai}</td><td class="score-total">${sum}</td></tr>`}).join('')}</tbody></table></div>` : '<p class="text-center italic text-gray-400">テスト結果なし</p>';
+                let scoreHtml = (scores.length > 0) ? `<div class="overflow-x-auto border rounded-lg"><table class="w-full score-table"><thead><tr><th class="text-left">テスト名</th><th>国</th><th>数</th><th>英</th><th>理</th><th>社</th><th class="score-total">計</th></tr></thead><tbody>${scores.map(s => { const sum = [s.kokugo, s.suugaku, s.eigo, s.rika, s.shakai].reduce((a,b)=>a+(parseInt(b)||0),0); return `<tr><td class="text-left font-bold" style="white-space:pre;">${s.testName}</td><td>${s.kokugo}</td><td>${s.suugaku}</td><td>${s.eigo}</td><td>${s.rika}</td><td>${s.shakai}</td><td class="score-total">${sum}</td></tr>`}).join('')}</tbody></table></div>` : '<p class="text-center italic text-gray-400 text-xs">テスト結果なし</p>';
                 
                 const genderBadge = info.gender ? `<span class="align-middle text-[10px] px-2 py-0.5 rounded font-bold ${info.gender.includes('女') ? 'bg-pink-50 text-pink-600' : info.gender.includes('男') ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}">${info.gender}</span>` : '';
 
@@ -326,16 +328,11 @@
 
         async function saveStudent() {
             const form = document.getElementById('student-edit-form'); if (!form.name.value) return alert("名前は必須です");
-            
-            // ★選択された項目からテスト名を生成（ズレを防ぐため全角スペースを調整）
             let fullTestName = "";
             const g = document.getElementById('sel-grade').value;
             const t = document.getElementById('sel-term').value;
             const type = document.getElementById('sel-type').value;
-            if (g && t && type) {
-                fullTestName = `${g}　${t}　${type}`; // 全角スペース2つで区切り
-            }
-
+            if (g && t && type) { fullTestName = `${g}　${t}　${type}`; }
             const d = { 
                 name: form.name.value, furigana: form.furigana.value, school: form.school.value, grade: form.grade.value, 
                 gender: form.gender.value, good: form.good.value, bad: form.bad.value, target1: form.target1.value, 
