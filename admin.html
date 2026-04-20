@@ -65,7 +65,7 @@
                     <i class="fas fa-arrow-left mr-2"></i>戻る
                 </button>
                 <h2 id="detail-date-label" class="text-lg font-bold text-gray-800 ml-4">--月--日 の予約</h2>
-                <span id="detail-count-badge" class="ml-2 bg-brand text-white text-xs font-bold px-2 py-1 rounded-full">0件</span>
+                <span id="detail-count-badge" class="ml-2 bg-brand text-white text-xs font-bold px-2 py-1 rounded-full">0名</span>
             </div>
             <div id="reservation-list" class="space-y-3"></div>
         </div>
@@ -177,7 +177,7 @@
                     cellClass += ' day-off-cell pointer-events-none';
                     badgeHtml = `<div class="mt-1 bg-gray-400 text-white text-[10px] font-bold rounded px-1.5 py-0.5">休み</div>`;
                 } else if (resCount > 0) {
-                    badgeHtml = `<div class="mt-1 bg-brand text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 shadow-sm">${resCount}件</div>`;
+                    badgeHtml = `<div class="mt-1 bg-brand text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 shadow-sm">${resCount}名</div>`;
                 }
                 grid.innerHTML += `
                     <div class="border rounded p-1 sm:p-2 calendar-cell flex flex-col items-center cursor-pointer hover:bg-gray-100 transition shadow-sm ${cellClass}" onclick="${isHoliday ? '' : `showDetails('${dateKey}', ${year}, ${month+1}, ${day})`}">
@@ -193,7 +193,7 @@
             listContainer.innerHTML = '';
             const reservations = (groupedReservations[dateKey] || []).filter(item => item.status !== "休み");
             document.getElementById('detail-date-label').innerText = `${m}月${d}日 の予約`;
-            document.getElementById('detail-count-badge').innerText = `${reservations.length}件`;
+            document.getElementById('detail-count-badge').innerText = `${reservations.length}名`;
 
             if (reservations.length === 0) {
                 listContainer.innerHTML = `<div class="text-center py-10 bg-white rounded-lg border border-gray-200 text-gray-500">この日の予約はありません。</div>`;
@@ -254,7 +254,6 @@
                         
                         const furiganaHtml = student.furigana ? `<span class="text-xs text-gray-400 font-normal ml-2">(${student.furigana})</span>` : '';
                         
-                        // ★追加：性別のバッジ生成
                         const genderHtml = student.gender ? `<span class="text-[10px] px-2 py-0.5 rounded ml-2 font-bold ${student.gender.includes('女') ? 'bg-pink-50 text-pink-600' : student.gender.includes('男') ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}">${student.gender}</span>` : '';
                         
                         row.innerHTML = `<div class="flex items-center"><span class="font-bold text-gray-800">${student.name}</span>${furiganaHtml}${genderHtml}</div><i class="fas fa-chevron-right text-gray-300 text-xs"></i>`;
@@ -333,7 +332,6 @@
                         </div>`;
                 }
 
-                // ★追加：カルテ画面用の性別バッジ
                 const genderBadge = info.gender ? `<span class="align-middle text-[10px] px-2 py-0.5 rounded font-bold ${info.gender.includes('女') ? 'bg-pink-50 text-pink-600' : info.gender.includes('男') ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}">${info.gender}</span>` : '';
 
                 content.innerHTML = `
