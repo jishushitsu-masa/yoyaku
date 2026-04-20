@@ -84,7 +84,7 @@
                 <h3 class="font-bold text-lg">生徒カルテ</h3>
                 <div class="flex items-center gap-3">
                    <button id="btn-edit-student" class="text-white hover:text-orange-200 text-sm font-bold"><i class="fas fa-edit mr-1"></i>編集</button>
-                   <button onclick="closeModal()" class="text-white text-2xl">&times;</button>
+                   <button onclick="closeModal()" class="text-white hover:text-gray-200 text-2xl">&times;</button>
                 </div>
             </div>
             <div id="modal-content" class="p-6 space-y-5 max-h-[75vh] overflow-y-auto"></div>
@@ -160,7 +160,11 @@
                     </div>
                 </div>
             </form>
-            <div class="p-4 border-t bg-gray-50"><button onclick="saveStudent()" class="w-full bg-orange-500 text-white font-bold py-3 rounded shadow">情報を保存する</button></div>
+            <div class="p-4 border-t bg-gray-50">
+                <button id="btn-save-student" onclick="saveStudent()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded shadow transition flex items-center justify-center gap-2">
+                    情報を保存する
+                </button>
+            </div>
         </div>
     </div>
 
@@ -253,7 +257,6 @@
             document.getElementById('view-details').classList.remove('hidden');
         }
 
-        // ★生徒一覧表示（ふりがな表示に修正）
         function showStudentList() {
             document.getElementById('view-calendar').classList.add('hidden');
             document.getElementById('view-student-list').classList.remove('hidden');
@@ -267,10 +270,7 @@
                     const row = document.createElement('div');
                     row.className = "bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 flex items-center justify-between";
                     const genderBadge = s.gender ? `<span class="text-[10px] px-2 py-0.5 rounded ml-2 font-bold ${s.gender.includes('女') ? 'bg-pink-50 text-pink-600' : s.gender.includes('男') ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}">${s.gender}</span>` : '';
-                    
-                    // ここで「ふりがな」を表示するように変更
                     row.innerHTML = `<div class="flex items-center"><span class="font-bold text-gray-800">${s.name}</span><span class="text-[11px] text-gray-400 ml-2 font-medium">（${s.furigana || 'ー'}）</span>${genderBadge}</div><i class="fas fa-chevron-right text-gray-300 text-xs"></i>`;
-                    
                     row.onclick = () => showStudentHistory(s.name);
                     list.appendChild(row);
                 });
@@ -318,6 +318,11 @@
 
         function openStudentEditModal(s = null) {
             const form = document.getElementById('student-edit-form'); form.reset();
+            // テスト選択欄もリセット
+            document.getElementById('sel-grade').value = "";
+            document.getElementById('sel-term').value = "";
+            document.getElementById('sel-type').value = "";
+
             if (s) {
                 form.name.value = s.name; form.name.readOnly = true; form.name.classList.add('bg-gray-100');
                 form.furigana.value = s.furigana||''; form.school.value = s.school||''; form.grade.value = s.grade||''; form.gender.value = s.gender||''; form.good.value = s.good||''; form.bad.value = s.bad||'';
@@ -326,13 +331,24 @@
             document.getElementById('edit-student-modal').classList.remove('hidden');
         }
 
+        // ★保存処理（保存中アニメーション追加）
         async function saveStudent() {
-            const form = document.getElementById('student-edit-form'); if (!form.name.value) return alert("名前は必須です");
+            const form = document.getElementById('student-edit-form');
+            const btn = document.getElementById('btn-save-student');
+            if (!form.name.value) return alert("名前は必須です");
+            
+            // ボタンを無効化して表示を変える
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 保存中...';
+            btn.classList.replace('bg-orange-500', 'bg-orange-300');
+
             let fullTestName = "";
             const g = document.getElementById('sel-grade').value;
             const t = document.getElementById('sel-term').value;
             const type = document.getElementById('sel-type').value;
             if (g && t && type) { fullTestName = `${g}　${t}　${type}`; }
+
             const d = { 
                 name: form.name.value, furigana: form.furigana.value, school: form.school.value, grade: form.grade.value, 
                 gender: form.gender.value, good: form.good.value, bad: form.bad.value, target1: form.target1.value, 
@@ -340,10 +356,44 @@
                 testName: fullTestName, kokugo: form.kokugo.value, suugaku: form.suugaku.value, 
                 eigo: form.eigo.value, rika: form.rika.value, shakai: form.shakai.value
             };
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateStudent", studentData: d }) }).then(() => { alert("保存しました"); closeEditModal(); closeModal(); showStudentList(); });
+
+            try {
+                await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateStudent", studentData: d }) });
+                alert("保存しました");
+                closeEditModal();
+                closeModal();
+                showStudentList();
+            } catch (e) {
+                alert("通信エラーが発生しました");
+            } finally {
+                // ボタンを元に戻す
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+                btn.classList.replace('bg-orange-300', 'bg-orange-500');
+            }
         }
 
-        async function deleteStudent(name) { if (confirm(name + " さんのデータを完全に削除しますか？")) fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "deleteStudent", name }) }).then(() => { alert("削除しました"); closeModal(); showStudentList(); }); }
+        // ★削除処理（削除中アニメーション追加）
+        async function deleteStudent(name) {
+            if (!confirm(name + " さんのデータを完全に削除しますか？")) return;
+            const btn = document.getElementById('btn-delete-student');
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 削除中...';
+
+            try {
+                await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "deleteStudent", name }) });
+                alert("削除しました");
+                closeModal();
+                showStudentList();
+            } catch (e) {
+                alert("通信エラーが発生しました");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        }
+
         function closeEditModal() { document.getElementById('edit-student-modal').classList.add('hidden'); }
         function closeModal() { document.getElementById('student-modal').classList.add('hidden'); }
         function goBackToCalendar() { document.getElementById('view-details').classList.add('hidden'); document.getElementById('view-calendar').classList.remove('hidden'); }
