@@ -242,7 +242,6 @@
                         return;
                     }
                     
-                    // ★追加：あいうえお順に並び替え
                     students.sort((a, b) => {
                         const strA = a.furigana ? a.furigana : a.name;
                         const strB = b.furigana ? b.furigana : b.name;
@@ -255,7 +254,10 @@
                         
                         const furiganaHtml = student.furigana ? `<span class="text-xs text-gray-400 font-normal ml-2">(${student.furigana})</span>` : '';
                         
-                        row.innerHTML = `<div class="flex items-baseline"><span class="font-bold text-gray-800">${student.name}</span>${furiganaHtml}</div><i class="fas fa-chevron-right text-gray-300 text-xs"></i>`;
+                        // ★追加：性別のバッジ生成
+                        const genderHtml = student.gender ? `<span class="text-[10px] px-2 py-0.5 rounded ml-2 font-bold ${student.gender.includes('女') ? 'bg-pink-50 text-pink-600' : student.gender.includes('男') ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}">${student.gender}</span>` : '';
+                        
+                        row.innerHTML = `<div class="flex items-center"><span class="font-bold text-gray-800">${student.name}</span>${furiganaHtml}${genderHtml}</div><i class="fas fa-chevron-right text-gray-300 text-xs"></i>`;
                         row.onclick = () => showStudentHistory(student.name);
                         listContainer.appendChild(row);
                     });
@@ -331,13 +333,19 @@
                         </div>`;
                 }
 
+                // ★追加：カルテ画面用の性別バッジ
+                const genderBadge = info.gender ? `<span class="align-middle text-[10px] px-2 py-0.5 rounded font-bold ${info.gender.includes('女') ? 'bg-pink-50 text-pink-600' : info.gender.includes('男') ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}">${info.gender}</span>` : '';
+
                 content.innerHTML = `
                     <div class="space-y-6">
                         <div class="border-b pb-4 border-gray-100">
                             <div class="text-[10px] text-gray-400 font-bold mb-[-4px] pl-0.5">${info.furigana || ''}</div>
-                            <div class="flex items-baseline gap-3">
+                            <div class="flex items-baseline gap-3 mt-1">
                                 <div class="text-2xl font-bold text-gray-800">${name}</div>
-                                <div class="text-sm text-gray-500 font-medium">${info.school} / ${info.grade}</div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-500 font-medium">${info.school} / ${info.grade}</span>
+                                    ${genderBadge}
+                                </div>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 gap-4">
