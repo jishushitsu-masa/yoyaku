@@ -224,7 +224,7 @@
             document.getElementById('view-details').classList.remove('hidden');
         }
 
-        // ★追加：生徒一覧の表示処理
+        // ★変更：名前とふりがなを組み合わせてリスト表示するように修正
         function showStudentList() {
             document.getElementById('view-calendar').classList.add('hidden');
             document.getElementById('view-student-list').classList.remove('hidden');
@@ -236,17 +236,21 @@
 
             fetch(GAS_URL + "?action=getStudentList")
                 .then(res => res.json())
-                .then(names => {
+                .then(students => {
                     loading.classList.add('hidden');
-                    if (names.length === 0) {
+                    if (students.length === 0) {
                         listContainer.innerHTML = '<p class="text-center py-10 text-gray-400">登録されている生徒はいません。</p>';
                         return;
                     }
-                    names.forEach(name => {
+                    students.forEach(student => {
                         const row = document.createElement('div');
                         row.className = "bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition active:bg-gray-100 flex items-center justify-between";
-                        row.innerHTML = `<span class="font-bold text-gray-800">${name}</span><i class="fas fa-chevron-right text-gray-300 text-xs"></i>`;
-                        row.onclick = () => showStudentHistory(name);
+                        
+                        // ふりがなが存在する場合のみカッコをつけて表示
+                        const furiganaHtml = student.furigana ? `<span class="text-xs text-gray-400 font-normal ml-2">(${student.furigana})</span>` : '';
+                        
+                        row.innerHTML = `<div class="flex items-baseline"><span class="font-bold text-gray-800">${student.name}</span>${furiganaHtml}</div><i class="fas fa-chevron-right text-gray-300 text-xs"></i>`;
+                        row.onclick = () => showStudentHistory(student.name);
                         listContainer.appendChild(row);
                     });
                 })
