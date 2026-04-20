@@ -77,8 +77,7 @@
                 </button>
                 <h2 class="text-lg font-bold text-gray-800 ml-4">生徒一覧</h2>
             </div>
-            <div id="student-name-list" class="grid grid-cols-1 gap-2">
-                </div>
+            <div id="student-name-list" class="grid grid-cols-1 gap-2"></div>
             <div id="student-list-loading" class="text-center py-20 text-gray-500">
                 <i class="fas fa-spinner fa-spin text-3xl text-brand mb-2"></i><br>名簿を読み込んでいます...
             </div>
@@ -92,8 +91,7 @@
                 <h3 class="font-bold text-lg"><i class="fas fa-id-card mr-2"></i>生徒カルテ</h3>
                 <button onclick="closeModal()" class="text-white hover:text-gray-200 text-2xl">&times;</button>
             </div>
-            <div id="modal-content" class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
-                </div>
+            <div id="modal-content" class="p-6 space-y-5 max-h-[75vh] overflow-y-auto"></div>
             <div class="bg-gray-50 p-4 border-t border-gray-100 text-right">
                 <button onclick="closeModal()" class="bg-gray-500 text-white px-6 py-2 rounded-lg font-bold shadow">閉じる</button>
             </div>
@@ -104,12 +102,13 @@
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
         const ADMIN_PASSWORD = "0202"; 
 
-        let allReservations = [];
-        let groupedReservations = {}; 
-        let currentDate = new Date();
-
         function checkPassword() {
-            const input = document.getElementById('admin-password').value;
+            let input = document.getElementById('admin-password').value;
+            if (input) {
+                input = input.replace(/[０-９]/g, function(s) {
+                    return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+                }).trim();
+            }
             if (input === ADMIN_PASSWORD) {
                 document.getElementById('view-login').classList.add('hidden');
                 document.getElementById('view-calendar').classList.remove('hidden');
@@ -119,6 +118,10 @@
                 document.getElementById('login-error').classList.remove('hidden');
             }
         }
+
+        let allReservations = [];
+        let groupedReservations = {}; 
+        let currentDate = new Date();
 
         function fetchReservations() {
             document.getElementById('calendar-grid').innerHTML = '';
@@ -251,11 +254,8 @@
                     students.forEach(student => {
                         const row = document.createElement('div');
                         row.className = "bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition active:bg-gray-100 flex items-center justify-between";
-                        
                         const furiganaHtml = student.furigana ? `<span class="text-xs text-gray-400 font-normal ml-2">(${student.furigana})</span>` : '';
-                        
                         const genderHtml = student.gender ? `<span class="text-[10px] px-2 py-0.5 rounded ml-2 font-bold ${student.gender.includes('女') ? 'bg-pink-50 text-pink-600' : student.gender.includes('男') ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}">${student.gender}</span>` : '';
-                        
                         row.innerHTML = `<div class="flex items-center"><span class="font-bold text-gray-800">${student.name}</span>${furiganaHtml}${genderHtml}</div><i class="fas fa-chevron-right text-gray-300 text-xs"></i>`;
                         row.onclick = () => showStudentHistory(student.name);
                         listContainer.appendChild(row);
@@ -269,22 +269,18 @@
         async function showStudentHistory(name) {
             const modal = document.getElementById('student-modal');
             const content = document.getElementById('modal-content');
-            
             content.innerHTML = `<div class="text-center py-10"><i class="fas fa-spinner fa-spin text-3xl text-brand"></i><br><span class="mt-2 text-gray-500">読み込み中...</span></div>`;
             modal.classList.remove('hidden');
 
             try {
                 const response = await fetch(`${GAS_URL}?action=getStudentDetails&name=${encodeURIComponent(name)}`);
                 const result = await response.json();
-                
                 if (!result || !result.info) {
                     content.innerHTML = `<div class="text-center py-10 text-red-500"><i class="fas fa-exclamation-triangle text-3xl mb-2"></i><br>「生徒名簿」シートに<br><strong>${name}</strong> さんのデータが<br>見つかりませんでした。</div>`;
                     return;
                 }
-
                 const info = result.info;
                 const scores = result.scores;
-
                 if (scores && scores.length > 0) {
                     scores.sort((a, b) => {
                         function getWeight(testName) {
@@ -302,38 +298,15 @@
                         return getWeight(b.testName) - getWeight(a.testName);
                     });
                 }
-
                 let scoreHtml = '<p class="text-gray-400 text-center py-4 italic">過去のテスト結果はありません。</p>';
                 if (scores && scores.length > 0) {
                     let rows = scores.map(s => {
                         const sum = [s.kokugo, s.suugaku, s.eigo, s.rika, s.shakai].reduce((a, b) => a + (parseInt(b) || 0), 0);
-                        return `<tr>
-                            <td class="font-bold text-left">${s.testName}</td>
-                            <td>${s.kokugo || '-'}</td>
-                            <td>${s.suugaku || '-'}</td>
-                            <td>${s.eigo || '-'}</td>
-                            <td>${s.rika || '-'}</td>
-                            <td>${s.shakai || '-'}</td>
-                            <td class="score-total">${sum || '-'}</td>
-                        </tr>`;
+                        return `<tr><td class="font-bold text-left">${s.testName}</td><td>${s.kokugo || '-'}</td><td>${s.suugaku || '-'}</td><td>${s.eigo || '-'}</td><td>${s.rika || '-'}</td><td>${s.shakai || '-'}</td><td class="score-total">${sum || '-'}</td></tr>`;
                     }).join('');
-
-                    scoreHtml = `
-                        <div class="overflow-x-auto border border-gray-100 rounded-lg">
-                            <table class="w-full score-table">
-                                <thead>
-                                    <tr>
-                                        <th class="text-left">テスト名</th>
-                                        <th>国</th><th>数</th><th>英</th><th>理</th><th>社</th><th class="score-total">計</th>
-                                    </tr>
-                                </thead>
-                                <tbody>${rows}</tbody>
-                            </table>
-                        </div>`;
+                    scoreHtml = `<div class="overflow-x-auto border border-gray-100 rounded-lg"><table class="w-full score-table"><thead><tr><th class="text-left">テスト名</th><th>国</th><th>数</th><th>英</th><th>理</th><th>社</th><th class="score-total">計</th></tr></thead><tbody>${rows}</tbody></table></div>`;
                 }
-
                 const genderBadge = info.gender ? `<span class="align-middle text-[10px] px-2 py-0.5 rounded font-bold ${info.gender.includes('女') ? 'bg-pink-50 text-pink-600' : info.gender.includes('男') ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}">${info.gender}</span>` : '';
-
                 content.innerHTML = `
                     <div class="space-y-6">
                         <div class="border-b pb-4 border-gray-100">
@@ -385,19 +358,9 @@
             }
         }
 
-        function closeModal() {
-            document.getElementById('student-modal').classList.add('hidden');
-        }
-
-        function goBackToCalendar() { 
-            document.getElementById('view-details').classList.add('hidden'); 
-            document.getElementById('view-calendar').classList.remove('hidden'); 
-        }
-
-        function goBackToCalendarFromList() {
-            document.getElementById('view-student-list').classList.add('hidden');
-            document.getElementById('view-calendar').classList.remove('hidden');
-        }
+        function closeModal() { document.getElementById('student-modal').classList.add('hidden'); }
+        function goBackToCalendar() { document.getElementById('view-details').classList.add('hidden'); document.getElementById('view-calendar').classList.remove('hidden'); }
+        function goBackToCalendarFromList() { document.getElementById('view-student-list').classList.add('hidden'); document.getElementById('view-calendar').classList.remove('hidden'); }
     </script>
 </body>
 </html>
