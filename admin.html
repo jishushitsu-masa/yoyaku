@@ -224,7 +224,6 @@
             document.getElementById('view-details').classList.remove('hidden');
         }
 
-        // ★変更：名前とふりがなを組み合わせてリスト表示するように修正
         function showStudentList() {
             document.getElementById('view-calendar').classList.add('hidden');
             document.getElementById('view-student-list').classList.remove('hidden');
@@ -242,11 +241,18 @@
                         listContainer.innerHTML = '<p class="text-center py-10 text-gray-400">登録されている生徒はいません。</p>';
                         return;
                     }
+                    
+                    // ★追加：あいうえお順に並び替え
+                    students.sort((a, b) => {
+                        const strA = a.furigana ? a.furigana : a.name;
+                        const strB = b.furigana ? b.furigana : b.name;
+                        return strA.localeCompare(strB, 'ja');
+                    });
+
                     students.forEach(student => {
                         const row = document.createElement('div');
                         row.className = "bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition active:bg-gray-100 flex items-center justify-between";
                         
-                        // ふりがなが存在する場合のみカッコをつけて表示
                         const furiganaHtml = student.furigana ? `<span class="text-xs text-gray-400 font-normal ml-2">(${student.furigana})</span>` : '';
                         
                         row.innerHTML = `<div class="flex items-baseline"><span class="font-bold text-gray-800">${student.name}</span>${furiganaHtml}</div><i class="fas fa-chevron-right text-gray-300 text-xs"></i>`;
