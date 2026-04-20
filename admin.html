@@ -48,6 +48,14 @@
                 <div class="text-red-500">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="text-blue-500">土</div>
             </div>
             <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
+            
+            <div class="mt-8 px-4">
+                <button onclick="showStudentList()" class="w-full bg-white border-2 border-brand text-brand hover:bg-brand hover:text-white font-bold py-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-users text-lg"></i>
+                    生徒一覧（名簿）を表示
+                </button>
+            </div>
+
             <div id="loading-message" class="text-center py-8 text-gray-500 hidden"><i class="fas fa-spinner fa-spin mr-2 text-brand text-2xl"></i><br>予約データを読み込んでいます...</div>
         </div>
 
@@ -60,6 +68,20 @@
                 <span id="detail-count-badge" class="ml-2 bg-brand text-white text-xs font-bold px-2 py-1 rounded-full">0件</span>
             </div>
             <div id="reservation-list" class="space-y-3"></div>
+        </div>
+
+        <div id="view-student-list" class="p-4 hidden bg-gray-100 min-h-screen">
+            <div class="flex items-center mb-4 mt-2">
+                <button onclick="goBackToCalendarFromList()" class="bg-white border border-gray-300 text-gray-600 px-4 py-2 rounded shadow-sm hover:bg-gray-50 flex items-center font-bold">
+                    <i class="fas fa-arrow-left mr-2"></i>カレンダーに戻る
+                </button>
+                <h2 class="text-lg font-bold text-gray-800 ml-4">生徒一覧</h2>
+            </div>
+            <div id="student-name-list" class="grid grid-cols-1 gap-2">
+                </div>
+            <div id="student-list-loading" class="text-center py-20 text-gray-500">
+                <i class="fas fa-spinner fa-spin text-3xl text-brand mb-2"></i><br>名簿を読み込んでいます...
+            </div>
         </div>
     </div>
 
@@ -202,6 +224,37 @@
             document.getElementById('view-details').classList.remove('hidden');
         }
 
+        // ★追加：生徒一覧の表示処理
+        function showStudentList() {
+            document.getElementById('view-calendar').classList.add('hidden');
+            document.getElementById('view-student-list').classList.remove('hidden');
+            const listContainer = document.getElementById('student-name-list');
+            const loading = document.getElementById('student-list-loading');
+            
+            listContainer.innerHTML = '';
+            loading.classList.remove('hidden');
+
+            fetch(GAS_URL + "?action=getStudentList")
+                .then(res => res.json())
+                .then(names => {
+                    loading.classList.add('hidden');
+                    if (names.length === 0) {
+                        listContainer.innerHTML = '<p class="text-center py-10 text-gray-400">登録されている生徒はいません。</p>';
+                        return;
+                    }
+                    names.forEach(name => {
+                        const row = document.createElement('div');
+                        row.className = "bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition active:bg-gray-100 flex items-center justify-between";
+                        row.innerHTML = `<span class="font-bold text-gray-800">${name}</span><i class="fas fa-chevron-right text-gray-300 text-xs"></i>`;
+                        row.onclick = () => showStudentHistory(name);
+                        listContainer.appendChild(row);
+                    });
+                })
+                .catch(() => {
+                    loading.innerHTML = '<p class="text-red-500">読み込みに失敗しました。</p>';
+                });
+        }
+
         async function showStudentHistory(name) {
             const modal = document.getElementById('student-modal');
             const content = document.getElementById('modal-content');
@@ -221,25 +274,20 @@
                 const info = result.info;
                 const scores = result.scores;
 
-                // ★追加：テスト結果の並び替えロジック
                 if (scores && scores.length > 0) {
                     scores.sort((a, b) => {
                         function getWeight(testName) {
                             let w = 0;
-                            // 学年の重み
                             if (testName.includes("中3")) w += 3000;
                             else if (testName.includes("中2")) w += 2000;
                             else if (testName.includes("中1")) w += 1000;
-                            // 学期の重み
                             if (testName.includes("3学期") || testName.includes("後期")) w += 300;
                             else if (testName.includes("2学期")) w += 200;
                             else if (testName.includes("1学期") || testName.includes("前期")) w += 100;
-                            // テスト種別の重み
                             if (testName.includes("期末") || testName.includes("学年末")) w += 20;
                             else if (testName.includes("中間")) w += 10;
                             return w;
                         }
-                        // スコアが高い順（新しい・重要度が高い順）にソート
                         return getWeight(b.testName) - getWeight(a.testName);
                     });
                 }
@@ -282,7 +330,6 @@
                                 <div class="text-sm text-gray-500 font-medium">${info.school} / ${info.grade}</div>
                             </div>
                         </div>
-
                         <div class="grid grid-cols-1 gap-4">
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="p-3 bg-orange-50 rounded-lg border border-orange-100 flex flex-col justify-center">
@@ -297,12 +344,10 @@
                                     <div class="font-bold text-gray-800 text-sm">${info.club || '-'}</div>
                                 </div>
                             </div>
-                            
                             <div>
                                 <div class="text-[10px] text-gray-500 font-bold mb-2 uppercase tracking-wider px-1"><i class="fas fa-chart-line mr-1"></i>過去の定期テスト結果</div>
                                 ${scoreHtml}
                             </div>
-
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="p-3 bg-blue-50 rounded-lg border border-blue-100">
                                     <div class="text-[10px] text-blue-600 font-bold mb-1 uppercase tracking-wider">得意科目</div>
@@ -313,7 +358,6 @@
                                     <div class="font-bold text-gray-800 text-sm">${info.bad || '-'}</div>
                                 </div>
                             </div>
-
                             <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
                                 <div class="text-[10px] text-gray-500 font-bold mb-1 uppercase tracking-wider"><i class="fas fa-sticky-note mr-1"></i>備考</div>
                                 <div class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">${info.memo || 'なし'}</div>
@@ -329,7 +373,15 @@
             document.getElementById('student-modal').classList.add('hidden');
         }
 
-        function goBackToCalendar() { document.getElementById('view-details').classList.add('hidden'); document.getElementById('view-calendar').classList.remove('hidden'); }
+        function goBackToCalendar() { 
+            document.getElementById('view-details').classList.add('hidden'); 
+            document.getElementById('view-calendar').classList.remove('hidden'); 
+        }
+
+        function goBackToCalendarFromList() {
+            document.getElementById('view-student-list').classList.add('hidden');
+            document.getElementById('view-calendar').classList.remove('hidden');
+        }
     </script>
 </body>
 </html>
