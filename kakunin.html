@@ -108,7 +108,28 @@
 
             try {
                 const response = await fetch(`${GAS_URL}?action=getMyReservations&userId=${userId}`);
-                const reservations = await response.json();
+                let reservations = await response.json();
+
+                // ★追加：過去の日程（昨日以前）を非表示にする処理
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+                reservations = reservations.filter(res => {
+                    if (!res.date) return true;
+                    const cleanDate = res.date.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+                    const match = cleanDate.match(/(\d{4})[-\/年](\d{1,2})[-\/月](\d{1,2})/);
+                    if (match) {
+                        const y = parseInt(match[1], 10);
+                        const m = parseInt(match[2], 10) - 1;
+                        const d = parseInt(match[3], 10);
+                        const resDateObj = new Date(y, m, d);
+                        
+                        if (resDateObj.getTime() < today.getTime()) {
+                            return false; // 昨日以前の日程は除外する
+                        }
+                    }
+                    return true;
+                });
 
                 loading.classList.add('hidden');
 
