@@ -1,117 +1,229 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>マサちゃんの自習室 予約管理画面</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; }
-        .bg-yorisoi-orange { background-color: #FF9900; }
-        .btn-yorisoi { background-color: #FF9900; color: white; font-weight: bold; }
-    </style>
-</head>
-<body class="antialiased">
+<body class="text-gray-800">
 
-    <div id="login-screen" class="fixed inset-0 bg-slate-900 flex items-center justify-center z-[100] px-4">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center">
-            <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i class="fas fa-lock text-3xl text-yorisoi-orange"></i>
-            </div>
-            <h2 class="text-2xl font-bold mb-6 text-slate-800">管理者ログイン</h2>
-            <input type="password" id="password-input" placeholder="パスワードを入力" class="w-full border border-slate-300 rounded-xl px-4 py-3 mb-4 focus:outline-none focus:ring-2 focus:ring-orange-500">
-            <button onclick="checkPassword()" class="w-full btn-yorisoi py-3 rounded-xl hover:opacity-90 transition-all">ログイン</button>
-            <p id="login-error" class="text-red-500 text-sm mt-4 hidden">パスワードが正しくありません</p>
-        </div>
-    </div>
-
-    <div id="loading" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-50 hidden">
-        <div class="w-12 h-12 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin mb-4"></div>
-        <p class="text-slate-600 font-bold">データを読み込んでいます...</p>
-    </div>
-
-    <header class="bg-yorisoi-orange text-white shadow-md p-4 mb-6">
-        <h1 class="text-xl font-bold text-center">予約管理システム</h1>
-    </header>
-
-    <main id="main-content" class="max-w-4xl mx-auto px-4 hidden">
-        <div class="bg-white rounded-xl shadow-sm p-6 mb-10">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-lg font-bold border-l-4 border-yorisoi-orange pl-3">予約・体験申込一覧</h2>
-                <button onclick="loadData()" class="text-yorisoi-orange hover:bg-orange-50 p-2 rounded-full transition-colors">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-            </div>
-            <div id="reservation-list" class="space-y-4">
-                </div>
-        </div>
-    </main>
-
-    <script>
-        // ★ 手順1で発行した「新しいデプロイURL」に書き換えてください
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
-        const ADMIN_PASS = "1225"; // 管理用パスワード
-
-        // パスワードチェック
-        function checkPassword() {
-            const pass = document.getElementById('password-input').value;
-            if (pass === ADMIN_PASS) {
-                document.getElementById('login-screen').classList.add('hidden');
-                loadData();
-            } else {
-                document.getElementById('login-error').classList.remove('hidden');
-            }
-        }
-
-        // データの読み込み
-        async function loadData() {
-            const loading = document.getElementById('loading');
-            const mainContent = document.getElementById('main-content');
+<div class="max-w-3xl mx-auto bg-white min-h-screen relative shadow-lg overflow-hidden pb-10">
+        
+<header class="bg-gray-800 text-white p-4 flex justify-between items-center sticky top-0 z-10">
+<h1 class="text-lg font-bold"><i class="fas fa-lock mr-2"></i>自習室　予約管理カレンダー</h1>
+<button id="btn-refresh" onclick="fetchReservations()" class="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded hidden"><i class="fas fa-sync-alt mr-1"></i>更新</button>
+@@ -57,9 +58,11 @@ <h2 id="current-month-label" class="text-xl font-bold text-gray-800">----年 --
+<div class="text-red-500">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="text-blue-500">土</div>
+</div>
+<div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
             
-            loading.classList.remove('hidden');
-            mainContent.classList.add('hidden');
+<div class="mt-8 space-y-3 px-4">
+<button onclick="showStudentList()" class="w-full bg-white border-2 border-brand text-brand hover:bg-brand hover:text-white font-bold py-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-users text-lg"></i>生徒名簿を表示・管理
+                    <i class="fas fa-users text-lg"></i>
+                    生徒名簿を表示・管理
+</button>
+</div>
+<div id="loading-message" class="text-center py-8 text-gray-500 hidden"><i class="fas fa-spinner fa-spin mr-2 text-brand text-2xl"></i><br>予約データを読み込んでいます...</div>
+@@ -119,7 +122,8 @@ <h4 class="font-bold text-gray-700 border-b pb-1 flex items-center"><i class="fa
+<div><label class="text-xs text-gray-400 font-bold">ふりがな</label><input type="text" name="furigana" class="w-full border p-2 rounded outline-none focus:border-brand"></div>
+<div class="flex gap-2">
+<div class="w-1/2"><label class="text-xs text-gray-400 font-bold">学校</label><input type="text" name="school" class="w-full border p-2 rounded outline-none focus:border-brand"></div>
+                        <div class="w-1/2"><label class="text-xs text-gray-400 font-bold">現在の学年</label>
+                        <div class="w-1/2">
+                            <label class="text-xs text-gray-400 font-bold">学年</label>
+<select name="grade" class="w-full border p-2 rounded outline-none focus:border-brand">
+<option value="">選択</option>
+<option value="中1">中1</option><option value="中2">中2</option><option value="中3">中3</option>
+@@ -139,6 +143,7 @@ <h4 class="font-bold text-gray-700 border-b pb-1 flex items-center"><i class="fa
+<div><label class="text-xs text-gray-400 font-bold">部活動</label><input type="text" name="club" class="w-full border p-2 rounded outline-none focus:border-brand"></div>
+<div><label class="text-xs text-gray-400 font-bold">備考・メモ</label><textarea name="memo" class="w-full border p-2 rounded outline-none focus:border-brand" rows="2"></textarea></div>
+</div>
 
-            try {
-                const response = await fetch(GAS_URL);
-                const data = await response.json();
-                
-                const list = document.getElementById('reservation-list');
+<div class="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-100">
+<h4 class="font-bold text-brand-light border-b border-blue-100 pb-1 flex items-center"><i class="fas fa-plus-circle mr-2"></i>新しいテスト結果を追加</h4>
+<div>
+@@ -181,6 +186,7 @@ <h3 id="message-title" class="text-xl font-bold text-gray-800 mb-2"></h3>
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
+const ADMIN_PASSWORD = "0202"; 
 
-                if (data.reservations && data.reservations.length > 0) {
-                    // 最新の申込が上にくるように逆順にする
-                    const reversedRows = [...data.reservations].reverse();
-                    
-                    list.innerHTML = reversedRows.map(row => `
-                        <div class="p-4 border border-slate-100 rounded-xl bg-slate-50 hover:bg-white hover:shadow-md transition-all">
-                            <div class="flex justify-between items-start mb-2">
-                                <span class="text-[10px] font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">${row[8] || 'プランなし'}</span>
-                                <span class="text-[10px] text-slate-400 italic">${new Date(row[0]).toLocaleString('ja-JP')} 申込</span>
-                            </div>
-                            <div class="flex items-end gap-2 mb-2">
-                                <div class="font-bold text-lg text-slate-800">${row[5]} <span class="text-sm font-normal">様</span></div>
-                                <div class="text-xs text-slate-500 pb-1">(${row[4] || '学年不明'})</div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-y-2 text-sm text-slate-600">
-                                <div><i class="fas fa-calendar-day mr-2 text-slate-400"></i>${row[3]}</div>
-                                <div><i class="fas fa-map-marker-alt mr-2 text-slate-400"></i>${row[2]}</div>
-                                <div class="col-span-2"><i class="fas fa-user-friends mr-2 text-slate-400"></i>保護者: ${row[6]}</div>
-                                <div class="col-span-2"><i class="fas fa-phone mr-2 text-slate-400"></i>${row[7]}</div>
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    list.innerHTML = '<p class="text-center text-slate-400 py-10">データが見つかりませんでした</p>';
-                }
+function showCustomMsg(title, text, type = 'success') {
+const icon = document.getElementById('message-icon');
+icon.innerHTML = (type === 'success') ? '✅' : '⚠️';
+@@ -189,7 +195,11 @@ <h3 id="message-title" class="text-xl font-bold text-gray-800 mb-2"></h3>
+document.getElementById('message-text').innerText = text;
+document.getElementById('message-modal').classList.remove('hidden');
+}
+        function closeMessageModal() { document.getElementById('message-modal').classList.add('hidden'); }
 
-            } catch (error) {
-                console.error(error);
-                alert("データの読み込みに失敗しました。GASのURLが正しいか確認してください。");
-            } finally {
-                loading.classList.add('hidden');
-                mainContent.classList.remove('hidden');
-            }
+        function closeMessageModal() {
+            document.getElementById('message-modal').classList.add('hidden');
         }
-    </script>
-</body>
-</html>
+
+function checkPassword() {
+let input = document.getElementById('admin-password').value;
+if (input) input = input.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)).trim();
+@@ -200,15 +210,22 @@ <h3 id="message-title" class="text-xl font-bold text-gray-800 mb-2"></h3>
+fetchReservations();
+} else { document.getElementById('login-error').classList.remove('hidden'); }
+}
+        let allReservations = [], groupedReservations = {}, currentDate = new Date();
+
+        let allReservations = [];
+        let groupedReservations = {}; 
+        let currentDate = new Date();
+
+function fetchReservations() {
+document.getElementById('calendar-grid').innerHTML = '';
+document.getElementById('loading-message').classList.remove('hidden');
+fetch(GAS_URL + "?action=getAllReservations").then(r => r.json()).then(data => {
+                allReservations = data; groupReservationsByDate(); renderCalendar();
+                allReservations = data;
+                groupReservationsByDate();
+                renderCalendar();
+document.getElementById('loading-message').classList.add('hidden');
+});
+}
+
+function groupReservationsByDate() {
+groupedReservations = {};
+allReservations.forEach(res => {
+@@ -221,17 +238,24 @@ <h3 id="message-title" class="text-xl font-bold text-gray-800 mb-2"></h3>
+}
+});
+}
+
+function changeMonth(diff) { currentDate.setMonth(currentDate.getMonth() + diff); renderCalendar(); }
+
+function renderCalendar() {
+            const year = currentDate.getFullYear(), month = currentDate.getMonth();
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+document.getElementById('current-month-label').innerText = `${year}年 ${month + 1}月`;
+            const first = new Date(year, month, 1).getDay(), last = new Date(year, month + 1, 0).getDate();
+            const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
+            const first = new Date(year, month, 1).getDay();
+            const last = new Date(year, month + 1, 0).getDate();
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`;
+for (let i = 0; i < first; i++) grid.innerHTML += `<div class="bg-gray-50 border border-gray-100 rounded"></div>`;
+for (let day = 1; day <= last; day++) {
+const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const items = groupedReservations[key] || [], resCount = items.filter(it => it.status !== "休み").length, isHoliday = items.some(it => it.status === "休み");
+                const items = groupedReservations[key] || [];
+                const resCount = items.filter(it => it.status !== "休み").length;
+                const isHoliday = items.some(it => it.status === "休み");
+const dow = new Date(year, month, day).getDay();
+let loc = (dow === 1 || dow === 4) ? 'すざか' : (dow === 2 || dow === 5) ? 'おぶせ' : '';
+let cellCls = (key === todayStr) ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200';
+@@ -244,21 +268,25 @@ <h3 id="message-title" class="text-xl font-bold text-gray-800 mb-2"></h3>
+               </div>`;
+}
+}
+
+function showDetails(key, y, m, d) {
+            const container = document.getElementById('reservation-list'); container.innerHTML = '';
+            const container = document.getElementById('reservation-list');
+            container.innerHTML = '';
+const res = (groupedReservations[key] || []).filter(it => it.status !== "休み");
+document.getElementById('detail-date-label').innerText = `${m}月${d}日 の予約`;
+document.getElementById('detail-count-badge').innerText = `${res.length}名`;
+if (res.length === 0) container.innerHTML = `<div class="text-center py-10 bg-white rounded-lg text-gray-500">予約はありません。</div>`;
+else {
+res.forEach(r => {
+                    const exp = r.experience ? `<span class="ml-2 bg-brand-light text-white text-[10px] px-2 py-0.5 rounded-full">無料体験</span>` : '';
+                    // ★無料体験バッジをオレンジ色に変更
+                    const exp = r.experience ? `<span class="ml-2 bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">無料体験</span>` : '';
+container.insertAdjacentHTML('beforeend', `<div class="bg-white border rounded-lg p-3 shadow-sm relative overflow-hidden"><div class="absolute top-0 left-0 w-1.5 h-full bg-brand"></div><div class="flex flex-wrap items-center justify-between"><div class="flex-1"><div class="flex items-baseline gap-2 mb-1"><span class="text-lg font-bold text-brand cursor-pointer underline decoration-dotted underline-offset-4" onclick="showStudentHistory('${r.participantName}')">${r.participantName}</span><span class="text-xs text-gray-500">様</span>${exp}<span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded font-bold ml-1">${r.plan}</span></div><div class="text-sm text-gray-600"><div>${r.time} / ${r.location}</div><div class="text-xs text-gray-400">保護者: ${r.parentName}</div></div></div><a href="tel:${r.phone}" class="bg-blue-50 text-blue-600 px-3 py-2 rounded text-xs font-bold italic">電話</a></div></div>`);
+});
+}
+document.getElementById('view-calendar').classList.add('hidden');
+document.getElementById('view-details').classList.remove('hidden');
+}
+
+function showStudentList() {
+document.getElementById('view-calendar').classList.add('hidden');
+document.getElementById('view-student-list').classList.remove('hidden');
+@@ -278,16 +306,19 @@ <h3 id="message-title" class="text-xl font-bold text-gray-800 mb-2"></h3>
+});
+});
+}
+
+async function showStudentHistory(name) {
+const modal = document.getElementById('student-modal');
+const content = document.getElementById('modal-content');
+content.innerHTML = '<div class="text-center py-10"><i class="fas fa-spinner fa-spin text-3xl text-brand"></i></div>';
+modal.classList.remove('hidden');
+try {
+const res = await fetch(`${GAS_URL}?action=getStudentDetails&name=${encodeURIComponent(name)}`);
+                const result = await res.json(), info = result.info;
+                const result = await res.json();
+                const info = result.info;
+document.getElementById('btn-edit-student').onclick = () => openStudentEditModal(info);
+document.getElementById('btn-delete-student').onclick = () => deleteStudent(info.name);
+                
+let scores = result.scores;
+if (scores && scores.length > 0) {
+scores.sort((a, b) => {
+@@ -306,35 +337,53 @@ <h3 id="message-title" class="text-xl font-bold text-gray-800 mb-2"></h3>
+return getWeight(b.testName) - getWeight(a.testName);
+});
+}
+                
+let scoreHtml = (scores.length > 0) ? `<div class="overflow-x-auto border rounded-lg"><table class="w-full score-table"><thead><tr><th class="text-left">テスト名</th><th>国</th><th>数</th><th>英</th><th>理</th><th>社</th><th class="score-total">計</th></tr></thead><tbody>${scores.map(s => { const sum = [s.kokugo, s.suugaku, s.eigo, s.rika, s.shakai].reduce((a,b)=>a+(parseInt(b)||0),0); return `<tr><td class="text-left font-bold" style="white-space:pre;">${s.testName}</td><td>${s.kokugo}</td><td>${s.suugaku}</td><td>${s.eigo}</td><td>${s.rika}</td><td>${s.shakai}</td><td class="score-total">${sum}</td></tr>`}).join('')}</tbody></table></div>` : '<p class="text-center italic text-gray-400 text-xs">テスト結果なし</p>';
+                
+const genderBadge = info.gender ? `<span class="align-middle text-[10px] px-2 py-0.5 rounded font-bold ${info.gender.includes('女') ? 'bg-pink-50 text-pink-600' : info.gender.includes('男') ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}">${info.gender}</span>` : '';
+
+content.innerHTML = `<div class="space-y-6"><div class="border-b pb-4 border-gray-100"><div class="text-[10px] text-gray-400 font-bold pl-0.5">${info.furigana || ''}</div><div class="flex items-baseline gap-3 mt-1"><div class="text-2xl font-bold text-gray-800">${info.name}</div><div class="flex items-center gap-2"><span class="text-sm text-gray-500 font-medium">${info.school} / ${info.grade}</span>${genderBadge}</div></div></div><div class="grid grid-cols-1 gap-4"><div class="grid grid-cols-2 gap-3"><div class="p-3 bg-blue-50 rounded border border-blue-100 flex flex-col justify-center"><div class="text-[10px] text-brand font-bold mb-1 uppercase tracking-wider"><i class="fas fa-bullseye mr-1"></i>志望校</div><div class="font-bold text-gray-800 text-sm"><div class="flex items-center"><span class="text-[9px] text-white bg-brand-light rounded-full w-3 h-3 flex items-center justify-center mr-1">1</span>${info.target1 || '未設定'}</div>${info.target2 ? `<div class="flex items-center mt-1"><span class="text-[9px] text-white bg-brand-light rounded-full w-3 h-3 flex items-center justify-center mr-1">2</span>${info.target2}</div>` : ''}</div></div><div class="p-3 bg-cyan-50 rounded border border-cyan-100 flex flex-col justify-center"><div class="text-[10px] text-cyan-600 font-bold mb-1 uppercase tracking-wider"><i class="fas fa-running mr-1"></i>部活動</div><div class="font-bold text-gray-800 text-sm">${info.club || '-'}</div></div></div><div><div class="text-[10px] text-gray-500 font-bold mb-2 uppercase tracking-wider px-1"><i class="fas fa-chart-line mr-1 text-brand"></i>過去の定期テスト結果</div>${scoreHtml}</div><div class="grid grid-cols-2 gap-3"><div class="p-3 bg-blue-50/50 rounded border"><div class="text-[10px] text-brand font-bold uppercase">得意</div><div class="font-bold text-sm text-gray-800">${info.good || '-'}</div></div><div class="p-3 bg-red-50/50 rounded border"><div class="text-[10px] text-red-600 font-bold uppercase">苦手</div><div class="font-bold text-sm text-gray-800">${info.bad || '-'}</div></div></div><div class="p-4 bg-gray-50 rounded border border-gray-100 text-sm text-gray-700 whitespace-pre-wrap">${info.memo || 'なし'}</div></div></div>`;
+} catch (e) { content.innerHTML = '<div class="text-center py-10 text-red-500">取得失敗</div>'; }
+}
+
+function openStudentEditModal(s = null) {
+const form = document.getElementById('student-edit-form'); form.reset();
+            document.getElementById('sel-grade').value = ""; document.getElementById('sel-term').value = ""; document.getElementById('sel-type').value = "";
+            document.getElementById('sel-grade').value = "";
+            document.getElementById('sel-term').value = "";
+            document.getElementById('sel-type').value = "";
+if (s) {
+form.name.value = s.name; form.name.readOnly = true; form.name.classList.add('bg-gray-100');
+                form.furigana.value = s.furigana||''; form.school.value = s.school||''; form.grade.value = s.grade||''; form.gender.value = s.gender||''; form.good.value = s.good||''; form.bad.value = s.bad||''; form.target1.value = s.target1||''; form.target2.value = s.target2||''; form.club.value = s.club||''; form.memo.value = s.memo||'';
+                form.furigana.value = s.furigana||''; form.school.value = s.school||''; form.grade.value = s.grade||''; form.gender.value = s.gender||''; form.good.value = s.good||''; form.bad.value = s.bad||'';
+                form.target1.value = s.target1||''; form.target2.value = s.target2||''; form.club.value = s.club||''; form.memo.value = s.memo||'';
+} else { form.name.readOnly = false; form.name.classList.remove('bg-gray-100'); }
+document.getElementById('edit-student-modal').classList.remove('hidden');
+}
+
+async function saveStudent() {
+            const form = document.getElementById('student-edit-form'), btn = document.getElementById('btn-save-student');
+            const form = document.getElementById('student-edit-form');
+            const btn = document.getElementById('btn-save-student');
+if (!form.name.value) return showCustomMsg("エラー", "氏名を入力してください", "warning");
+            const originalContent = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 保存中...';
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 保存中...';
+btn.classList.replace('bg-brand-light', 'bg-blue-300');
+let fullTestName = "";
+const g = document.getElementById('sel-grade').value, t = document.getElementById('sel-term').value, type = document.getElementById('sel-type').value;
+if (g && t && type) { fullTestName = `${g}　${t}　${type}`; }
+            const d = { name: form.name.value, furigana: form.furigana.value, school: form.school.value, grade: form.grade.value, gender: form.gender.value, good: form.good.value, bad: form.bad.value, target1: form.target1.value, target2: form.target2.value, club: form.club.value, memo: form.memo.value, testName: fullTestName, kokugo: form.kokugo.value, suugaku: form.suugaku.value, eigo: form.eigo.value, rika: form.rika.value, shakai: form.shakai.value };
+            const d = { 
+                name: form.name.value, furigana: form.furigana.value, school: form.school.value, grade: form.grade.value, 
+                gender: form.gender.value, good: form.good.value, bad: form.bad.value, target1: form.target1.value, 
+                target2: form.target2.value, club: form.club.value, memo: form.memo.value,
+                testName: fullTestName, kokugo: form.kokugo.value, suugaku: form.suugaku.value, 
+                eigo: form.eigo.value, rika: form.rika.value, shakai: form.shakai.value
+            };
+try {
+await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateStudent", studentData: d }) });
+closeEditModal(); closeModal(); showStudentList(); showCustomMsg("保存完了", "生徒情報を正常に更新しました。");
+} catch (e) { showCustomMsg("エラー", "通信に失敗しました。", "warning"); }
+finally { btn.disabled = false; btn.innerHTML = originalContent; btn.classList.replace('bg-blue-300', 'bg-brand-light'); }
+}
+
+async function deleteStudent(name) {
+if (!confirm(name + " さんのデータを完全に削除しますか？")) return;
+const btn = document.getElementById('btn-delete-student'), originalContent = btn.innerHTML;
+@@ -345,6 +394,7 @@ <h3 id="message-title" class="text-xl font-bold text-gray-800 mb-2"></h3>
+} catch (e) { showCustomMsg("エラー", "通信に失敗しました。", "warning"); }
+finally { btn.disabled = false; btn.innerHTML = originalContent; }
+}
+
+function closeEditModal() { document.getElementById('edit-student-modal').classList.add('hidden'); }
+function closeModal() { document.getElementById('student-modal').classList.add('hidden'); }
+function goBackToCalendar() { document.getElementById('view-details').classList.add('hidden'); document.getElementById('view-calendar').classList.remove('hidden'); }
