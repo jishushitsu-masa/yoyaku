@@ -9,66 +9,109 @@
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; }
         .bg-yorisoi-orange { background-color: #FF9900; }
+        .btn-yorisoi { background-color: #FF9900; color: white; font-weight: bold; }
     </style>
 </head>
-<body class="pb-20">
+<body class="antialiased">
+
+    <div id="login-screen" class="fixed inset-0 bg-slate-900 flex items-center justify-center z-[100] px-4">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center">
+            <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-lock text-3xl text-yorisoi-orange"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">管理者ログイン</h2>
+            <input type="password" id="password-input" placeholder="パスワードを入力" class="w-full border border-slate-300 rounded-xl px-4 py-3 mb-4 focus:outline-none focus:ring-2 focus:ring-orange-500">
+            <button onclick="checkPassword()" class="w-full btn-yorisoi py-3 rounded-xl hover:opacity-90 transition-all">ログイン</button>
+            <p id="login-error" class="text-red-500 text-sm mt-4 hidden">パスワードが正しくありません</p>
+        </div>
+    </div>
+
+    <div id="loading" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-50 hidden">
+        <div class="w-12 h-12 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin mb-4"></div>
+        <p class="text-slate-600 font-bold">データを読み込んでいます...</p>
+    </div>
 
     <header class="bg-yorisoi-orange text-white shadow-md p-4 mb-6">
         <h1 class="text-xl font-bold text-center">予約管理システム</h1>
     </header>
 
-    <div id="loading" class="fixed inset-0 bg-white/80 flex flex-col items-center justify-center z-50">
-        <div class="w-12 h-12 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin mb-4"></div>
-        <p class="text-slate-600 font-bold">予約データを読み込んでいます...</p>
-    </div>
-
     <main id="main-content" class="max-w-4xl mx-auto px-4 hidden">
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <h2 class="text-lg font-bold mb-4 border-b pb-2">直近の予約・体験申込</h2>
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-10">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-bold border-l-4 border-yorisoi-orange pl-3">予約・体験申込一覧</h2>
+                <button onclick="loadData()" class="text-yorisoi-orange hover:bg-orange-50 p-2 rounded-full transition-colors">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
             <div id="reservation-list" class="space-y-4">
                 </div>
         </div>
     </main>
 
     <script>
-        // ★ 手順1で発行した「新しいデプロイURL」をここに貼り付けてください
-        const GAS_URL = "ここに新しいデプロイURLを貼り付けてください";
+        // ★ 手順1で発行した「新しいデプロイURL」に書き換えてください
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
+        const ADMIN_PASS = "1225"; // 管理用パスワード
 
+        // パスワードチェック
+        function checkPassword() {
+            const pass = document.getElementById('password-input').value;
+            if (pass === ADMIN_PASS) {
+                document.getElementById('login-screen').classList.add('hidden');
+                loadData();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        // データの読み込み
         async function loadData() {
+            const loading = document.getElementById('loading');
+            const mainContent = document.getElementById('main-content');
+            
+            loading.classList.remove('hidden');
+            mainContent.classList.add('hidden');
+
             try {
                 const response = await fetch(GAS_URL);
                 const data = await response.json();
                 
                 const list = document.getElementById('reservation-list');
-                const mainContent = document.getElementById('main-content');
-                const loading = document.getElementById('loading');
 
                 if (data.reservations && data.reservations.length > 0) {
-                    list.innerHTML = data.reservations.map(row => `
-                        <div class="p-4 border rounded-lg bg-slate-50">
+                    // 最新の申込が上にくるように逆順にする
+                    const reversedRows = [...data.reservations].reverse();
+                    
+                    list.innerHTML = reversedRows.map(row => `
+                        <div class="p-4 border border-slate-100 rounded-xl bg-slate-50 hover:bg-white hover:shadow-md transition-all">
                             <div class="flex justify-between items-start mb-2">
-                                <span class="text-xs font-bold bg-orange-100 text-orange-700 px-2 py-1 rounded">${row[8] || 'プランなし'}</span>
-                                <span class="text-xs text-slate-500">${row[3]}</span>
+                                <span class="text-[10px] font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">${row[8] || 'プランなし'}</span>
+                                <span class="text-[10px] text-slate-400 italic">${new Date(row[0]).toLocaleString('ja-JP')} 申込</span>
                             </div>
-                            <div class="font-bold text-lg">${row[5]} 様</div>
-                            <div class="text-sm text-slate-600">${row[2]} / 保護者: ${row[6]}</div>
+                            <div class="flex items-end gap-2 mb-2">
+                                <div class="font-bold text-lg text-slate-800">${row[5]} <span class="text-sm font-normal">様</span></div>
+                                <div class="text-xs text-slate-500 pb-1">(${row[4] || '学年不明'})</div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-y-2 text-sm text-slate-600">
+                                <div><i class="fas fa-calendar-day mr-2 text-slate-400"></i>${row[3]}</div>
+                                <div><i class="fas fa-map-marker-alt mr-2 text-slate-400"></i>${row[2]}</div>
+                                <div class="col-span-2"><i class="fas fa-user-friends mr-2 text-slate-400"></i>保護者: ${row[6]}</div>
+                                <div class="col-span-2"><i class="fas fa-phone mr-2 text-slate-400"></i>${row[7]}</div>
+                            </div>
                         </div>
                     `).join('');
                 } else {
                     list.innerHTML = '<p class="text-center text-slate-400 py-10">データが見つかりませんでした</p>';
                 }
 
-                loading.classList.add('hidden');
-                mainContent.classList.remove('hidden');
-
             } catch (error) {
                 console.error(error);
-                alert("データの読み込みに失敗しました。GASのURLや権限を確認してください。");
+                alert("データの読み込みに失敗しました。GASのURLが正しいか確認してください。");
+            } finally {
+                loading.classList.add('hidden');
+                mainContent.classList.remove('hidden');
             }
         }
-
-        // 起動時にデータを読み込む
-        window.onload = loadData;
     </script>
 </body>
 </html>
