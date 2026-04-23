@@ -13,11 +13,9 @@
         body { font-family: 'Noto Sans JP', sans-serif; background-color: #fffaf5; }
         .bg-yorisoi-orange { background-color: #FF9900; }
         .text-yorisoi-orange { color: #FF9900; }
-        .border-yorisoi-orange { border-color: #FF9900; }
         .focus-ring-orange:focus { --tw-ring-color: #FF9900; border-color: #FF9900; }
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid #FF9900; border-radius: 50%; width: 20px; height: 20px; animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .whitespace-pre-wrap { white-space: pre-wrap; }
     </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col">
@@ -77,7 +75,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">その他備考欄（質問等）</label>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">その他備考欄</label>
                     <textarea name="remarks" rows="3" placeholder="ご質問などあればご記入ください。" class="block w-full rounded-lg border-slate-300 focus-ring-orange"></textarea>
                 </div>
 
@@ -93,26 +91,20 @@
 
     <div id="success-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 px-4 backdrop-blur-sm">
         <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center border-t-8 border-yorisoi-orange">
-            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-orange-100 mb-6">
-                <svg class="h-8 w-8 text-yorisoi-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
-            </div>
-            <h3 class="text-2xl font-bold text-slate-900 mb-4">お申し込みを承りました</h3>
-            <p id="mail-preview" class="text-slate-600 mb-8 whitespace-pre-wrap text-left bg-orange-50 p-4 rounded-lg border border-orange-100 text-sm"></p>
-            <button onclick="location.reload()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-700 transition-colors">閉じる</button>
+            <h3 class="text-2xl font-bold text-slate-900 mb-4">送信完了しました</h3>
+            <p class="text-slate-600 mb-8">お申し込みありがとうございます。内容を確認し、折り返しご連絡いたします。</p>
+            <button onclick="location.reload()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl">閉じる</button>
         </div>
     </div>
 
     <script>
-        // ★ 手順1で新しく発行したGASのURLに書き換えてください
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzjWWuwi7fcekeCj4B3EukdStq246Urb0v3NfBIv7jA4voPVcVnNPDnKJE_fL7cWmAh/exec";
+        // ★ 手順1の最後にコピーした「ウェブアプリのURL」をここに貼り付けてください
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
 
         document.addEventListener('DOMContentLoaded', function() {
             const locationSelect = document.getElementById('location');
             const dateInput = document.getElementById('date');
             const form = document.getElementById('application-form');
-            const submitBtn = document.getElementById('submit-btn');
-            const btnText = document.getElementById('btn-text');
-            const btnLoader = document.getElementById('btn-loader');
             
             const fp = flatpickr(dateInput, { locale: "ja", minDate: "today", dateFormat: "Y/m/d", disable: [() => true] });
 
@@ -123,33 +115,30 @@
                 fp.clear();
             });
 
-            form.addEventListener('submit', async function(e) {
+            form.addEventListener('submit', function(e) {
                 e.preventDefault();
-                submitBtn.disabled = true;
-                btnText.textContent = "送信中...";
-                btnLoader.classList.remove('hidden');
+                document.getElementById('submit-btn').disabled = true;
+                document.getElementById('btn-text').textContent = "送信中...";
+                document.getElementById('btn-loader').classList.remove('hidden');
                 
+                // 最も確実に届く「フォーム送信」のエミュレート
                 const formData = new FormData(form);
-                const params = new URLSearchParams(formData);
+                const queryParams = new URLSearchParams(formData);
 
-                try {
-                    await fetch(GAS_URL, { 
-                        method: 'POST', 
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: params.toString() 
-                    });
-                    
-                    document.getElementById('mail-preview').textContent = 
-                        `${formData.get('parent_name')} 様\n\nお申し込みありがとうございます。\n\n・会場：${formData.get('location')}\n・希望日：${formData.get('date')}\n・生徒：${formData.get('student_name')} 様\n\nマサちゃんより折り返しご連絡いたします。`;
+                fetch(GAS_URL, {
+                    method: "POST",
+                    body: queryParams.toString(),
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    mode: "no-cors" // CORSエラーを無視して送信のみ実行
+                }).then(() => {
                     document.getElementById('success-modal').classList.remove('hidden');
-                } catch (err) { 
-                    alert("送信エラーが発生しました。"); 
-                } finally {
-                    submitBtn.disabled = false;
-                    btnText.textContent = "内容を確認して送信する";
-                    btnLoader.classList.add('hidden');
-                }
+                }).catch(() => {
+                    alert("送信に失敗しました。URLを確認してください。");
+                }).finally(() => {
+                    document.getElementById('submit-btn').disabled = false;
+                    document.getElementById('btn-text').textContent = "内容を確認して送信する";
+                    document.getElementById('btn-loader').classList.add('hidden');
+                });
             });
         });
     </script>
