@@ -3,74 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>予約完了 - マサちゃんの自習室</title>
+    <title>予約画面 - おぶせ 春の自習室</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary-navy: #1e3a8a; --light-blue: #eff6ff; --text-gray: #4b5563; }
-        body { font-family: sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .card { background: white; width: 100%; max-width: 400px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 30px; text-align: center; border-top: 8px solid var(--primary-navy); }
-        .success-icon { color: #10b981; font-size: 50px; margin-bottom: 15px; }
-        h2 { color: var(--primary-navy); margin-bottom: 25px; font-size: 1.4rem; }
-        .info-box { background: var(--light-blue); padding: 20px; border-radius: 12px; text-align: left; margin-bottom: 25px; }
-        .info-item { margin-bottom: 12px; display: flex; flex-direction: column; }
-        .label { font-size: 0.85rem; color: var(--text-gray); font-weight: bold; }
-        .value { font-size: 1.1rem; color: #111827; margin-top: 2px; }
-        .msg { font-size: 0.9rem; color: var(--text-gray); line-height: 1.6; }
+        :root { --primary-navy: #1e3a8a; --bg-gray: #f8f9fa; }
+        body { font-family: sans-serif; background-color: var(--bg-gray); margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { color: var(--primary-navy); font-size: 1.3rem; margin-bottom: 25px; border-left: 5px solid var(--primary-navy); padding-left: 10px; }
+        .field-label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.95rem; }
+        .required-badge { background: var(--primary-navy); color: #fff; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
+        .select-box { border: 1px solid #ced4da; padding: 14px; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; background: #fff; }
+        .options-container { display: none; border: 1px solid #ced4da; border-top: none; border-radius: 0 0 8px 8px; max-height: 350px; overflow-y: auto; background: #fff; margin-bottom: 25px; margin-top: -8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .option-item { padding: 15px; border-bottom: 1px solid #f1f1f1; cursor: pointer; display: flex; align-items: center; font-size: 1rem; }
+        .option-item.disabled { color: #adb5bd; cursor: not-allowed; background: #fdfdfd; }
+        .date-part { width: 110px; display: inline-block; font-weight: bold; }
+        .time-part { width: 120px; display: inline-block; font-family: monospace; }
+        .status-part { margin-left: auto; font-weight: bold; font-size: 0.85rem; color: #dc3545; }
+        .form-group { margin-bottom: 20px; }
+        input { width: 100%; padding: 14px; border: 1px solid #ced4da; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        .checkbox-card { border: 1px solid #ced4da; padding: 16px; border-radius: 10px; margin-bottom: 30px; display: flex; align-items: center; cursor: pointer; }
+        .checkbox-card input { width: 20px; height: 20px; margin-right: 12px; }
+        .submit-btn { width: 100%; background: var(--primary-navy); color: #fff; border: none; padding: 18px; border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+        .submit-btn:disabled { background: #94a3b8; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <i class="fas fa-check-circle success-icon"></i>
-        <h2>予約が完了しました</h2>
-        
-        <div id="loading">情報を取得中...</div>
-        <div id="content" style="display:none;">
-            <div class="info-box">
-                <div class="info-item">
-                    <span class="label">会場</span>
-                    <span class="value" id="res-location">おぶせ岩松院</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">日時</span>
-                    <span class="value" id="res-time"></span>
-                </div>
-                <div class="info-item">
-                    <span class="label">お名前</span>
-                    <span class="value" id="res-name"></span>
-                </div>
+<div class="container">
+    <h2>おぶせ 春の自習室 予約</h2>
+    <form id="resForm" onsubmit="handleFormSubmit(event)">
+        <div class="form-group">
+            <label class="field-label">日程を選択<span class="required-badge">必須</span></label>
+            <div class="select-box" onclick="toggleDropdown()">
+                <span id="selected-text">タップして日程を表示</span>
+                <i class="fas fa-chevron-down"></i>
             </div>
-            <p class="msg">
-                ご予約ありがとうございます。<br>
-                当日、会場でお待ちしております。
-            </p>
+            <div class="options-container" id="dropdown-menu"></div>
         </div>
-    </div>
-
-    <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxTBvPsDY2fx3_ZfoOhZ43a1QVZgPSb7KrdcTbfwBahpMS4Bj5ZNhPnDDOZR88ThS5uLA/exec';
-
-        window.onload = async () => {
-            const params = new URLSearchParams(window.location.search);
-            const bookingId = params.get('id');
-            if (!bookingId) return;
-
-            try {
-                const res = await fetch(`${API_URL}?action=getBooking&id=${bookingId}`);
-                const data = await res.json();
-                
-                if (data) {
-                    // 会場名が「おぶせ」なら「おぶせ岩松院」に補完
-                    document.getElementById('res-location').innerText = data.location.includes('おぶせ') ? 'おぶせ岩松院' : data.location;
-                    document.getElementById('res-time').innerText = `${data.date} ${data.time}`;
-                    document.getElementById('res-name').innerText = data.studentName + " 様";
-                    
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('content').style.display = 'block';
-                }
-            } catch (e) {
-                document.getElementById('loading').innerText = "情報の取得に失敗しました。";
+        <input type="hidden" name="date" id="val-date" required>
+        <input type="hidden" name="time" id="val-time">
+        <input type="hidden" name="location" value="おぶせ">
+        <div class="form-group">
+            <label class="field-label">参加者名<span class="required-badge">必須</span></label>
+            <input type="text" name="studentName" id="field-student" required placeholder="姓名">
+        </div>
+        <div class="form-group">
+            <label class="field-label">保護者名<span class="required-badge">必須</span></label>
+            <input type="text" name="parentName" id="field-parent" required placeholder="姓名">
+        </div>
+        <div class="form-group">
+            <label class="field-label">電話番号<span class="required-badge">必須</span></label>
+            <input type="tel" name="phone" id="field-phone" required placeholder="数字のみ">
+        </div>
+        <div class="checkbox-card" onclick="document.getElementById('plan-1h').click()">
+            <input type="checkbox" id="plan-1h" name="plan" value="1hour" onclick="event.stopPropagation()">
+            <span>1時間のみ利用する</span>
+        </div>
+        <button type="submit" id="submit-button" class="submit-btn">予約を確定する</button>
+    </form>
+</div>
+<script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxTBvPsDY2fx3_ZfoOhZ43a1QVZgPSb7KrdcTbfwBahpMS4Bj5ZNhPnDDOZR88ThS5uLA/exec';
+    window.onload = function() {
+        document.getElementById('field-student').value = localStorage.getItem('studentName') || '';
+        document.getElementById('field-parent').value = localStorage.getItem('parentName') || '';
+        document.getElementById('field-phone').value = localStorage.getItem('phone') || '';
+        loadSchedules();
+    };
+    function formatJpDate(d){ return d.replace('Sun','日').replace('Mon','月').replace('Tue','火').replace('Wed','水').replace('Thu','木').replace('Fri','金').replace('Sat','土'); }
+    async function loadSchedules() {
+        const res = await fetch(`${API_URL}?action=getSchedules&location=おぶせ&t=${Date.now()}`);
+        const data = await res.json();
+        const menu = document.getElementById('dropdown-menu');
+        data.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'option-item' + (item.status !== 'available' ? ' disabled' : '');
+            const jpDate = formatJpDate(item.date);
+            let statusTxt = item.status === 'closed' ? '当日締切' : item.status === 'full' ? '満席' : '';
+            row.innerHTML = `<span class="date-part">${jpDate}</span><span class="time-part">${item.time}</span><span class="status-part">${statusTxt}</span>`;
+            if(item.status === 'available') {
+                row.onclick = () => {
+                    document.getElementById('selected-text').innerText = `${jpDate} ${item.time}`;
+                    document.getElementById('val-date').value = item.fullDate;
+                    document.getElementById('val-time').value = item.time;
+                    toggleDropdown();
+                };
             }
-        };
-    </script>
+            menu.appendChild(row);
+        });
+    }
+    function toggleDropdown() { const m = document.getElementById('dropdown-menu'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        if(!document.getElementById('val-date').value){ alert('日程を選択してください'); return; }
+        const btn = document.getElementById('submit-button');
+        btn.disabled = true; btn.innerText = "処理中...";
+        const postData = Object.fromEntries(new FormData(e.target).entries());
+        postData.action = 'booking';
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(postData) });
+        const result = await res.json();
+        if(result.success) {
+            localStorage.setItem('studentName', postData.studentName);
+            localStorage.setItem('parentName', postData.parentName);
+            localStorage.setItem('phone', postData.phone);
+            window.location.href = 'kakunin.html?id=' + result.bookingId;
+        }
+    }
+</script>
 </body>
 </html>
