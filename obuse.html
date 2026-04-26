@@ -6,112 +6,32 @@
     <title>おぶせ予約 - マサちゃんの自習室</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root {
-            --primary-orange: #ff8c00;
-            --soft-gray: #f8f9fa;
-            --text-dark: #333;
-            --border-color: #eee;
-        }
+        :root { --primary-orange: #ff8c00; --soft-gray: #f8f9fa; --border-color: #eee; }
+        body { font-family: sans-serif; background-color: var(--soft-gray); margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: var(--primary-orange); font-size: 1.3rem; margin-bottom: 20px; }
+        
+        /* アコーディオン・セレクト */
+        .select-box { border: 1px solid #ccc; padding: 12px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; background: #fff; }
+        .options-container { display: none; border: 1px solid #ccc; border-top: none; border-radius: 0 0 6px 6px; max-height: 300px; overflow-y: auto; background: #fff; margin-bottom: 20px; }
+        .option-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; }
+        .option-item:hover { background: #fff7ed; }
+        .option-item.disabled { color: #ccc; cursor: not-allowed; background: #f9f9f9; }
 
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--soft-gray);
-            color: var(--text-dark);
-            margin: 0;
-            padding: 20px;
-            line-height: 1.6;
-        }
+        /* フォーム入力 */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
+        input[type="text"], input[type="tel"], input[type="email"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        
+        .checkbox-container { background: #fdfdfd; border: 1px solid #eee; padding: 12px; border-radius: 6px; margin-bottom: 20px; display: flex; align-items: center; cursor: pointer; }
+        .checkbox-container input { margin-right: 10px; width: 18px; height: 18px; }
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        h2 {
-            text-align: center;
-            color: var(--primary-orange);
-            margin-bottom: 25px;
-            font-size: 1.5rem;
-        }
-
-        /* アコーディオン設定 */
-        .accordion-item {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-
-        .accordion-header {
-            padding: 15px;
-            background: #fff;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-
-        .accordion-header:hover { background: #fffcf9; }
-
-        .accordion-content {
-            display: none;
-            padding: 20px;
-            background: #fffcf9;
-            border-top: 1px solid var(--border-color);
-        }
-
-        /* 状態別スタイル */
-        .status-badge {
-            font-size: 0.8rem;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
+        .submit-btn { width: 100%; background: #2563eb; color: #fff; border: none; padding: 15px; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+        .submit-btn:disabled { background: #ccc; }
+        
+        .status-badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; }
         .available { color: var(--primary-orange); }
-        .full { color: #999; }
-        .closed { color: #e74c3c; font-weight: normal; }
-
-        /* フォーム部品 */
-        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-
-        .checkbox-group {
-            background: #fff;
-            padding: 10px;
-            border: 1px dashed var(--primary-orange);
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-
-        button.submit-btn {
-            width: 100%;
-            background: var(--primary-orange);
-            color: #fff;
-            border: none;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button.submit-btn:disabled { background: #ccc; }
-
-        #loading { text-align: center; display: none; margin-top: 20px; }
+        .closed { color: #e74c3c; }
     </style>
 </head>
 <body>
@@ -119,115 +39,104 @@
 <div class="container">
     <h2><i class="fas fa-edit"></i> おぶせ予約フォーム</h2>
     
-    <div id="schedule-list">
-        <p style="text-align:center;">スケジュールを読み込み中...</p>
-    </div>
+    <form id="mainForm" onsubmit="submitForm(event)">
+        <label>日程を選択 <span style="color:red; font-size:0.7rem;">必須</span></label>
+        <div class="select-box" id="selected-display" onclick="toggleOptions()">
+            <span id="display-text">タップして日程を表示</span>
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="options-container" id="options-list">
+            </div>
 
-    <div id="loading">
-        <i class="fas fa-spinner fa-spin"></i> 送信中...
-    </div>
+        <input type="hidden" name="date" id="input-date" required>
+        <input type="hidden" name="time" id="input-time">
+        <input type="hidden" name="location" value="おぶせ">
+
+        <div class="form-group">
+            <label>生徒名</label>
+            <input type="text" name="studentName" required placeholder="例：佐藤 太郎" value="${localStorage.getItem('studentName') || ''}">
+        </div>
+
+        <div class="form-group">
+            <label>保護者名</label>
+            <input type="text" name="parentName" required placeholder="例：佐藤 花子" value="${localStorage.getItem('parentName') || ''}">
+        </div>
+
+        <div class="form-group">
+            <label>電話番号</label>
+            <input type="tel" name="phone" required placeholder="09012345678" value="${localStorage.getItem('phone') || ''}">
+        </div>
+
+        <div class="form-group">
+            <label>メールアドレス</label>
+            <input type="email" name="email" required placeholder="example@mail.com" value="${localStorage.getItem('email') || ''}">
+        </div>
+
+        <div class="checkbox-container" onclick="document.getElementById('plan-check').click();">
+            <input type="checkbox" id="plan-check" name="plan" value="1hour">
+            <span>1時間のみ利用する（500円）</span>
+        </div>
+
+        <button type="submit" id="submitBtn" class="submit-btn">予約を確定する</button>
+    </form>
 </div>
 
 <script>
-    // GASのURL (デプロイ後に差し替え)
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxTBvPsDY2fx3_ZfoOhZ43a1QVZgPSb7KrdcTbfwBahpMS4Bj5ZNhPnDDOZR88ThS5uLA/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyC0C5B0xO6B1zC1p_m85mK_9j7V9E8M8qL/exec'; // マサちゃんの最新URL
 
-    // 初期読み込み
-    window.onload = () => {
-        fetchSchedule();
-    };
+    window.onload = fetchSchedule;
 
     async function fetchSchedule() {
         try {
             const response = await fetch(`${GAS_URL}?action=getSchedules&location=おぶせ`);
             const schedules = await response.json();
-            renderSchedule(schedules);
+            const list = document.getElementById('options-list');
+            list.innerHTML = '';
+
+            schedules.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `option-item ${item.status !== 'available' ? 'disabled' : ''}`;
+                
+                let statusHtml = item.status === 'available' ? '<span class="available">予約可</span>' : 
+                                 item.status === 'closed' ? '<span class="closed">当日締切</span>' : '満席';
+
+                div.innerHTML = `<span>${item.date} (${item.time})</span> ${statusHtml}`;
+                
+                if (item.status === 'available') {
+                    div.onclick = () => selectDate(item);
+                }
+                list.appendChild(div);
+            });
         } catch (e) {
-            document.getElementById('schedule-list').innerHTML = "読み込みに失敗しました。";
+            document.getElementById('display-text').innerText = "エラー：再読み込みしてください";
         }
     }
 
-    function renderSchedule(schedules) {
-        const list = document.getElementById('schedule-list');
-        list.innerHTML = '';
-
-        schedules.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'accordion-item';
-            
-            let headerContent = `<span>${item.date} (${item.time})</span>`;
-            let statusText = '';
-            let isDisabled = false;
-
-            if (item.status === 'closed') {
-                statusText = '<span class="status-badge closed">当日締切(要問合せ)</span>';
-                isDisabled = true;
-            } else if (item.status === 'full') {
-                statusText = '<span class="status-badge full">満席</span>';
-                isDisabled = true;
-            } else {
-                statusText = '<span class="status-badge available">予約可</span>';
-            }
-
-            div.innerHTML = `
-                <div class="accordion-header" onclick="toggleAccordion(this, ${isDisabled})">
-                    ${headerContent} ${statusText}
-                </div>
-                <div class="accordion-content">
-                    <form onsubmit="submitForm(event, this)">
-                        <input type="hidden" name="date" value="${item.fullDate}">
-                        <input type="hidden" name="time" value="${item.time}">
-                        <input type="hidden" name="location" value="おぶせ">
-                        
-                        <label>生徒名</label>
-                        <input type="text" name="studentName" required placeholder="例：佐藤 太郎" value="${localStorage.getItem('studentName') || ''}">
-                        
-                        <label>保護者名</label>
-                        <input type="text" name="parentName" required placeholder="例：佐藤 花子" value="${localStorage.getItem('parentName') || ''}">
-                        
-                        <label>電話番号</label>
-                        <input type="tel" name="phone" required placeholder="09012345678" value="${localStorage.getItem('phone') || ''}">
-                        
-                        <label>メールアドレス</label>
-                        <input type="email" name="email" required placeholder="example@mail.com" value="${localStorage.getItem('email') || ''}">
-
-                        <div class="checkbox-group">
-                            <label style="cursor:pointer; display:flex; align-items:center;">
-                                <input type="checkbox" name="plan" value="1hour" style="width:auto; margin-right:10px; margin-bottom:0;"> 
-                                1時間のみ利用（500円）
-                            </label>
-                        </div>
-
-                        <button type="submit" class="submit-btn">予約を確定する</button>
-                    </form>
-                </div>
-            `;
-            list.appendChild(div);
-        });
+    function toggleOptions() {
+        const list = document.getElementById('options-list');
+        list.style.display = list.style.display === 'block' ? 'none' : 'block';
     }
 
-    function toggleAccordion(header, isDisabled) {
-        if (isDisabled) return;
-        const content = header.nextElementSibling;
-        const allContents = document.querySelectorAll('.accordion-content');
+    function selectDate(item) {
+        document.getElementById('display-text').innerText = `${item.date} (${item.time})`;
+        document.getElementById('input-date').value = item.fullDate;
+        document.getElementById('input-time').value = item.time;
+        toggleOptions(); // 選択したら閉じる
+        document.getElementById('selected-display').style.borderColor = '#2563eb';
+    }
+
+    async function submitForm(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        if (!document.getElementById('input-date').value) { alert('日程を選択してください'); return; }
         
-        allContents.forEach(c => {
-            if (c !== content) c.style.display = 'none';
-        });
-
-        content.style.display = content.style.display === 'block' ? 'none' : 'block';
-    }
-
-    async function submitForm(event, form) {
-        event.preventDefault();
-        const btn = form.querySelector('.submit-btn');
         btn.disabled = true;
-        document.getElementById('loading').style.display = 'block';
+        btn.innerText = "送信中...";
 
-        const formData = new FormData(form);
+        const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
 
-        // ローカルストレージに保存
+        // ローカルストレージ保存
         localStorage.setItem('studentName', data.studentName);
         localStorage.setItem('parentName', data.parentName);
         localStorage.setItem('phone', data.phone);
@@ -239,13 +148,11 @@
                 body: JSON.stringify({ action: 'booking', ...data })
             });
             const result = await response.json();
-            if (result.success) {
-                window.location.href = `kakunin.html?id=${result.bookingId}`;
-            }
-        } catch (e) {
-            alert('送信に失敗しました。');
+            if (result.success) window.location.href = `kakunin.html?id=${result.bookingId}`;
+        } catch (error) {
+            alert("エラーが発生しました。");
             btn.disabled = false;
-            document.getElementById('loading').style.display = 'none';
+            btn.innerText = "予約を確定する";
         }
     }
 </script>
