@@ -3,154 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>おぶせ予約 - マサちゃんの自習室</title>
+    <title>予約画面 - おぶせ 春の自習室</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary-orange: #ff8c00; --soft-gray: #f8f9fa; --border-color: #eee; }
-        body { font-family: sans-serif; background-color: var(--soft-gray); margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--primary-orange); font-size: 1.3rem; margin-bottom: 20px; }
+        :root { --primary-blue: #2563eb; --primary-orange: #ff8c00; --bg-gray: #f8f9fa; }
+        body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; background-color: var(--bg-gray); margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { color: var(--primary-blue); font-size: 1.4rem; margin-bottom: 30px; text-align: left; }
         
         /* アコーディオン・セレクト */
-        .select-box { border: 1px solid #ccc; padding: 12px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; background: #fff; }
-        .options-container { display: none; border: 1px solid #ccc; border-top: none; border-radius: 0 0 6px 6px; max-height: 300px; overflow-y: auto; background: #fff; margin-bottom: 20px; }
-        .option-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; }
-        .option-item:hover { background: #fff7ed; }
-        .option-item.disabled { color: #ccc; cursor: not-allowed; background: #f9f9f9; }
-
-        /* フォーム入力 */
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
-        input[type="text"], input[type="tel"], input[type="email"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .field-label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.95rem; }
+        .required-badge { background: #2563eb; color: #fff; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
         
-        .checkbox-container { background: #fdfdfd; border: 1px solid #eee; padding: 12px; border-radius: 6px; margin-bottom: 20px; display: flex; align-items: center; cursor: pointer; }
-        .checkbox-container input { margin-right: 10px; width: 18px; height: 18px; }
-
-        .submit-btn { width: 100%; background: #2563eb; color: #fff; border: none; padding: 15px; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; }
-        .submit-btn:disabled { background: #ccc; }
+        .select-box { border: 1px solid #ced4da; padding: 14px; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; background: #fff; transition: 0.2s; }
+        .select-box:active { background: #f1f5f9; }
         
-        .status-badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; }
+        .options-container { display: none; border: 1px solid #ced4da; border-top: none; border-radius: 0 0 8px 8px; max-height: 350px; overflow-y: auto; background: #fff; margin-bottom: 25px; margin-top: -8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .option-item { padding: 15px; border-bottom: 1px solid #f1f1f1; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .option-item:last-child { border-bottom: none; }
+        .option-item:hover { background: #f8faff; }
+        .option-item.disabled { color: #adb5bd; cursor: not-allowed; background: #fdfdfd; }
+
+        /* フォーム入力欄 */
+        .form-group { margin-bottom: 20px; }
+        input[type="text"], input[type="tel"] { width: 100%; padding: 14px; border: 1px solid #ced4da; border-radius: 8px; box-sizing: border-box; font-size: 1rem; outline: none; transition: 0.2s; }
+        input:focus { border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        
+        .checkbox-card { background: #fff; border: 1px solid #ced4da; padding: 16px; border-radius: 10px; margin-bottom: 30px; display: flex; align-items: center; cursor: pointer; transition: 0.2s; }
+        .checkbox-card:active { background: #f8f9fa; }
+        .checkbox-card input { width: 20px; height: 20px; margin-right: 12px; cursor: pointer; }
+        .checkbox-card span { font-size: 1rem; color: #444; }
+
+        .submit-btn { width: 100%; background: var(--primary-blue); color: #fff; border: none; padding: 18px; border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); }
+        .submit-btn:active { transform: translateY(1px); box-shadow: none; }
+        .submit-btn:disabled { background: #a5b4fc; cursor: not-allowed; }
+        
+        .status-txt { font-size: 0.85rem; font-weight: bold; }
         .available { color: var(--primary-orange); }
-        .closed { color: #e74c3c; }
+        .closed { color: #dc3545; }
+        .full { color: #6c757d; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2><i class="fas fa-edit"></i> おぶせ予約フォーム</h2>
+    <h2>おぶせ 春の自習室</h2>
     
-    <form id="mainForm" onsubmit="submitForm(event)">
-        <label>日程を選択 <span style="color:red; font-size:0.7rem;">必須</span></label>
-        <div class="select-box" id="selected-display" onclick="toggleOptions()">
-            <span id="display-text">タップして日程を表示</span>
-            <i class="fas fa-chevron-down"></i>
-        </div>
-        <div class="options-container" id="options-list">
+    <form id="resForm" onsubmit="handleFormSubmit(event)">
+        <div class="form-group">
+            <label class="field-label">日程を選択<span class="required-badge">必須</span></label>
+            <div class="select-box" id="selected-view" onclick="toggleDropdown()">
+                <span id="selected-text">タップして日程を表示</span>
+                <i class="fas fa-chevron-down" id="arrow-icon"></i>
             </div>
+            <div class="options-container" id="dropdown-menu">
+                </div>
+        </div>
 
-        <input type="hidden" name="date" id="input-date" required>
-        <input type="hidden" name="time" id="input-time">
+        <input type="hidden" name="date" id="val-date" required>
+        <input type="hidden" name="time" id="val-time">
         <input type="hidden" name="location" value="おぶせ">
 
         <div class="form-group">
-            <label>生徒名</label>
-            <input type="text" name="studentName" required placeholder="例：佐藤 太郎" value="${localStorage.getItem('studentName') || ''}">
+            <label class="field-label">参加者名<span class="required-badge">必須</span></label>
+            <input type="text" name="studentName" id="field-student" required placeholder="例：佐藤 太郎">
         </div>
 
         <div class="form-group">
-            <label>保護者名</label>
-            <input type="text" name="parentName" required placeholder="例：佐藤 花子" value="${localStorage.getItem('parentName') || ''}">
+            <label class="field-label">保護者名<span class="required-badge">必須</span></label>
+            <input type="text" name="parentName" id="field-parent" required placeholder="例：佐藤 花子">
         </div>
 
         <div class="form-group">
-            <label>電話番号</label>
-            <input type="tel" name="phone" required placeholder="09012345678" value="${localStorage.getItem('phone') || ''}">
+            <label class="field-label">電話番号<span class="required-badge">必須</span></label>
+            <input type="tel" name="phone" id="field-phone" required placeholder="数字のみ入力">
         </div>
 
-        <div class="form-group">
-            <label>メールアドレス</label>
-            <input type="email" name="email" required placeholder="example@mail.com" value="${localStorage.getItem('email') || ''}">
-        </div>
-
-        <div class="checkbox-container" onclick="document.getElementById('plan-check').click();">
-            <input type="checkbox" id="plan-check" name="plan" value="1hour">
+        <div class="checkbox-card" onclick="toggleCheck()">
+            <input type="checkbox" id="plan-1h" name="plan" value="1hour">
             <span>1時間のみ利用する（500円）</span>
         </div>
 
-        <button type="submit" id="submitBtn" class="submit-btn">予約を確定する</button>
+        <button type="submit" id="submit-button" class="submit-btn">予約を確定する</button>
     </form>
 </div>
 
 <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyC0C5B0xO6B1zC1p_m85mK_9j7V9E8M8qL/exec'; // マサちゃんの最新URL
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyC0C5B0xO6B1zC1p_m85mK_9j7V9E8M8qL/exec';
 
-    window.onload = fetchSchedule;
+    window.onload = function() {
+        // 保存データの復元
+        document.getElementById('field-student').value = localStorage.getItem('studentName') || '';
+        document.getElementById('field-parent').value = localStorage.getItem('parentName') || '';
+        document.getElementById('field-phone').value = localStorage.getItem('phone') || '';
+        
+        loadSchedules();
+    };
 
-    async function fetchSchedule() {
+    async function loadSchedules() {
         try {
-            const response = await fetch(`${GAS_URL}?action=getSchedules&location=おぶせ`);
-            const schedules = await response.json();
-            const list = document.getElementById('options-list');
-            list.innerHTML = '';
+            const res = await fetch(API_URL + '?action=getSchedules&location=おぶせ');
+            const data = await res.json();
+            const menu = document.getElementById('dropdown-menu');
+            menu.innerHTML = '';
 
-            schedules.forEach(item => {
-                const div = document.createElement('div');
-                div.className = `option-item ${item.status !== 'available' ? 'disabled' : ''}`;
+            data.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'option-item' + (item.status !== 'available' ? ' disabled' : '');
                 
-                let statusHtml = item.status === 'available' ? '<span class="available">予約可</span>' : 
-                                 item.status === 'closed' ? '<span class="closed">当日締切</span>' : '満席';
+                let statusHtml = '';
+                if(item.status === 'available') statusHtml = '<span class="status-txt available">予約可</span>';
+                else if(item.status === 'closed') statusHtml = '<span class="status-txt closed">当日締切</span>';
+                else statusHtml = '<span class="status-txt full">満席</span>';
 
-                div.innerHTML = `<span>${item.date} (${item.time})</span> ${statusHtml}`;
+                row.innerHTML = `<span>${item.date} (${item.time})</span> ${statusHtml}`;
                 
-                if (item.status === 'available') {
-                    div.onclick = () => selectDate(item);
+                if(item.status === 'available') {
+                    row.onclick = () => {
+                        document.getElementById('selected-text').innerText = `${item.date} (${item.time})`;
+                        document.getElementById('val-date').value = item.fullDate;
+                        document.getElementById('val-time').value = item.time;
+                        toggleDropdown(); // 選択後に閉じる
+                    };
                 }
-                list.appendChild(div);
+                menu.appendChild(row);
             });
-        } catch (e) {
-            document.getElementById('display-text').innerText = "エラー：再読み込みしてください";
+        } catch (err) {
+            document.getElementById('selected-text').innerText = "日程の読み込みに失敗しました";
         }
     }
 
-    function toggleOptions() {
-        const list = document.getElementById('options-list');
-        list.style.display = list.style.display === 'block' ? 'none' : 'block';
+    function toggleDropdown() {
+        const menu = document.getElementById('dropdown-menu');
+        const arrow = document.getElementById('arrow-icon');
+        const isOpen = menu.style.display === 'block';
+        menu.style.display = isOpen ? 'none' : 'block';
+        arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
     }
 
-    function selectDate(item) {
-        document.getElementById('display-text').innerText = `${item.date} (${item.time})`;
-        document.getElementById('input-date').value = item.fullDate;
-        document.getElementById('input-time').value = item.time;
-        toggleOptions(); // 選択したら閉じる
-        document.getElementById('selected-display').style.borderColor = '#2563eb';
+    function toggleCheck() {
+        const chk = document.getElementById('plan-1h');
+        chk.checked = !chk.checked;
     }
 
-    async function submitForm(e) {
+    async function handleFormSubmit(e) {
         e.preventDefault();
-        const btn = document.getElementById('submitBtn');
-        if (!document.getElementById('input-date').value) { alert('日程を選択してください'); return; }
-        
+        if(!document.getElementById('val-date').value) {
+            alert('日程を選択してください');
+            return;
+        }
+
+        const btn = document.getElementById('submit-button');
         btn.disabled = true;
         btn.innerText = "送信中...";
 
         const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData.entries());
+        const postData = Object.fromEntries(formData.entries());
 
-        // ローカルストレージ保存
-        localStorage.setItem('studentName', data.studentName);
-        localStorage.setItem('parentName', data.parentName);
-        localStorage.setItem('phone', data.phone);
-        localStorage.setItem('email', data.email);
+        // データの保存
+        localStorage.setItem('studentName', postData.studentName);
+        localStorage.setItem('parentName', postData.parentName);
+        localStorage.setItem('phone', postData.phone);
 
         try {
-            const response = await fetch(GAS_URL, {
+            const res = await fetch(API_URL, {
                 method: 'POST',
-                body: JSON.stringify({ action: 'booking', ...data })
+                body: JSON.stringify({ action: 'booking', ...postData })
             });
-            const result = await response.json();
-            if (result.success) window.location.href = `kakunin.html?id=${result.bookingId}`;
-        } catch (error) {
-            alert("エラーが発生しました。");
+            const result = await res.json();
+            if(result.success) {
+                window.location.href = 'kakunin.html?id=' + result.bookingId;
+            } else {
+                alert('予約に失敗しました。');
+                btn.disabled = false;
+                btn.innerText = "予約を確定する";
+            }
+        } catch (err) {
+            alert('通信エラーが発生しました。');
             btn.disabled = false;
             btn.innerText = "予約を確定する";
         }
