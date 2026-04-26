@@ -3,216 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>予約確認・キャンセル</title>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>予約確認 - マサちゃんの自習室</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-orange: #ff8c00;
+            --soft-gray: #f8f9fa;
+            --text-dark: #333;
+            --border-color: #eee;
+            --danger-red: #e74c3c;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--soft-gray);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .icon-box {
+            font-size: 3rem;
+            color: #2ecc71;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: var(--text-dark);
+            margin-bottom: 10px;
+        }
+
+        .info-card {
+            background: #fffcf9;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: left;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dashed #ddd;
+            padding: 10px 0;
+        }
+
+        .info-row:last-child { border-bottom: none; }
+
+        .label { font-weight: bold; color: #666; }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .cancel-btn {
+            background: none;
+            border: 1px solid #ccc;
+            color: #999;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .cancel-btn:hover {
+            color: var(--danger-red);
+            border-color: var(--danger-red);
+            background: #fff5f5;
+        }
+
+        .back-btn {
+            background: var(--primary-orange);
+            color: #fff;
+            text-decoration: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: block;
+        }
+
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8);
+            justify-content: center; align-items: center;
+            z-index: 100;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body>
 
-    <div class="max-w-md mx-auto p-4">
-        <header class="mb-6 text-center">
-            <h1 class="text-xl font-bold text-blue-700">予約確認・キャンセル</h1>
-            <p class="text-sm text-gray-500">あなたの現在の予約状況です</p>
-        </header>
+<div id="loading-overlay">
+    <i class="fas fa-spinner fa-spin fa-2x"></i>
+</div>
 
-        <div id="loading" class="text-center py-10">
-            <div class="inline-block animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
-            <p class="mt-2 text-gray-500">読み込み中...</p>
-        </div>
+<div class="container">
+    <div id="status-icon" class="icon-box"><i class="fas fa-check-circle"></i></div>
+    <h2 id="main-title">予約を承りました</h2>
+    <p id="sub-msg">ご登録いただいたメールアドレスに確認メールを送信しました。</p>
 
-        <div id="reservationList" class="space-y-4 hidden">
-            </div>
-
-        <div id="noReservation" class="hidden text-center py-10">
-            <p class="text-gray-500">現在、予定されている予約はありません。</p>
-            <button onclick="liff.closeWindow()" class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg shadow font-bold">閉じる</button>
-        </div>
-
-        <div id="custom-alert" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-            <div class="bg-white rounded-lg p-6 max-w-sm w-[90%] shadow-xl">
-                <h3 class="text-lg font-bold text-center text-gray-800 mb-3 mt-2">確認</h3>
-                <p id="custom-alert-message" class="text-center text-gray-600 mb-6 text-sm font-medium"></p>
-                <button onclick="closeCustomAlert()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg shadow">OK</button>
-            </div>
-        </div>
-
-        <div id="custom-confirm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-            <div class="bg-white rounded-lg p-6 max-w-sm w-[90%] shadow-xl">
-                <h3 class="text-lg font-bold text-center text-gray-800 mb-3 mt-2">確認</h3>
-                <p class="text-center text-gray-600 mb-6 text-sm font-medium">この予約をキャンセルしてもよろしいですか？</p>
-                <div class="flex space-x-3">
-                    <button onclick="closeCustomConfirm()" class="w-1/2 bg-gray-200 text-gray-800 font-bold py-3 rounded-lg">やめる</button>
-                    <button onclick="executeCancel()" class="w-1/2 bg-red-500 text-white font-bold py-3 rounded-lg shadow">キャンセル</button>
-                </div>
-            </div>
-        </div>
+    <div class="info-card" id="info-card">
+        <div class="info-row"><span class="label">予約ID</span><span id="view-id">-</span></div>
+        <div class="info-row"><span class="label">会場</span><span id="view-loc">-</span></div>
+        <div class="info-row"><span class="label">日時</span><span id="view-datetime">-</span></div>
+        <div class="info-row"><span class="label">生徒名</span><span id="view-name">-</span></div>
+        <div id="plan-row" class="info-row" style="display:none;"><span class="label">プラン</span><span>1時間のみ利用</span></div>
     </div>
 
-    <script>
-        // ★ご自身のGASの「ウェブアプリURL」を貼り付けてください
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec"; 
-        // ★この確認ページ用のLIFF IDを貼り付けてください
-        const MY_LIFF_ID = "2009652448-8WjGp7jc"; 
+    <div class="btn-group">
+        <a href="index.html" class="back-btn">トップページへ戻る</a>
+        <button class="cancel-btn" onclick="confirmCancel()">この予約をキャンセルする</button>
+    </div>
+</div>
 
-        let targetCancelId = null;
-        let targetCancelBtn = null;
-        let alertCallback = null;
+<script>
+    const GAS_URL = 'https://script.google.com/macros/s/XXX/exec'; // 差し替え
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookingId = urlParams.get('id');
 
-        // カスタムアラートの制御
-        function showCustomAlert(message, callback = null) {
-            document.getElementById('custom-alert-message').innerHTML = message;
-            document.getElementById('custom-alert').classList.remove('hidden');
-            alertCallback = callback;
+    window.onload = () => {
+        if (bookingId) {
+            fetchBookingData();
+        } else {
+            document.body.innerHTML = "予約情報が見つかりません。";
         }
+    };
 
-        function closeCustomAlert() {
-            document.getElementById('custom-alert').classList.add('hidden');
-            if (alertCallback) {
-                alertCallback(); 
-                alertCallback = null;
-            }
-        }
-
-        // カスタム確認モーダルの制御
-        function openConfirmModal(cancelId, btnElement) {
-            targetCancelId = cancelId;
-            targetCancelBtn = btnElement;
-            document.getElementById('custom-confirm').classList.remove('hidden');
-        }
-
-        function closeCustomConfirm() {
-            document.getElementById('custom-confirm').classList.add('hidden');
-            targetCancelId = null;
-            targetCancelBtn = null;
-        }
-
-        async function main() {
-            try {
-                await liff.init({ liffId: MY_LIFF_ID });
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                    return;
-                }
-                const profile = await liff.getProfile();
-                loadMyReservations(profile.userId);
-            } catch (err) {
-                console.error("LIFFの初期化に失敗しました", err);
-                showCustomAlert("エラーが発生しました。<br>時間を置いて再度お試しください。");
-            }
-        }
-
-        async function loadMyReservations(userId) {
-            const loading = document.getElementById('loading');
-            const listArea = document.getElementById('reservationList');
-            const noResArea = document.getElementById('noReservation');
-
-            try {
-                const response = await fetch(`${GAS_URL}?action=getMyReservations&userId=${userId}`);
-                let reservations = await response.json();
-
-                const now = new Date();
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-                // 1. 過去の日程（昨日以前）を除外
-                reservations = reservations.filter(res => {
-                    if (!res.date) return true;
-                    const cleanDate = res.date.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-                    const match = cleanDate.match(/(\d{4})[-\/年](\d{1,2})[-\/月](\d{1,2})/);
-                    if (match) {
-                        const y = parseInt(match[1], 10);
-                        const m = parseInt(match[2], 10) - 1;
-                        const d = parseInt(match[3], 10);
-                        const resDateObj = new Date(y, m, d);
-                        if (resDateObj.getTime() < today.getTime()) {
-                            return false; 
-                        }
-                    }
-                    return true;
-                });
-
-                // 2. 日程が近い順（昇順）に並び替え
-                reservations.sort((a, b) => {
-                    const getDateTime = (res) => {
-                        if (!res.date) return 8640000000000000;
-                        const cleanD = res.date.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-                        const dM = cleanD.match(/(\d{4})[-\/年](\d{1,2})[-\/月](\d{1,2})/);
-                        if (!dM) return 8640000000000000;
-                        
-                        let h = 0, m = 0;
-                        if (res.time) {
-                            const cleanT = res.time.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-                            const tM = cleanT.match(/(\d{1,2}):(\d{2})/);
-                            if (tM) { h = parseInt(tM[1], 10); m = parseInt(tM[2], 10); }
-                        }
-                        return new Date(parseInt(dM[1]), parseInt(dM[2]) - 1, parseInt(dM[3]), h, m).getTime();
-                    };
-                    return getDateTime(a) - getDateTime(b);
-                });
-
-                loading.classList.add('hidden');
-
-                if (reservations.length === 0) {
-                    noResArea.classList.remove('hidden');
-                    return;
-                }
-
-                listArea.innerHTML = ''; 
-                reservations.forEach(res => {
-                    const card = document.createElement('div');
-                    card.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100";
-                    card.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <div class="text-sm font-bold text-blue-600">${res.location}</div>
-                                <div class="text-lg font-bold">${res.date}</div>
-                                <div class="text-gray-600">${res.time}</div>
-                                <div class="text-xs text-gray-400 mt-1">参加者: ${res.participantName}さん</div>
-                            </div>
-                            <button onclick="openConfirmModal('${res.cancelId}', this)" 
-                                class="bg-red-50 text-red-600 px-3 py-2 rounded-lg text-sm font-bold border border-red-100 hover:bg-red-100 transition">
-                                キャンセル
-                            </button>
-                        </div>
-                    `;
-                    listArea.appendChild(card);
-                });
-                listArea.classList.remove('hidden');
-
-            } catch (err) {
-                showCustomAlert("データの取得に失敗しました。");
-            }
-        }
-
-        async function executeCancel() {
-            document.getElementById('custom-confirm').classList.add('hidden');
+    async function fetchBookingData() {
+        document.getElementById('loading-overlay').style.display = 'flex';
+        try {
+            const response = await fetch(`${GAS_URL}?action=getBooking&id=${bookingId}`);
+            const data = await response.json();
             
-            if (!targetCancelId || !targetCancelBtn) return;
-
-            targetCancelBtn.innerText = "処理中...";
-            targetCancelBtn.disabled = true;
-
-            try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: "cancelReservation", cancelId: targetCancelId })
-                });
-                const result = await response.json();
-
-                if (result.status === "success") {
-                    showCustomAlert("予約をキャンセルしました。", () => {
-                        location.reload(); 
-                    });
-                } else {
-                    throw new Error();
+            if (data) {
+                document.getElementById('view-id').innerText = data.id;
+                document.getElementById('view-loc').innerText = data.location;
+                document.getElementById('view-datetime').innerText = `${data.date} ${data.time}`;
+                document.getElementById('view-name').innerText = data.studentName;
+                if (data.plan === '1時間のみ利用') {
+                    document.getElementById('plan-row').style.display = 'flex';
                 }
-            } catch (err) {
-                showCustomAlert("キャンセル処理に失敗しました。<br>事務局へお問い合わせください。");
-                targetCancelBtn.innerText = "キャンセル";
-                targetCancelBtn.disabled = false;
             }
+        } catch (e) {
+            console.error("Fetch error:", e);
+        } finally {
+            document.getElementById('loading-overlay').style.display = 'none';
         }
+    }
 
-        main();
-    </script>
+    async function confirmCancel() {
+        if (!confirm("本当にキャンセルしてもよろしいですか？")) return;
+
+        document.getElementById('loading-overlay').style.display = 'flex';
+        try {
+            const response = await fetch(GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'cancel', id: bookingId })
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert("予約をキャンセルしました。");
+                window.location.href = 'index.html';
+            }
+        } catch (e) {
+            alert("キャンセル処理に失敗しました。");
+        } finally {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+    }
+</script>
+
 </body>
 </html>
