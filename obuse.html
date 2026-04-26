@@ -14,24 +14,33 @@
         .field-label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.95rem; }
         .required-badge { background: #2563eb; color: #fff; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
         
-        /* アコーディオン */
+        /* アコーディオン設定 */
         .select-box { border: 1px solid #ced4da; padding: 14px; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; background: #fff; }
-        .options-container { display: none; border: 1px solid #ced4da; border-top: none; border-radius: 0 0 8px 8px; max-height: 300px; overflow-y: auto; background: #fff; margin-bottom: 25px; margin-top: -8px; }
-        .option-item { padding: 15px; border-bottom: 1px solid #f1f1f1; cursor: pointer; display: flex; justify-content: space-between; }
+        .options-container { display: none; border: 1px solid #ced4da; border-top: none; border-radius: 0 0 8px 8px; max-height: 350px; overflow-y: auto; background: #fff; margin-bottom: 25px; margin-top: -8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        
+        /* 日程リストのスタイル調整 */
+        .option-item { padding: 15px; border-bottom: 1px solid #f1f1f1; cursor: pointer; display: flex; align-items: center; font-size: 1rem; }
+        .option-item:last-child { border-bottom: none; }
+        .option-item:hover { background: #f8faff; }
         .option-item.disabled { color: #adb5bd; cursor: not-allowed; background: #fdfdfd; }
 
-        /* フォーム */
+        /* 日付と時間の幅を固定して揃える */
+        .date-part { width: 110px; display: inline-block; font-weight: bold; }
+        .time-part { width: 120px; display: inline-block; font-family: 'Courier New', monospace; color: #555; }
+        .status-part { margin-left: auto; font-weight: bold; font-size: 0.85rem; }
+
+        /* フォーム入力欄 */
         .form-group { margin-bottom: 20px; }
-        input[type="text"], input[type="tel"] { width: 100%; padding: 14px; border: 1px solid #ced4da; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        input[type="text"], input[type="tel"] { width: 100%; padding: 14px; border: 1px solid #ced4da; border-radius: 8px; box-sizing: border-box; font-size: 1rem; outline: none; }
         
         .checkbox-card { background: #fff; border: 1px solid #ced4da; padding: 16px; border-radius: 10px; margin-bottom: 30px; display: flex; align-items: center; cursor: pointer; }
-        .checkbox-card input { width: 20px; height: 20px; margin-right: 12px; }
+        .checkbox-card input { width: 20px; height: 20px; margin-right: 12px; cursor: pointer; }
 
         .submit-btn { width: 100%; background: var(--primary-blue); color: #fff; border: none; padding: 18px; border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
-        .submit-btn:disabled { background: #ccc; }
+        .submit-btn:disabled { background: #a5b4fc; cursor: not-allowed; }
         
-        .status-txt { font-size: 0.85rem; font-weight: bold; }
-        .available { color: var(--primary-orange); }
+        .closed-txt { color: #dc3545; }
+        .full-txt { color: #6c757d; }
     </style>
 </head>
 <body>
@@ -43,7 +52,7 @@
         <div class="form-group">
             <label class="field-label">日程を選択<span class="required-badge">必須</span></label>
             <div class="select-box" onclick="toggleDropdown()">
-                <span id="selected-text">読み込み中...</span>
+                <span id="selected-text">タップして日程を表示</span>
                 <i class="fas fa-chevron-down" id="arrow-icon"></i>
             </div>
             <div class="options-container" id="dropdown-menu"></div>
@@ -65,7 +74,7 @@
 
         <div class="form-group">
             <label class="field-label">電話番号<span class="required-badge">必須</span></label>
-            <input type="tel" name="phone" id="field-phone" required placeholder="例：09012345678">
+            <input type="tel" name="phone" id="field-phone" required placeholder="数字のみ入力">
         </div>
 
         <div class="checkbox-card" onclick="toggleCheck()">
@@ -78,8 +87,7 @@
 </div>
 
 <script>
-    // ★★★ここにマサちゃんさんの「最新の」GASのURLを貼り付けてください★★★
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxTBvPsDY2fx3_ZfoOhZ43a1QVZgPSb7KrdcTbfwBahpMS4Bj5ZNhPnDDOZR88ThS5uLA/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyC0C5B0xO6B1zC1p_m85mK_9j7V9E8M8qL/exec';
 
     window.onload = function() {
         document.getElementById('field-student').value = localStorage.getItem('studentName') || '';
@@ -88,33 +96,39 @@
         loadSchedules();
     };
 
+    // 英語の曜日を日本語に変換する関数
+    function formatJapaneseDate(dateStr) {
+        return dateStr.replace('Sun', '日').replace('Mon', '月').replace('Tue', '火')
+                      .replace('Wed', '水').replace('Thu', '木').replace('Fri', '金').replace('Sat', '土');
+    }
+
     async function loadSchedules() {
-        const selectedText = document.getElementById('selected-text');
-        selectedText.innerText = "日程を読み込み中...";
-        
         try {
-            // キャッシュ回避のためにランダムな数字を付与
             const res = await fetch(`${API_URL}?action=getSchedules&location=おぶせ&t=${Date.now()}`);
-            if (!res.ok) throw new Error('Network response was not ok');
-            
             const data = await res.json();
             const menu = document.getElementById('dropdown-menu');
             menu.innerHTML = '';
 
-            if (data.length === 0) {
-                selectedText.innerText = "選択可能な日程がありません";
-                return;
-            }
-
             data.forEach(item => {
                 const row = document.createElement('div');
                 row.className = 'option-item' + (item.status !== 'available' ? ' disabled' : '');
-                let statusHtml = item.status === 'available' ? '<span class="status-txt available">予約可</span>' : '不可';
-                row.innerHTML = `<span>${item.date} (${item.time})</span> ${statusHtml}`;
+                
+                const jpDate = formatJapaneseDate(item.date); // 曜日を日本語化
+                
+                let statusHtml = '';
+                if(item.status === 'closed') statusHtml = '<span class="status-part closed-txt">当日締切</span>';
+                else if(item.status === 'full') statusHtml = '<span class="status-part full-txt">満席</span>';
+                // 「予約可」の場合は statusHtml を空のままにする（非表示）
+
+                row.innerHTML = `
+                    <span class="date-part">${jpDate}</span>
+                    <span class="time-part">${item.time}</span>
+                    ${statusHtml}
+                `;
                 
                 if(item.status === 'available') {
                     row.onclick = () => {
-                        document.getElementById('selected-text').innerText = `${item.date} (${item.time})`;
+                        document.getElementById('selected-text').innerText = `${jpDate} ${item.time}`;
                         document.getElementById('val-date').value = item.fullDate;
                         document.getElementById('val-time').value = item.time;
                         toggleDropdown();
@@ -122,11 +136,8 @@
                 }
                 menu.appendChild(row);
             });
-            selectedText.innerText = "タップして日程を表示";
         } catch (err) {
-            console.error(err);
-            selectedText.innerText = "日程の読み込みに失敗しました";
-            alert("GASとの通信に失敗しました。URLが正しいか、またはGASのデプロイ設定が「全員」になっているか確認してください。");
+            document.getElementById('selected-text').innerText = "日程の読み込みに失敗しました";
         }
     }
 
@@ -166,10 +177,12 @@
             } else {
                 alert('予約に失敗しました');
                 btn.disabled = false;
+                btn.innerText = "予約を確定する";
             }
         } catch (err) {
             alert('通信エラーが発生しました');
             btn.disabled = false;
+            btn.innerText = "予約を確定する";
         }
     }
 </script>
