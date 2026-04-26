@@ -3,143 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>無料体験申し込み | 元塾講師マサちゃんの自習室</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+    <title>体験申込 - マサちゃんの自習室</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
-        body { font-family: 'Noto Sans JP', sans-serif; background-color: #fffaf5; }
-        .bg-yorisoi-orange { background-color: #FF9900; }
-        .text-yorisoi-orange { color: #FF9900; }
-        .focus-ring-orange:focus { --tw-ring-color: #FF9900; border-color: #FF9900; }
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #FF9900; border-radius: 50%; width: 20px; height: 20px; animation: spin 0.8s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        :root {
+            --primary-orange: #ff8c00;
+            --soft-gray: #f8f9fa;
+            --text-dark: #333;
+            --border-color: #eee;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--soft-gray);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h2 {
+            color: var(--primary-orange);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .note {
+            background: #fffcf0;
+            border: 1px solid #ffeeba;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 25px;
+        }
+
+        button.submit-btn {
+            width: 100%;
+            background: var(--primary-orange);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button.submit-btn:hover {
+            background: #e67e00;
+        }
+
+        button.submit-btn:disabled {
+            background: #ccc;
+        }
+
+        #loading {
+            text-align: center;
+            display: none;
+            margin-top: 20px;
+            color: var(--primary-orange);
+        }
     </style>
 </head>
-<body class="text-slate-800 min-h-screen flex flex-col">
+<body>
 
-    <header class="bg-yorisoi-orange text-white shadow-lg">
-        <div class="max-w-3xl mx-auto py-10 px-6 text-center">
-            <h1 class="text-2xl font-bold mb-2">元塾講師マサちゃんの自習室</h1>
-            <p class="text-sm opacity-90">無料体験申し込みフォーム</p>
-        </div>
-    </header>
-
-    <main class="flex-grow flex items-start justify-center py-10 px-4">
-        <div class="max-w-2xl w-full bg-white p-6 sm:p-10 rounded-2xl shadow-xl border border-orange-100">
-            <form id="application-form" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-bold mb-2">会場 <span class="text-red-500">*</span></label>
-                    <select id="location" name="location" required class="block w-full rounded-lg border-slate-300 py-3 focus-ring-orange">
-                        <option value="" disabled selected>会場を選択してください</option>
-                        <option value="小布施会場">小布施会場 (火・金)</option>
-                        <option value="須坂会場">須坂会場 (月・木)</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-bold mb-2">体験希望日 <span class="text-red-500">*</span></label>
-                    <input type="text" id="date" name="date" required disabled placeholder="先に会場を選択してください" class="block w-full rounded-lg border-slate-300 py-3 px-4 focus-ring-orange">
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-bold mb-2">学年 <span class="text-red-500">*</span></label>
-                        <select name="grade" required class="block w-full rounded-lg border-slate-300 py-3 focus-ring-orange">
-                            <option value="中学1年">中学1年</option>
-                            <option value="中学2年">中学2年</option>
-                            <option value="中学3年">中学3年</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold mb-2">生徒氏名 <span class="text-red-500">*</span></label>
-                        <input type="text" name="student_name" required placeholder="例：須坂 太郎" class="block w-full rounded-lg border-slate-300 py-3 focus-ring-orange">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-bold mb-2">保護者氏名 <span class="text-red-500">*</span></label>
-                    <input type="text" name="parent_name" required placeholder="例：須坂 花子" class="block w-full rounded-lg border-slate-300 py-3 focus-ring-orange">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-bold mb-2">電話番号 <span class="text-red-500">*</span></label>
-                    <input type="tel" name="phone" required placeholder="09012345678" class="block w-full rounded-lg border-slate-300 py-3 focus-ring-orange">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-bold mb-2">メールアドレス <span class="text-red-500">*</span></label>
-                    <input type="email" name="email" required placeholder="sample@example.com" class="block w-full rounded-lg border-slate-300 py-3 focus-ring-orange">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-bold mb-2">その他備考欄</label>
-                    <textarea name="remarks" rows="3" placeholder="ご質問などあればご記入ください。" class="block w-full rounded-lg border-slate-300 focus-ring-orange"></textarea>
-                </div>
-
-                <div class="pt-4">
-                    <button type="submit" id="submit-btn" class="w-full flex justify-center items-center py-4 bg-yorisoi-orange text-white rounded-xl font-bold hover:opacity-90 shadow-md">
-                        <span id="btn-text">内容を送信する</span>
-                        <div id="btn-loader" class="hidden ml-3 loader"></div>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </main>
-
-    <div id="success-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 px-4">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
-            <h3 class="text-2xl font-bold mb-4">送信完了</h3>
-            <p class="text-slate-600 mb-8">お申し込みありがとうございます。<br>スプレッドシートへの登録が完了しました。</p>
-            <button onclick="location.reload()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl">閉じる</button>
-        </div>
+<div class="container">
+    <div class="header">
+        <h2><i class="fas fa-seedling"></i> 無料体験お申し込み</h2>
+        <p>自習室の雰囲気をまずは無料で体験してみませんか？</p>
     </div>
 
-    <script>
-        // ★ 手順1で新しく発行したGASのURLをここに貼り付けてください
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxCUmZT4HSaGpqmAUYV2zLTtIUwjQVHlbR_1aYNrh1tAQ9LDSi-Rzad17Y-Bt73iCSmGQ/exec";
+    <div class="note">
+        ※お申し込み後、担当者より日程調整のご連絡を差し上げます。
+    </div>
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const locationSelect = document.getElementById('location');
-            const dateInput = document.getElementById('date');
-            const form = document.getElementById('application-form');
-            
-            const fp = flatpickr(dateInput, { locale: "ja", minDate: "today", dateFormat: "Y/m/d", disable: [() => true] });
+    <form id="trialForm" onsubmit="submitTrial(event)">
+        <label>生徒名</label>
+        <input type="text" name="studentName" required placeholder="例：佐藤 太郎" value="">
+        
+        <label>現在の学年</label>
+        <select name="grade" required>
+            <option value="">選択してください</option>
+            <option value="中1">中学1年生</option>
+            <option value="中2">中学2年生</option>
+            <option value="中3">中学3年生</option>
+        </select>
 
-            locationSelect.addEventListener('change', function() {
-                dateInput.removeAttribute('disabled');
-                let disableFunc = this.value.includes('小布施') ? (d => d.getDay()!==2 && d.getDay()!==5) : (d => d.getDay()!==1 && d.getDay()!==4);
-                fp.set('disable', [disableFunc]);
-                fp.clear();
+        <label>保護者名</label>
+        <input type="text" name="parentName" required placeholder="例：佐藤 花子" value="">
+        
+        <label>電話番号</label>
+        <input type="tel" name="phone" required placeholder="09012345678" value="">
+        
+        <label>メールアドレス</label>
+        <input type="email" name="email" required placeholder="example@mail.com" value="">
+
+        <label>ご希望の日程やご質問（任意）</label>
+        <textarea name="remarks" rows="3" placeholder="例：来週の月曜日19時頃を希望します"></textarea>
+
+        <button type="submit" id="submitBtn" class="submit-btn">体験を申し込む</button>
+    </form>
+
+    <div id="loading">
+        <i class="fas fa-spinner fa-spin"></i> 送信中...
+    </div>
+</div>
+
+<script>
+    // GASのURL (デプロイ後に差し替え)
+    const GAS_URL = 'https://script.google.com/macros/s/XXX/exec';
+
+    // ページ読み込み時にLocal Storageからデータを補完
+    window.onload = () => {
+        const form = document.getElementById('trialForm');
+        form.studentName.value = localStorage.getItem('studentName') || '';
+        form.parentName.value = localStorage.getItem('parentName') || '';
+        form.phone.value = localStorage.getItem('phone') || '';
+        form.email.value = localStorage.getItem('email') || '';
+    };
+
+    async function submitTrial(event) {
+        event.preventDefault();
+        const form = event.target;
+        const btn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+
+        btn.disabled = true;
+        loading.style.display = 'block';
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        // 入力内容をブラウザに保存（次回の予約を楽にするため）
+        localStorage.setItem('studentName', data.studentName);
+        localStorage.setItem('parentName', data.parentName);
+        localStorage.setItem('phone', data.phone);
+        localStorage.setItem('email', data.email);
+
+        try {
+            const response = await fetch(GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'trial', ...data })
             });
+            const result = await response.json();
 
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                document.getElementById('submit-btn').disabled = true;
-                document.getElementById('btn-text').textContent = "送信中...";
-                document.getElementById('btn-loader').classList.remove('hidden');
-                
-                const formData = new FormData(form);
-                const queryParams = new URLSearchParams(formData);
+            if (result.success) {
+                // 完了画面へ（専用の完了画面がない場合は共通の確認画面か、アラート後にリダイレクト）
+                alert('お申し込みありがとうございます！内容を確認し、追ってご連絡いたします。');
+                window.location.href = 'index.html'; // またはトップページなど
+            } else {
+                alert('送信に失敗しました。時間をおいて再度お試しください。');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('通信エラーが発生しました。');
+        } finally {
+            btn.disabled = false;
+            loading.style.display = 'none';
+        }
+    }
+</script>
 
-                fetch(GAS_URL, {
-                    method: "POST",
-                    body: queryParams.toString(),
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    mode: "no-cors"
-                }).then(() => {
-                    document.getElementById('success-modal').classList.remove('hidden');
-                }).catch(() => {
-                    alert("送信に失敗しました。");
-                }).finally(() => {
-                    document.getElementById('submit-btn').disabled = false;
-                    document.getElementById('btn-text').textContent = "内容を送信する";
-                    document.getElementById('btn-loader').classList.add('hidden');
-                });
-            });
-        });
-    </script>
 </body>
 </html>
