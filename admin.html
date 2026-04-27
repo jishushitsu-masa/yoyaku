@@ -1,233 +1,378 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理画面 - マサちゃんの自習室</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-orange: #ff8c00;
-            --bg-gray: #f0f2f5;
-            --card-white: #ffffff;
-            --text-main: #333;
-        }
-
-        body {
-            font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
-            background-color: var(--bg-gray);
-            margin: 0;
-            padding-bottom: 70px; /* 下部ナビ用 */
-        }
-
-        header {
-            background: var(--primary-orange);
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-weight: bold;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .tab-content { display: none; padding: 15px; }
-        .tab-content.active { display: block; }
-
-        /* カードスタイル */
-        .card {
-            background: var(--card-white);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        h3 { margin-top: 0; font-size: 1.1rem; border-left: 4px solid var(--primary-orange); padding-left: 10px; }
-
-        /* テーブル・リスト */
-        .data-table-wrapper { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th, td { border-bottom: 1px solid #eee; padding: 10px; text-align: left; }
-        th { background: #fafafa; }
-
-        /* 入力フォーム（テスト結果など） */
-        .score-input-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 10px;
-        }
-        input[type="number"], input[type="text"], select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .total-badge {
-            background: #fff4e6;
-            color: var(--primary-orange);
-            font-weight: bold;
-            padding: 10px;
-            text-align: center;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-
-        /* 下部ナビゲーション */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: white;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            border-top: 1px solid #ddd;
-            z-index: 100;
-        }
-        .nav-item {
-            text-align: center;
-            font-size: 0.7rem;
-            color: #888;
-            cursor: pointer;
-            flex: 1;
-        }
-        .nav-item.active { color: var(--primary-orange); }
-        .nav-item i { font-size: 1.2rem; display: block; margin-bottom: 2px; }
-
-        .btn {
-            background: var(--primary-orange);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            font-weight: bold;
-        }
-
-        #loading { text-align: center; padding: 50px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理画面 | 元塾講師マサちゃんの自習室</title>
+  <link rel="stylesheet" href="index.css">
+  <style>
+    /* Admin specific styles */
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background-color: var(--border);
+      border: 1px solid var(--border);
+    }
+    .calendar-header {
+      background-color: #F9FAFB;
+      font-weight: bold;
+      text-align: center;
+      padding: 10px;
+    }
+    .calendar-header.sun { color: var(--danger); }
+    .calendar-header.sat { color: var(--primary); }
+    .calendar-day {
+      background-color: #fff;
+      min-height: 100px;
+      padding: 10px;
+    }
+    .calendar-day.other-month { background-color: #F9FAFB; color: var(--text-muted); }
+    .calendar-date { font-weight: bold; margin-bottom: 5px; }
+    
+    .event-badge {
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-bottom: 2px;
+      color: #fff;
+    }
+    .event-obuse { background-color: var(--primary); }
+    .event-suzaka { background-color: var(--secondary); }
+    
+    /* Login Screen */
+    #loginScreen {
+      max-width: 400px;
+      margin: 10vh auto;
+    }
+  </style>
 </head>
 <body>
+  
+  <!-- ログイン画面 -->
+  <div id="loginScreen" class="container">
+    <div class="card">
+      <h2 style="text-align: center; margin-bottom: 1.5rem;">管理者ログイン</h2>
+      <div class="form-group">
+        <label for="password">パスワード</label>
+        <input type="password" id="password" placeholder="パスワードを入力">
+      </div>
+      <div id="loginMessage" class="hidden"></div>
+      <button id="loginBtn" class="btn btn-primary" style="margin-top: 1rem;">ログイン</button>
+    </div>
+  </div>
 
-<header>マサちゃんの自習室 管理画面</header>
+  <!-- 管理ダッシュボード -->
+  <div id="dashboard" class="container-large hidden">
+    <header style="display: flex; justify-content: space-between; align-items: center; text-align: left;">
+      <div>
+        <h1 style="margin-bottom: 0;">自習室 管理ダッシュボード</h1>
+      </div>
+      <button class="btn btn-secondary" style="width: auto; padding: 0.5rem 1rem;" onclick="logout()">ログアウト</button>
+    </header>
 
-<div id="loading"><i class="fas fa-spinner fa-spin fa-2x"></i> 読み込み中...</div>
+    <div class="nav-tabs">
+      <div class="nav-tab active" data-target="tab-calendar">スケジュール</div>
+      <div class="nav-tab" data-target="tab-students">生徒名簿・カルテ</div>
+      <div class="nav-tab" data-target="tab-tests">テスト結果入力</div>
+    </div>
 
-<div id="main-ui" style="display:none;">
-    <section id="tab-reserve" class="tab-content active">
-        <h3><i class="fas fa-calendar-check"></i> 本日の予約状況</h3>
-        <div id="today-summary" class="card">
-            </div>
-        <div class="data-table-wrapper">
-            <table id="reserve-list">
-                <thead><tr><th>生徒名</th><th>会場</th><th>時間</th><th>プラン</th></tr></thead>
-                <tbody></tbody>
-            </table>
+    <!-- カレンダータブ -->
+    <div id="tab-calendar" class="tab-content card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>カレンダー (日曜始まり)</h2>
+        <div>
+          <button class="btn btn-secondary" style="width: auto; padding: 0.5rem;" onclick="prevMonth()">&lt; 前月</button>
+          <span id="currentMonthYear" style="margin: 0 1rem; font-weight: bold; font-size: 1.2rem;"></span>
+          <button class="btn btn-secondary" style="width: auto; padding: 0.5rem;" onclick="nextMonth()">次月 &gt;</button>
         </div>
-    </section>
+      </div>
+      <div class="calendar" id="calendarGrid">
+        <div class="calendar-header sun">日</div>
+        <div class="calendar-header">月</div>
+        <div class="calendar-header">火</div>
+        <div class="calendar-header">水</div>
+        <div class="calendar-header">木</div>
+        <div class="calendar-header">金</div>
+        <div class="calendar-header sat">土</div>
+        <!-- Days will be generated here -->
+      </div>
+    </div>
 
-    <section id="tab-members" class="tab-content">
-        <h3><i class="fas fa-user-graduate"></i> 生徒名簿</h3>
-        <div id="member-cards"></div>
-    </section>
+    <!-- 生徒名簿タブ -->
+    <div id="tab-students" class="tab-content card hidden">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>生徒名簿一覧</h2>
+        <button class="btn btn-primary" style="width: auto; padding: 0.5rem 1rem;" onclick="loadStudents()">データ更新</button>
+      </div>
+      <div id="studentsLoader" class="hidden"></div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>生徒名</th>
+              <th>学年</th>
+              <th>中学校</th>
+              <th>志望校</th>
+              <th>アクション</th>
+            </tr>
+          </thead>
+          <tbody id="studentsTableBody">
+            <!-- Data will be loaded here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-    <section id="tab-test" class="tab-content">
-        <h3><i class="fas fa-chart-line"></i> テスト結果入力</h3>
-        <div class="card">
-            <label>生徒選択</label>
-            <select id="test-student-select"></select>
-            
-            <div class="score-input-grid">
-                <div><label>学年</label><select id="test-grade"><option>中1</option><option>中2</option><option>中3</option></select></div>
-                <div><label>学期</label><select id="test-term"><option>1学期</option><option>2学期</option><option>3学期</option></select></div>
-                <div><label>種類</label><select id="test-type"><option>中間</option><option>期末</option><option>実力</option></select></div>
+    <!-- テスト結果入力タブ -->
+    <div id="tab-tests" class="tab-content card hidden">
+      <h2>テスト結果入力</h2>
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem;">5教科の点数を入力すると合計点が自動計算されます。</p>
+      
+      <form id="testForm">
+        <div class="dashboard-grid">
+          <div>
+            <div class="form-group">
+              <label for="testStudent">生徒名</label>
+              <input type="text" id="testStudent" required>
             </div>
-
-            <div class="score-input-grid">
-                <input type="number" id="s-kokugo" placeholder="国語" oninput="calcTotal()">
-                <input type="number" id="s-suugaku" placeholder="数学" oninput="calcTotal()">
-                <input type="number" id="s-eigo" placeholder="英語" oninput="calcTotal()">
-                <input type="number" id="s-rika" placeholder="理科" oninput="calcTotal()">
-                <input type="number" id="s-syakai" placeholder="社会" oninput="calcTotal()">
+            <div style="display: flex; gap: 1rem;">
+              <div class="form-group" style="flex: 1;">
+                <label for="testGrade">学年 (1-3)</label>
+                <input type="number" id="testGrade" min="1" max="3" required>
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label for="testTerm">学期 (1-3)</label>
+                <input type="number" id="testTerm" min="1" max="3" required>
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label for="testType">種類 (1:中間, 2:期末)</label>
+                <input type="number" id="testType" min="1" max="2" required>
+              </div>
             </div>
-            
-            <div id="total-display" class="total-badge">合計: 0 点</div>
-            <button class="btn" onclick="saveTestScore()" style="margin-top:15px;">結果を保存する</button>
+          </div>
+          <div style="background-color: #F9FAFB; padding: 1.5rem; border-radius: var(--radius);">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group"><label>国語</label><input type="number" class="score-input" id="scoreJp" min="0" max="100" required></div>
+              <div class="form-group"><label>数学</label><input type="number" class="score-input" id="scoreMath" min="0" max="100" required></div>
+              <div class="form-group"><label>英語</label><input type="number" class="score-input" id="scoreEn" min="0" max="100" required></div>
+              <div class="form-group"><label>理科</label><input type="number" class="score-input" id="scoreSci" min="0" max="100" required></div>
+              <div class="form-group"><label>社会</label><input type="number" class="score-input" id="scoreSoc" min="0" max="100" required></div>
+            </div>
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 1.2rem; font-weight: bold; text-align: right;">
+              合計点: <span id="scoreTotal" style="color: var(--primary); font-size: 1.5rem;">0</span> 点
+            </div>
+          </div>
         </div>
-    </section>
+        <div id="testMessageArea" class="hidden"></div>
+        <button type="submit" class="btn btn-primary" id="testSubmitBtn" style="margin-top: 1.5rem;">結果を保存する</button>
+      </form>
+    </div>
 
-    <section id="tab-schedule" class="tab-content">
-        <h3><i class="fas fa-calendar-alt"></i> スケジュール管理</h3>
-        <p style="font-size:0.8rem; color:red;">※修正はスプレッドシートを直接編集してください</p>
-        <div id="schedule-view"></div>
-    </section>
-</div>
+  </div>
 
-<nav class="bottom-nav">
-    <div class="nav-item active" onclick="switchTab('reserve')"><i class="fas fa-list"></i>予約</div>
-    <div class="nav-item" onclick="switchTab('members')"><i class="fas fa-users"></i>名簿</div>
-    <div class="nav-item" onclick="switchTab('test')"><i class="fas fa-pen"></i>テスト</div>
-    <div class="nav-item" onclick="switchTab('schedule')"><i class="fas fa-calendar"></i>日程</div>
-</nav>
+  <script src="index.js"></script>
+  <script>
+    let currentDate = new Date();
+    let authToken = sessionStorage.getItem('adminToken');
 
-<script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxTBvPsDY2fx3_ZfoOhZ43a1QVZgPSb7KrdcTbfwBahpMS4Bj5ZNhPnDDOZR88ThS5uLA/exec'; // デプロイ後のURLへ差し替え
+    document.addEventListener('DOMContentLoaded', () => {
+      // ログイン状態チェック
+      if (authToken) {
+        showDashboard();
+      }
 
-    window.onload = loadAdminData;
+      // タブ切り替え
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+          
+          tab.classList.add('active');
+          document.getElementById(tab.dataset.target).classList.remove('hidden');
 
-    async function loadAdminData() {
-        try {
-            const res = await fetch(`${GAS_URL}?action=getAdminData`);
-            const data = await res.json();
-            renderUI(data);
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('main-ui').style.display = 'block';
-        } catch (e) {
-            alert("データ読み込みに失敗しました。");
+          if (tab.dataset.target === 'tab-students') {
+            loadStudents();
+          } else if (tab.dataset.target === 'tab-calendar') {
+            renderCalendar();
+          }
+        });
+      });
+
+      // 合計点自動計算
+      document.querySelectorAll('.score-input').forEach(input => {
+        input.addEventListener('input', calculateTotal);
+      });
+    });
+
+    // --- 認証系 ---
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const pwd = document.getElementById('password').value;
+      const btn = document.getElementById('loginBtn');
+      btn.textContent = '確認中...';
+      btn.disabled = true;
+
+      const result = await apiFetch('login', { password: pwd });
+      
+      if (result.status === 'success') {
+        sessionStorage.setItem('adminToken', result.token);
+        authToken = result.token;
+        showDashboard();
+      } else {
+        showMessage('loginMessage', result.message, true);
+        btn.textContent = 'ログイン';
+        btn.disabled = false;
+      }
+    });
+
+    function logout() {
+      sessionStorage.removeItem('adminToken');
+      location.reload();
+    }
+
+    function showDashboard() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+      renderCalendar(); // 初期表示
+    }
+
+    // --- カレンダー機能 ---
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      document.getElementById('currentMonthYear').textContent = `${year}年 ${month + 1}月`;
+      
+      const grid = document.getElementById('calendarGrid');
+      // ヘッダーを残してクリア
+      while (grid.children.length > 7) {
+        grid.removeChild(grid.lastChild);
+      }
+
+      const firstDay = new Date(year, month, 1).getDay(); // 0: Sun, 6: Sat
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      
+      // 前月の埋め草
+      for (let i = 0; i < firstDay; i++) {
+        const div = document.createElement('div');
+        div.className = 'calendar-day other-month';
+        grid.appendChild(div);
+      }
+
+      // 当月の日付
+      for (let i = 1; i <= daysInMonth; i++) {
+        const div = document.createElement('div');
+        div.className = 'calendar-day';
+        div.innerHTML = `<div class="calendar-date">${i}</div>`;
+        
+        // （仮）スケジュールのモック表示。実際には getSchedule API 等から取ったデータを配置する
+        // 今回は仕様書の簡略化のためダミーイベント
+        if (i === 15) {
+          div.innerHTML += `<div class="event-badge event-obuse">小布施 17:00-</div>`;
         }
+        
+        grid.appendChild(div);
+      }
     }
 
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.getElementById(`tab-${tabId}`).classList.add('active');
-        event.currentTarget.classList.add('active');
+    function prevMonth() {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendar();
     }
 
-    function calcTotal() {
-        const subjects = ['kokugo', 'suugaku', 'eigo', 'rika', 'syakai'];
-        let total = 0;
-        subjects.forEach(s => {
-            total += Number(document.getElementById(`s-${s}`).value) || 0;
+    function nextMonth() {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendar();
+    }
+
+    // --- 生徒名簿・PDF機能 ---
+    async function loadStudents() {
+      showLoader('studentsLoader');
+      const tbody = document.getElementById('studentsTableBody');
+      tbody.innerHTML = '';
+      
+      const result = await apiFetch('getStudents');
+      hideLoader('studentsLoader');
+
+      if (result.status === 'success') {
+        result.data.forEach(student => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${student['生徒名']}</td>
+            <td>${student['現在の学年']}年</td>
+            <td>${student['中学校名']}</td>
+            <td>${student['志望校']}</td>
+            <td>
+              <button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" 
+                onclick="generateStudentPDF('${student['生徒名']}', '${student['現在の学年']}')">
+                PDF出力
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
         });
-        document.getElementById('total-display').innerText = `合計: ${total} 点`;
+      } else {
+        tbody.innerHTML = '<tr><td colspan="5">データ取得に失敗しました</td></tr>';
+      }
     }
 
-    function renderUI(data) {
-        // 名簿・テスト用セレクトボックス
-        const select = document.getElementById('test-student-select');
-        data.members.forEach(m => {
-            let opt = document.createElement('option');
-            opt.value = m[0]; opt.innerText = m[0];
-            select.appendChild(opt);
-        });
+    async function generateStudentPDF(studentName, grade) {
+      if(!confirm(`${studentName}さんのカルテをPDFで出力しますか？\n（裏側でGoogleドキュメントテンプレートから生成されます）`)) return;
 
-        // 簡易予約リストの表示
-        const resBody = document.querySelector('#reserve-list tbody');
-        data.bookings.forEach(b => {
-            resBody.innerHTML += `<tr><td>${b.name}</td><td>${b.loc}</td><td>${b.time}</td><td>${b.plan}</td></tr>`;
-        });
+      const result = await apiFetch('generatePDF', { studentName: studentName, grade: grade });
+      
+      if (result.status === 'success') {
+        alert('PDFが生成されました。\n' + result.message);
+        if(result.url && result.url !== '#') {
+          window.open(result.url, '_blank');
+        }
+      } else {
+        alert('エラー: ' + result.message);
+      }
     }
 
-    async function saveTestScore() {
-        // 保存処理 (GASに送信)
-        alert("保存しました（デプロイ後に動作します）");
+    // --- テスト結果入力機能 ---
+    function calculateTotal() {
+      let total = 0;
+      document.querySelectorAll('.score-input').forEach(input => {
+        total += Number(input.value) || 0;
+      });
+      document.getElementById('scoreTotal').textContent = total;
     }
-</script>
+
+    document.getElementById('testForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = document.getElementById('testSubmitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '保存中...';
+
+      const data = {
+        studentName: document.getElementById('testStudent').value,
+        grade: document.getElementById('testGrade').value,
+        term: document.getElementById('testTerm').value,
+        type: document.getElementById('testType').value,
+        kokugo: document.getElementById('scoreJp').value,
+        sugaku: document.getElementById('scoreMath').value,
+        eigo: document.getElementById('scoreEn').value,
+        rika: document.getElementById('scoreSci').value,
+        shakai: document.getElementById('scoreSoc').value,
+        total: document.getElementById('scoreTotal').textContent
+      };
+
+      const result = await apiFetch('updateTestResult', data);
+
+      if (result.status === 'success') {
+        showMessage('testMessageArea', 'テスト結果を保存しました。');
+        document.getElementById('testForm').reset();
+        document.getElementById('scoreTotal').textContent = '0';
+      } else {
+        showMessage('testMessageArea', result.message || '保存に失敗しました。', true);
+      }
+      
+      submitBtn.disabled = false;
+      submitBtn.textContent = '結果を保存する';
+    });
+
+  </script>
 </body>
 </html>
