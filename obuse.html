@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>予約画面 - おぶせ 春の自習室</title>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary-navy: #1e3a8a; --bg-gray: #f8f9fa; }
@@ -42,7 +43,7 @@
         <input type="hidden" name="date" id="val-date" required>
         <input type="hidden" name="time" id="val-time">
         <input type="hidden" name="location" value="おぶせ">
-        <div class="form-group">
+        <input type="hidden" name="userId" id="val-userId"> <div class="form-group">
             <label class="field-label">参加者名<span class="required-badge">必須</span></label>
             <input type="text" name="studentName" id="field-student" required placeholder="姓名">
         </div>
@@ -63,13 +64,32 @@
 </div>
 <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbxTBvPsDY2fx3_ZfoOhZ43a1QVZgPSb7KrdcTbfwBahpMS4Bj5ZNhPnDDOZR88ThS5uLA/exec';
+    
+    // LIFFの初期化とID取得
+    async function initLiff() {
+        try {
+            await liff.init({ liffId: "2009652448-yEc3eycW" }); // マサちゃんさんのLIFF IDをここに入れます
+            if (!liff.isLoggedIn()) {
+                liff.login();
+            } else {
+                const profile = await liff.getProfile();
+                document.getElementById('val-userId').value = profile.userId;
+            }
+        } catch (err) {
+            console.error('LIFF初期化失敗', err);
+        }
+    }
+
     window.onload = function() {
+        initLiff(); // 起動時にID取得を開始
         document.getElementById('field-student').value = localStorage.getItem('studentName') || '';
         document.getElementById('field-parent').value = localStorage.getItem('parentName') || '';
         document.getElementById('field-phone').value = localStorage.getItem('phone') || '';
         loadSchedules();
     };
+
     function formatJpDate(d){ return d.replace('Sun','日').replace('Mon','月').replace('Tue','火').replace('Wed','水').replace('Thu','木').replace('Fri','金').replace('Sat','土'); }
+    
     async function loadSchedules() {
         const res = await fetch(`${API_URL}?action=getSchedules&location=おぶせ&t=${Date.now()}`);
         const data = await res.json();
@@ -91,7 +111,9 @@
             menu.appendChild(row);
         });
     }
+
     function toggleDropdown() { const m = document.getElementById('dropdown-menu'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
+
     async function handleFormSubmit(e) {
         e.preventDefault();
         if(!document.getElementById('val-date').value){ alert('日程を選択してください'); return; }
@@ -99,6 +121,13 @@
         btn.disabled = true; btn.innerText = "処理中...";
         const postData = Object.fromEntries(new FormData(e.target).entries());
         postData.action = 'booking';
+        
+        // 念のためIDが取得できているか確認
+        if(!postData.userId) {
+            const profile = await liff.getProfile();
+            postData.userId = profile.userId;
+        }
+
         const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(postData) });
         const result = await res.json();
         if(result.success) {
