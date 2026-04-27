@@ -16,20 +16,32 @@
     <div class="card">
       <form id="reservationForm">
         <div class="form-group">
-          <label for="studentName">生徒名 (フルネーム)</label>
+          <label>予約日を選択 (14日先まで)</label>
+          <div id="scheduleLoader"></div>
+          <div id="scheduleList" class="schedule-list">
+            <!-- JavaScriptで自動生成されます -->
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="studentName">生徒名</label>
           <input type="text" id="studentName" required placeholder="例: 山田 太郎">
         </div>
         <div class="form-group">
-          <label for="furigana">ふりがな</label>
-          <input type="text" id="furigana" required placeholder="例: やまだ たろう">
+          <label for="parentName">保護者名</label>
+          <input type="text" id="parentName" required placeholder="例: 山田 花子">
+        </div>
+        <div class="form-group">
+          <label for="phone">電話番号</label>
+          <input type="tel" id="phone" required placeholder="例: 090-1234-5678">
         </div>
 
         <div class="form-group">
           <label>利用時間</label>
           <div class="radio-group">
             <div class="radio-card">
-              <input type="radio" id="durationNormal" name="duration" value="通常" checked>
-              <label for="durationNormal">通常利用</label>
+              <input type="radio" id="durationNormal" name="duration" value="2時間" checked>
+              <label for="durationNormal">2時間利用</label>
             </div>
             <div class="radio-card">
               <input type="radio" id="durationShort" name="duration" value="1時間">
@@ -41,14 +53,6 @@
         <!-- LINE User ID取得用 (実際のLステップ/LIFF等の仕様に合わせて取得処理を実装) -->
         <input type="hidden" id="lineUserId" value="">
         <input type="hidden" id="selectedDate" value="">
-
-        <div class="form-group">
-          <label>予約日を選択 (14日先まで)</label>
-          <div id="scheduleLoader"></div>
-          <div id="scheduleList" class="schedule-list">
-            <!-- JavaScriptで自動生成されます -->
-          </div>
-        </div>
 
         <div id="messageArea" class="hidden"></div>
 
@@ -147,7 +151,8 @@
       const data = {
         venue: VENUE_NAME,
         studentName: document.getElementById('studentName').value,
-        furigana: document.getElementById('furigana').value,
+        parentName: document.getElementById('parentName').value,
+        phone: document.getElementById('phone').value,
         duration: document.querySelector('input[name="duration"]:checked').value,
         date: selectedDate,
         lineUserId: document.getElementById('lineUserId').value
