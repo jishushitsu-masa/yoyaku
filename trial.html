@@ -1,199 +1,99 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>体験申込 - マサちゃんの自習室</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-orange: #ff8c00;
-            --soft-gray: #f8f9fa;
-            --text-dark: #333;
-            --border-color: #eee;
-        }
-
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--soft-gray);
-            color: var(--text-dark);
-            margin: 0;
-            padding: 20px;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h2 {
-            color: var(--primary-orange);
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-
-        .note {
-            background: #fffcf0;
-            border: 1px solid #ffeeba;
-            padding: 15px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            margin-bottom: 25px;
-        }
-
-        button.submit-btn {
-            width: 100%;
-            background: var(--primary-orange);
-            color: #fff;
-            border: none;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button.submit-btn:hover {
-            background: #e67e00;
-        }
-
-        button.submit-btn:disabled {
-            background: #ccc;
-        }
-
-        #loading {
-            text-align: center;
-            display: none;
-            margin-top: 20px;
-            color: var(--primary-orange);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>無料体験 申込フォーム | 元塾講師マサちゃんの自習室</title>
+  <link rel="stylesheet" href="index.css">
 </head>
 <body>
+  <div class="container">
+    <header>
+      <h1>無料体験 申込フォーム</h1>
+      <p>元塾講師マサちゃんの自習室</p>
+    </header>
 
-<div class="container">
-    <div class="header">
-        <h2><i class="fas fa-seedling"></i> 無料体験お申し込み</h2>
-        <p>自習室の雰囲気をまずは無料で体験してみませんか？</p>
-    </div>
-
-    <div class="note">
-        ※お申し込み後、担当者より日程調整のご連絡を差し上げます。
-    </div>
-
-    <form id="trialForm" onsubmit="submitTrial(event)">
-        <label>生徒名</label>
-        <input type="text" name="studentName" required placeholder="例：佐藤 太郎" value="">
-        
-        <label>現在の学年</label>
-        <select name="grade" required>
+    <div class="card">
+      <form id="trialForm">
+        <div class="form-group">
+          <label for="venue">希望会場</label>
+          <select id="venue" required>
             <option value="">選択してください</option>
-            <option value="中1">中学1年生</option>
-            <option value="中2">中学2年生</option>
-            <option value="中3">中学3年生</option>
-        </select>
+            <option value="小布施">小布施会場</option>
+            <option value="須坂">須坂会場</option>
+          </select>
+        </div>
 
-        <label>保護者名</label>
-        <input type="text" name="parentName" required placeholder="例：佐藤 花子" value="">
-        
-        <label>電話番号</label>
-        <input type="tel" name="phone" required placeholder="09012345678" value="">
-        
-        <label>メールアドレス</label>
-        <input type="email" name="email" required placeholder="example@mail.com" value="">
+        <div class="form-group">
+          <label for="studentName">生徒名 (フルネーム)</label>
+          <input type="text" id="studentName" required placeholder="例: 山田 太郎">
+        </div>
+        <div class="form-group">
+          <label for="furigana">ふりがな</label>
+          <input type="text" id="furigana" required placeholder="例: やまだ たろう">
+        </div>
 
-        <label>ご希望の日程やご質問（任意）</label>
-        <textarea name="remarks" rows="3" placeholder="例：来週の月曜日19時頃を希望します"></textarea>
+        <div class="form-group">
+          <label for="parentName">保護者名 (フルネーム)</label>
+          <input type="text" id="parentName" required placeholder="例: 山田 花子">
+        </div>
 
-        <button type="submit" id="submitBtn" class="submit-btn">体験を申し込む</button>
-    </form>
+        <div class="form-group">
+          <label for="phone">電話番号</label>
+          <input type="tel" id="phone" required placeholder="例: 090-1234-5678">
+        </div>
 
-    <div id="loading">
-        <i class="fas fa-spinner fa-spin"></i> 送信中...
+        <div class="form-group">
+          <label for="email">メールアドレス</label>
+          <input type="email" id="email" required placeholder="例: example@example.com">
+        </div>
+
+        <div class="form-group">
+          <label for="date">希望日</label>
+          <input type="date" id="date" required>
+        </div>
+
+        <div id="messageArea" class="hidden"></div>
+
+        <button type="submit" class="btn btn-primary" id="submitBtn">体験を申し込む</button>
+      </form>
     </div>
-</div>
+  </div>
 
-<script>
-    // GASのURL (デプロイ後に差し替え)
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxTBvPsDY2fx3_ZfoOhZ43a1QVZgPSb7KrdcTbfwBahpMS4Bj5ZNhPnDDOZR88ThS5uLA/exec';
+  <script src="index.js"></script>
+  <script>
+    document.getElementById('trialForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '送信中...';
 
-    // ページ読み込み時にLocal Storageからデータを補完
-    window.onload = () => {
-        const form = document.getElementById('trialForm');
-        form.studentName.value = localStorage.getItem('studentName') || '';
-        form.parentName.value = localStorage.getItem('parentName') || '';
-        form.phone.value = localStorage.getItem('phone') || '';
-        form.email.value = localStorage.getItem('email') || '';
-    };
+      const data = {
+        venue: document.getElementById('venue').value,
+        studentName: document.getElementById('studentName').value,
+        furigana: document.getElementById('furigana').value,
+        parentName: document.getElementById('parentName').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        date: document.getElementById('date').value.replace(/-/g, '/')
+      };
 
-    async function submitTrial(event) {
-        event.preventDefault();
-        const form = event.target;
-        const btn = document.getElementById('submitBtn');
-        const loading = document.getElementById('loading');
+      const result = await apiFetch('trial', data);
 
-        btn.disabled = true;
-        loading.style.display = 'block';
-
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-
-        // 入力内容をブラウザに保存（次回の予約を楽にするため）
-        localStorage.setItem('studentName', data.studentName);
-        localStorage.setItem('parentName', data.parentName);
-        localStorage.setItem('phone', data.phone);
-        localStorage.setItem('email', data.email);
-
-        try {
-            const response = await fetch(GAS_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'trial', ...data })
-            });
-            const result = await response.json();
-
-            if (result.success) {
-                // 完了画面へ（専用の完了画面がない場合は共通の確認画面か、アラート後にリダイレクト）
-                alert('お申し込みありがとうございます！内容を確認し、追ってご連絡いたします。');
-                window.location.href = 'index.html'; // またはトップページなど
-            } else {
-                alert('送信に失敗しました。時間をおいて再度お試しください。');
-            }
-        } catch (e) {
-            console.error(e);
-            alert('通信エラーが発生しました。');
-        } finally {
-            btn.disabled = false;
-            loading.style.display = 'none';
-        }
-    }
-</script>
-
+      if (result.status === 'success') {
+        document.getElementById('trialForm').innerHTML = `
+          <div style="text-align: center; padding: 2rem 0;">
+            <h2 style="color: var(--secondary); margin-bottom: 1rem;">お申し込み完了</h2>
+            <p>ご入力いただいたメールアドレス宛に<br>確認メールを送信しました。</p>
+          </div>
+        `;
+      } else {
+        showMessage('messageArea', result.message || '処理に失敗しました。', true);
+        submitBtn.disabled = false;
+        submitBtn.textContent = '体験を申し込む';
+      }
+    });
+  </script>
 </body>
 </html>
