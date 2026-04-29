@@ -18,7 +18,9 @@
         <div class="form-group">
           <label>予約日を選択</label>
           <div id="accordionHeader" class="accordion-header">
-            <span id="selectedDateText">タップして日程を選択してください</span>
+            <div id="selectedDateText" style="line-height: 1.4; flex: 1;">
+              タップして日程を選択してください
+            </div>
             <span class="arrow">▼</span>
           </div>
           <div id="scheduleLoader"></div>
@@ -97,7 +99,13 @@
           document.getElementById('selectedDate').value = item['日付'];
           document.getElementById('selectedVenue').value = item['会場名'];
           document.getElementById('selectedTime').value = item['時間'] || '';
-          document.getElementById('selectedDateText').innerText = `${display} 【${item['会場名']}】`;
+          
+          // 選択後の表示を分かりやすく改行と強調で構成
+          document.getElementById('selectedDateText').innerHTML = `
+            <div style="font-weight: bold; font-size: 1.05rem; color: var(--primary);">${display}</div>
+            <div style="font-size: 0.85rem; color: #666; margin-top: 2px;">場所：${item['会場名']}</div>
+          `;
+          
           document.getElementById('submitBtn').disabled = false;
           scheduleList.classList.remove('open'); accordionHeader.classList.remove('active');
         };
