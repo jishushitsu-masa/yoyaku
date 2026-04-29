@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>予約キャンセル</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="container" style="text-align:center; padding-top:100px;">
+    <div id="mainContent" class="card">
+      <h2 style="color:#EF4444;">予約をキャンセルしますか？</h2>
+      <p style="margin:20px 0;">この操作は取り消せません。</p>
+      <button id="cancelBtn" class="btn btn-primary" style="background:#EF4444; border:none;">はい、キャンセルします</button>
+    </div>
+  </div>
+  <script src="index.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const cancelId = urlParams.get('id');
+
+    document.getElementById('cancelBtn').onclick = async () => {
+      const btn = document.getElementById('cancelBtn');
+      btn.disabled = true;
+      btn.innerText = "処理中...";
+      
+      const res = await apiFetch('cancel', { cancelId: cancelId });
+      if (res.status === 'success') {
+        document.getElementById('mainContent').innerHTML = '<h2>キャンセルが完了しました</h2><p>LINE通知をご確認ください。</p>';
+      } else {
+        alert('エラーが発生しました。予約が既に取り消されている可能性があります。');
+        btn.disabled = false;
+        btn.innerText = "はい、キャンセルします";
+      }
+    };
+  </script>
+</body>
+</html>
