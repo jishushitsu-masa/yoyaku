@@ -3,50 +3,97 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>予約キャンセル | 元塾講師マサちゃんの自習室</title>
+  <title>予約状況の確認</title>
   <link rel="stylesheet" href="index.css">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    :root { --primary: #1E3A8A; --secondary: #3B82F6; --bg-light: #f8fafc; }
+    .res-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; text-align: left; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .res-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; }
+    .res-venue { font-weight: bold; color: var(--primary); font-size: 1.1rem; }
+    .res-status { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; background: #dcfce7; color: #166534; font-weight: bold; }
+    .res-body { margin-bottom: 1rem; }
+    .res-item { display: flex; margin-bottom: 0.25rem; font-size: 0.95rem; }
+    .res-label { color: #64748b; width: 4.5rem; flex-shrink: 0; }
+    .res-value { color: #1e293b; font-weight: 500; }
+    .btn-cancel-list { background-color: white; color: #ef4444; border: 1px solid #ef4444; padding: 0.6rem; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+    .btn-cancel-list:active { background-color: #fef2f2; }
+    .no-data { text-align: center; padding: 3rem 1rem; color: #64748b; }
+  </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>予約キャンセル</h1>
-      <p>ご予約の取り消しを行います</p>
+      <h1 style="color: var(--primary);">予約状況の確認</h1>
+      <p>現在完了している予約の一覧です</p>
     </header>
-
-    <div class="card" id="cancelCard">
-      <div id="loaderArea" class="hidden"></div>
-      <div id="confirmArea">
-        <p style="text-align: center; margin-bottom: 2rem;">本当に予約をキャンセルしますか？<br>この操作は取り消せません。</p>
-        <button id="cancelBtn" class="btn btn-danger">予約をキャンセルする</button>
-      </div>
-      <div id="messageArea" class="hidden"></div>
+    <div id="mainContent">
+      <div id="loader" style="text-align:center; padding: 3rem;">情報を読み込み中...</div>
+      <div id="reservationList"></div>
     </div>
   </div>
 
   <script src="index.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const uuid = getQueryParam('id');
-      if (!uuid) {
-        document.getElementById('confirmArea').classList.add('hidden');
-        showMessage('messageArea', '無効なアクセスです。URLをご確認ください。', true);
-        return;
+    const LIFF_ID = "2009652448-3y5lLswa"; // 共通のLIFF IDを使用
+    let lineUserId = "";
+
+    window.onload = async () => {
+      await liff.init({ liffId: LIFF_ID });
+      if (liff.isLoggedIn()) {
+        const profile = await liff.getProfile();
+        lineUserId = profile.userId;
+        fetchUserReservations();
+      } else {
+        liff.login();
       }
+    };
 
-      document.getElementById('cancelBtn').addEventListener('click', async () => {
-        document.getElementById('confirmArea').classList.add('hidden');
-        showLoader('loaderArea');
+    async function fetchUserReservations() {
+      const res = await apiFetch('getUserReservations', { lineUserId: lineUserId });
+      document.getElementById('loader').style.display = 'none';
+      
+      const listEl = document.getElementById('reservationList');
+      listEl.innerHTML = '';
 
-        const result = await apiFetch('cancel', { uuid: uuid });
+      if (res.status === 'success' && res.data.length > 0) {
+        // 日時順にソート（念のためフロント側でも実施）
+        const sortedData = res.data.sort((a, b) => new Date(a.date.replace(/\(.\)/, '')) - new Date(b.date.replace(/\(.\)/, '')));
+        
+        sortedData.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'res-card';
+          card.innerHTML = `
+            <div class="res-header">
+              <div class="res-venue">${item.venue}</div>
+              <div class="res-status">予約完了</div>
+            </div>
+            <div class="res-body">
+              <div class="res-item"><div class="res-label">日程</div><div class="res-value">${item.date}</div></div>
+              <div class="res-item"><div class="res-label">時間</div><div class="res-value">${item.time}</div></div>
+              <div class="res-item"><div class="res-label">参加者</div><div class="res-value">${item.studentName} さん</div></div>
+              <div class="res-item"><div class="res-label">プラン</div><div class="res-value">${item.duration}</div></div>
+            </div>
+            <button class="btn-cancel-list" onclick="cancelRow('${item.cancelId}')">この予約をキャンセルする</button>
+          `;
+          listEl.appendChild(card);
+        });
+      } else {
+        listEl.innerHTML = '<div class="no-data"><p>現在、有効な予約はありません。</p></div>';
+      }
+    }
 
-        hideLoader('loaderArea');
-        if (result.status === 'success') {
-          showMessage('messageArea', '予約のキャンセルが完了しました。');
-        } else {
-          showMessage('messageArea', result.message || 'キャンセル処理に失敗しました。', true);
-        }
-      });
-    });
+    async function cancelRow(cancelId) {
+      if (!confirm('この予約をキャンセルしてもよろしいですか？')) return;
+      
+      const res = await apiFetch('cancel', { cancelId: cancelId });
+      if (res.status === 'success') {
+        alert('キャンセルが完了しました。');
+        fetchUserReservations(); // リストを再読み込み
+      } else {
+        alert('エラーが発生しました。');
+      }
+    }
   </script>
 </body>
 </html>
