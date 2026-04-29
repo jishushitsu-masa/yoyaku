@@ -19,8 +19,7 @@
           <label>予約日を選択 (14日先まで)</label>
           <div id="scheduleLoader"></div>
           <div id="scheduleList" class="schedule-list">
-            <!-- JavaScriptで自動生成されます -->
-          </div>
+            </div>
         </div>
 
         <div class="form-group">
@@ -50,7 +49,6 @@
           </div>
         </div>
 
-        <!-- LINE User ID取得用 (実際のLステップ/LIFF等の仕様に合わせて取得処理を実装) -->
         <input type="hidden" id="lineUserId" value="">
         <input type="hidden" id="selectedDate" value="">
 
@@ -68,27 +66,25 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       showLoader('scheduleLoader');
-      
-      // LINEのLIFFアプリの場合、ここでLIFF SDKを初期化し userId を取得して #lineUserId にセットする
-      // document.getElementById('lineUserId').value = getLineUserIdSomehow();
 
-      const response = await apiFetch(`getSchedule&venue=${encodeURIComponent(VENUE_NAME)}`);
+      // APIから日程取得
+      const response = await apiFetch('getSchedule', { venue: VENUE_NAME });
       hideLoader('scheduleLoader');
 
       if (response.status === 'success') {
         scheduleData = response.data;
         renderSchedule();
       } else {
-        showMessage('messageArea', 'スケジュールの取得に失敗しました。', true);
+        showMessage('messageArea', 'スケジュールの取得に失敗しました。再度お試しください。', true);
       }
     });
 
     function renderSchedule() {
       const listEl = document.getElementById('scheduleList');
       listEl.innerHTML = '';
-      
-      if (scheduleData.length === 0) {
-        listEl.innerHTML = '<p>現在予約可能な日程がありません。</p>';
+
+      if (!scheduleData || scheduleData.length === 0) {
+        listEl.innerHTML = '<p style="text-align:center; padding:1rem;">現在予約可能な日程がありません。</p>';
         return;
       }
 
@@ -99,10 +95,8 @@
         const itemDate = new Date(item['日付']);
         const isToday = itemDate.getTime() === today.getTime();
         const isClosed = item['休み'] === true || item['休み'] === 'TRUE';
-        
-        // 当日は受付終了（前日23:59までとする仕様）
         const disabled = isToday || isClosed;
-        
+
         const div = document.createElement('div');
         div.className = `schedule-item ${disabled ? 'disabled' : 'selectable'}`;
         div.dataset.index = index;
@@ -112,7 +106,7 @@
 
         div.innerHTML = `
           <div>
-            <div class="schedule-date">${item['日付']} ${item['時間']}</div>
+            <div class="schedule-date">${item['日付']} (${item['時間'] || '時間未定'})</div>
             <div style="font-size: 0.85rem; color: var(--text-muted);">${item['備考'] || ''}</div>
           </div>
           <div class="schedule-status ${statusClass}">${statusText}</div>
@@ -121,15 +115,12 @@
         if (!disabled) {
           div.addEventListener('click', () => selectDate(index, div));
         }
-
         listEl.appendChild(div);
       });
     }
 
     function selectDate(index, element) {
-      // 選択状態のリセット
       document.querySelectorAll('.schedule-item').forEach(el => el.classList.remove('selected'));
-      // 新しい選択
       element.classList.add('selected');
       document.getElementById('selectedDate').value = scheduleData[index]['日付'];
       document.getElementById('submitBtn').disabled = false;
@@ -137,12 +128,8 @@
 
     document.getElementById('reservationForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      
       const selectedDate = document.getElementById('selectedDate').value;
-      if (!selectedDate) {
-        alert('予約日を選択してください。');
-        return;
-      }
+      if (!selectedDate) return;
 
       const submitBtn = document.getElementById('submitBtn');
       submitBtn.disabled = true;
@@ -164,11 +151,11 @@
         document.getElementById('reservationForm').innerHTML = `
           <div style="text-align: center; padding: 2rem 0;">
             <h2 style="color: var(--secondary); margin-bottom: 1rem;">予約が完了しました</h2>
-            <p>ご登録ありがとうございます。<br>LINEにご案内をお送りしました。</p>
+            <p>ご登録ありがとうございます。<br>公式LINEより詳細をお送りします。</p>
           </div>
         `;
       } else {
-        showMessage('messageArea', result.message || '予約処理に失敗しました。', true);
+        showMessage('messageArea', result.message || '予約に失敗しました。', true);
         submitBtn.disabled = false;
         submitBtn.textContent = '予約を確定する';
       }
