@@ -124,10 +124,14 @@
       const dayOfWeekStr = ["日", "月", "火", "水", "木", "金", "土"];
 
       const filteredData = scheduleData.filter(item => {
-        const itemDate = new Date(item['日付']);
+        const itemDate = new Date(item['日付'].replace(/-/g, '/'));
         const venueName = item['会場名'] || '';
-        // 「おぶせ」から始まる会場名かつ14日以内
-        return venueName.indexOf(SEARCH_KEYWORD) === 0 && itemDate >= today && itemDate <= limitDate;
+        const isClosed = item['休み'] === true || item['休み'] === 'TRUE';
+        
+        return venueName.startsWith(SEARCH_KEYWORD) && 
+               itemDate >= today && 
+               itemDate <= limitDate && 
+               !isClosed;
       });
 
       if (filteredData.length === 0) {
@@ -135,25 +139,24 @@
         return;
       }
 
-      filteredData.forEach((item, index) => {
-        const dateObj = new Date(item['日付']);
+      filteredData.forEach((item) => {
+        const dateObj = new Date(item['日付'].replace(/-/g, '/'));
         const dayOfWeek = dayOfWeekStr[dateObj.getDay()];
         const displayDate = `${item['日付']}(${dayOfWeek}) ${item['時間'] || ''}`;
-        const venueName = item['会場名'];
 
         const div = document.createElement('div');
         div.className = 'schedule-item selectable';
         div.innerHTML = `
           <div class="schedule-date">
             ${displayDate}<br>
-            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">${venueName}</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">${item['会場名']}</span>
           </div>
         `;
         
         div.onclick = () => {
           document.getElementById('selectedDate').value = item['日付'];
-          document.getElementById('selectedVenue').value = venueName;
-          document.getElementById('selectedDateText').innerText = `${displayDate} 【${venueName}】`;
+          document.getElementById('selectedVenue').value = item['会場名'];
+          document.getElementById('selectedDateText').innerText = `${displayDate} 【${item['会場名']}】`;
           document.getElementById('selectedDateText').style.color = 'var(--primary)';
           document.getElementById('submitBtn').disabled = false;
           scheduleList.classList.remove('open');
