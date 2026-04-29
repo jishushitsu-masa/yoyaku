@@ -16,9 +16,13 @@
     <div class="card">
       <form id="reservationForm">
         <div class="form-group">
-          <label>予約日を選択 (14日先まで)</label>
+          <label>予約日を選択</label>
+          <div id="accordionHeader" class="accordion-header">
+            <span id="selectedDateText">タップして日程を選択してください</span>
+            <span class="arrow">▼</span>
+          </div>
           <div id="scheduleLoader"></div>
-          <div id="scheduleList" class="schedule-list">
+          <div id="scheduleList" class="schedule-list accordion-content">
             </div>
         </div>
 
@@ -49,11 +53,8 @@
           </div>
         </div>
 
-        <input type="hidden" id="lineUserId" value="">
         <input type="hidden" id="selectedDate" value="">
-
         <div id="messageArea" class="hidden"></div>
-
         <button type="submit" class="btn btn-primary" id="submitBtn" disabled>予約を確定する</button>
       </form>
     </div>
@@ -61,14 +62,20 @@
 
   <script src="index.js"></script>
   <script>
-    // スプレッドシートの「おぶせ 岩松院」に合わせました
-    const VENUE_NAME = 'おぶせ 岩松院'; 
+    const VENUE_NAME = 'おぶせ 岩松院';
     let scheduleData = [];
+
+    // アコーディオンの開閉制御
+    const accordionHeader = document.getElementById('accordionHeader');
+    const scheduleList = document.getElementById('scheduleList');
+
+    accordionHeader.addEventListener('click', () => {
+      scheduleList.classList.toggle('open');
+      accordionHeader.classList.toggle('active');
+    });
 
     document.addEventListener('DOMContentLoaded', async () => {
       showLoader('scheduleLoader');
-
-      // APIから日程取得
       const response = await apiFetch('getSchedule', { venue: VENUE_NAME });
       hideLoader('scheduleLoader');
 
@@ -76,7 +83,7 @@
         scheduleData = response.data;
         renderSchedule();
       } else {
-        showMessage('messageArea', 'スケジュールの取得に失敗しました。再度お試しください。', true);
+        showMessage('messageArea', 'スケジュールの取得に失敗しました。', true);
       }
     });
 
@@ -85,82 +92,61 @@
       listEl.innerHTML = '';
 
       if (!scheduleData || scheduleData.length === 0) {
-        listEl.innerHTML = '<p style="text-align:center; padding:1rem;">現在予約可能な日程がありません。</p>';
+        listEl.innerHTML = '<p style="text-align:center; padding:1rem;">予約可能な日程がありません。</p>';
         return;
       }
 
-      const today = new Date();
-      today.setHours(0,0,0,0);
-
       scheduleData.forEach((item, index) => {
-        const itemDate = new Date(item['日付']);
-        const isToday = itemDate.getTime() === today.getTime();
-        const isClosed = item['休み'] === true || item['休み'] === 'TRUE';
-        const disabled = isToday || isClosed;
-
         const div = document.createElement('div');
-        div.className = `schedule-item ${disabled ? 'disabled' : 'selectable'}`;
-        div.dataset.index = index;
-
-        let statusText = isClosed ? 'お休み' : (isToday ? '受付終了' : '予約可能');
-        let statusClass = isClosed || isToday ? 'status-closed' : 'status-open';
-
+        div.className = 'schedule-item selectable';
         div.innerHTML = `
-          <div>
-            <div class="schedule-date">${item['日付']} (${item['時間'] || '時間未定'})</div>
-            <div style="font-size: 0.85rem; color: var(--text-muted);">${item['備考'] || ''}</div>
-          </div>
-          <div class="schedule-status ${statusClass}">${statusText}</div>
+          <div class="schedule-date">${item['日付']} (${item['時間'] || ''})</div>
+          <div class="status-badge">予約可能</div>
         `;
-
-        if (!disabled) {
-          div.addEventListener('click', () => selectDate(index, div));
-        }
+        
+        div.onclick = () => {
+          // 選択処理
+          document.getElementById('selectedDate').value = item['日付'];
+          document.getElementById('selectedDateText').innerText = `${item['日付']} (${item['時間'] || ''})`;
+          document.getElementById('selectedDateText').style.color = 'var(--primary)';
+          document.getElementById('submitBtn').disabled = false;
+          
+          // アコーディオンを閉じる
+          scheduleList.classList.remove('open');
+          accordionHeader.classList.remove('active');
+        };
         listEl.appendChild(div);
       });
     }
 
-    function selectDate(index, element) {
-      document.querySelectorAll('.schedule-item').forEach(el => el.classList.remove('selected'));
-      element.classList.add('selected');
-      document.getElementById('selectedDate').value = scheduleData[index]['日付'];
-      document.getElementById('submitBtn').disabled = false;
-    }
-
-    document.getElementById('reservationForm').addEventListener('submit', async (e) => {
+    document.getElementById('reservationForm').onsubmit = async (e) => {
       e.preventDefault();
-      const selectedDate = document.getElementById('selectedDate').value;
-      if (!selectedDate) return;
-
-      const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = '送信中...';
-
-      const data = {
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = '送信中...';
+      
+      const result = await apiFetch('reserve', {
         venue: VENUE_NAME,
         studentName: document.getElementById('studentName').value,
         parentName: document.getElementById('parentName').value,
         phone: document.getElementById('phone').value,
         duration: document.querySelector('input[name="duration"]:checked').value,
-        date: selectedDate,
-        lineUserId: document.getElementById('lineUserId').value
-      };
-
-      const result = await apiFetch('reserve', data);
+        date: document.getElementById('selectedDate').value
+      });
 
       if (result.status === 'success') {
         document.getElementById('reservationForm').innerHTML = `
           <div style="text-align: center; padding: 2rem 0;">
-            <h2 style="color: var(--secondary); margin-bottom: 1rem;">予約が完了しました</h2>
+            <h2 style="color: var(--secondary);">予約が完了しました</h2>
             <p>ご登録ありがとうございます。<br>公式LINEより詳細をお送りします。</p>
           </div>
         `;
       } else {
-        showMessage('messageArea', result.message || '予約に失敗しました。', true);
-        submitBtn.disabled = false;
-        submitBtn.textContent = '予約を確定する';
+        showMessage('messageArea', '予約に失敗しました。', true);
+        btn.disabled = false;
+        btn.textContent = '予約を確定する';
       }
-    });
+    };
   </script>
 </body>
 </html>
