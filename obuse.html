@@ -22,8 +22,7 @@
             <span class="arrow">▼</span>
           </div>
           <div id="scheduleLoader"></div>
-          <div id="scheduleList" class="schedule-list accordion-content">
-            </div>
+          <div id="scheduleList" class="schedule-list accordion-content"></div>
         </div>
 
         <div class="form-group">
@@ -55,7 +54,6 @@
 
         <input type="hidden" id="selectedDate" value="">
         <input type="hidden" id="selectedVenue" value="">
-
         <div id="messageArea" class="hidden"></div>
         <button type="submit" class="btn btn-primary" id="submitBtn" disabled>予約を確定する</button>
       </form>
@@ -64,7 +62,6 @@
 
   <script src="index.js"></script>
   <script>
-    // 検索キーワードを「おぶせ」に設定
     const SEARCH_KEYWORD = 'おぶせ';
     let scheduleData = [];
 
@@ -79,7 +76,6 @@
     document.addEventListener('DOMContentLoaded', async () => {
       loadSavedUserInfo();
       showLoader('scheduleLoader');
-      // 全ての日程を取得し、クライアント側で「おぶせ」を含むものを抽出
       const response = await apiFetch('getSchedule', { venue: '' });
       hideLoader('scheduleLoader');
 
@@ -125,19 +121,19 @@
       limitDate.setDate(today.getDate() + 14);
       limitDate.setHours(23, 59, 59, 999);
 
-      // 「おぶせ」から始まる会場名、かつ14日以内の日程を抽出
+      const dayOfWeekStr = ["日", "月", "火", "水", "木", "金", "土"];
+
       const filteredData = scheduleData.filter(item => {
         const itemDate = new Date(item['日付']);
         const venueName = item['会場名'] || '';
-        return venueName.startsWith(SEARCH_KEYWORD) && itemDate >= today && itemDate <= limitDate;
+        // 「おぶせ」から始まる会場名かつ14日以内
+        return venueName.indexOf(SEARCH_KEYWORD) === 0 && itemDate >= today && itemDate <= limitDate;
       });
 
       if (filteredData.length === 0) {
-        listEl.innerHTML = '<p style="text-align:center; padding:1rem;">14日以内に「おぶせ」会場の予約可能日程はありません。</p>';
+        listEl.innerHTML = '<p style="text-align:center; padding:1rem;">予約可能な日程がありません。</p>';
         return;
       }
-
-      const dayOfWeekStr = ["日", "月", "火", "水", "木", "金", "土"];
 
       filteredData.forEach((item, index) => {
         const dateObj = new Date(item['日付']);
@@ -156,7 +152,7 @@
         
         div.onclick = () => {
           document.getElementById('selectedDate').value = item['日付'];
-          document.getElementById('selectedVenue').value = venueName; // 変更後の会場名を保持
+          document.getElementById('selectedVenue').value = venueName;
           document.getElementById('selectedDateText').innerText = `${displayDate} 【${venueName}】`;
           document.getElementById('selectedDateText').style.color = 'var(--primary)';
           document.getElementById('submitBtn').disabled = false;
@@ -172,11 +168,10 @@
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
       btn.textContent = '送信中...';
-      
       saveUserInfo();
 
       const result = await apiFetch('reserve', {
-        venue: document.getElementById('selectedVenue').value, // 選択された具体的な会場名を送信
+        venue: document.getElementById('selectedVenue').value,
         studentName: document.getElementById('studentName').value,
         parentName: document.getElementById('parentName').value,
         phone: document.getElementById('phone').value,
