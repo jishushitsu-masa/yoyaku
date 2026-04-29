@@ -74,6 +74,9 @@
     });
 
     document.addEventListener('DOMContentLoaded', async () => {
+      // 保存されている入力情報を読み込む
+      loadSavedUserInfo();
+
       showLoader('scheduleLoader');
       const response = await apiFetch('getSchedule', { venue: VENUE_NAME });
       hideLoader('scheduleLoader');
@@ -85,6 +88,27 @@
         showMessage('messageArea', 'スケジュールの取得に失敗しました。', true);
       }
     });
+
+    // 入力情報を保存する関数
+    function saveUserInfo() {
+      const userInfo = {
+        studentName: document.getElementById('studentName').value,
+        parentName: document.getElementById('parentName').value,
+        phone: document.getElementById('phone').value
+      };
+      localStorage.setItem('jishushitsu_user_info', JSON.stringify(userInfo));
+    }
+
+    // 保存された入力情報を読み込む関数
+    function loadSavedUserInfo() {
+      const saved = localStorage.getItem('jishushitsu_user_info');
+      if (saved) {
+        const userInfo = JSON.parse(saved);
+        document.getElementById('studentName').value = userInfo.studentName || '';
+        document.getElementById('parentName').value = userInfo.parentName || '';
+        document.getElementById('phone').value = userInfo.phone || '';
+      }
+    }
 
     function renderSchedule() {
       const listEl = document.getElementById('scheduleList');
@@ -145,6 +169,9 @@
       btn.disabled = true;
       btn.textContent = '送信中...';
       
+      // 予約実行時に入力情報を保存
+      saveUserInfo();
+
       const result = await apiFetch('reserve', {
         venue: VENUE_NAME,
         studentName: document.getElementById('studentName').value,
