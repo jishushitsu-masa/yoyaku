@@ -111,20 +111,25 @@
         return;
       }
 
+      const dayOfWeekStr = ["日", "月", "火", "水", "木", "金", "土"];
+
       filteredData.forEach((item, index) => {
+        const dateObj = new Date(item['日付']);
+        const dayOfWeek = dayOfWeekStr[dateObj.getDay()];
+        const displayDate = `${item['日付']}(${dayOfWeek}) ${item['時間'] || ''}`;
+
         const div = document.createElement('div');
         div.className = 'schedule-item selectable';
-        // アイコンを削除し、会場名を表示するように変更
         div.innerHTML = `
           <div class="schedule-date">
-            ${item['日付']} (${item['時間'] || ''})<br>
+            ${displayDate}<br>
             <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">${item['会場名'] || VENUE_NAME}</span>
           </div>
         `;
         
         div.onclick = () => {
           document.getElementById('selectedDate').value = item['日付'];
-          document.getElementById('selectedDateText').innerText = `${item['日付']} (${item['時間'] || ''})`;
+          document.getElementById('selectedDateText').innerText = displayDate;
           document.getElementById('selectedDateText').style.color = 'var(--primary)';
           document.getElementById('submitBtn').disabled = false;
           scheduleList.classList.remove('open');
