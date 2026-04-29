@@ -8,10 +8,11 @@
   <style>
     :root { --primary: #1E3A8A; --secondary: #3B82F6; }
     .detail-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; text-align: left; }
-    .detail-item { display: flex; margin-bottom: 0.5rem; font-size: 0.95rem; }
+    .detail-item { display: flex; margin-bottom: 0.5rem; font-size: 0.95rem; line-height: 1.6; }
     .detail-label { color: #64748b; width: 5rem; flex-shrink: 0; }
-    .detail-value { color: #1e293b; font-weight: bold; }
-    .btn-cancel { background-color: var(--primary); color: white; border: none; padding: 1rem; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .detail-value { color: #1e293b; font-weight: bold; flex: 1; }
+    .btn-cancel { background-color: var(--primary); color: white; border: none; padding: 1rem; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
+    .btn-cancel:disabled { opacity: 0.6; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -26,10 +27,10 @@
         <div class="detail-card">
           <div class="detail-item"><div class="detail-label">参加者</div><div class="detail-value" id="resStudent"></div></div>
           <div class="detail-item"><div class="detail-label">会場</div><div class="detail-value" id="resVenue"></div></div>
-          <div class="detail-item"><div class="detail-label">日付</div><div class="detail-value" id="resDate"></div></div>
+          <div class="detail-item"><div class="detail-label">日程</div><div class="detail-value" id="resDate"></div></div>
           <div class="detail-item"><div class="detail-label">時間</div><div class="detail-value" id="resTime"></div></div>
         </div>
-        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.5rem;">※一度キャンセルすると元に戻せません。</p>
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.5rem;">※ボタンを押すとすぐにキャンセルが実行されます。</p>
         <button id="cancelBtn" class="btn-cancel">この予約をキャンセルする</button>
       </div>
     </div>
@@ -49,25 +50,28 @@
       if (res.status === 'success') {
         document.getElementById('resStudent').innerText = res.data.studentName + " さん";
         document.getElementById('resVenue').innerText = res.data.venue;
-        document.getElementById('resDate').innerText = res.data.date;
+        document.getElementById('resDate').innerText = res.data.date; // GAS側で 2026/05/08(金) 形式に調整済み
         document.getElementById('resTime').innerText = res.data.time;
         document.getElementById('loader').style.display = 'none';
         document.getElementById('content').style.display = 'block';
       } else {
-        document.getElementById('mainCard').innerHTML = '<p>予約が見つからないか、既にキャンセルされています。</p>';
+        document.getElementById('mainCard').innerHTML = '<p style="padding:2rem;">予約が見つからないか、既にキャンセルされています。</p>';
       }
     };
 
     document.getElementById('cancelBtn').onclick = async () => {
-      if (!confirm('本当にキャンセルしてもよろしいですか？')) return;
-      document.getElementById('cancelBtn').disabled = true;
-      document.getElementById('cancelBtn').innerText = '処理中...';
+      // 確認ダイアログを削除し、即時実行
+      const btn = document.getElementById('cancelBtn');
+      btn.disabled = true;
+      btn.innerText = 'キャンセル処理中...';
+      
       const res = await apiFetch('cancel', { cancelId: cancelId });
       if (res.status === 'success') {
         document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2 style="color:var(--primary);">キャンセルが完了しました</h2><p>ご利用ありがとうございました。</p></div>';
       } else {
-        alert('エラーが発生しました。');
-        document.getElementById('cancelBtn').disabled = false;
+        alert('エラーが発生しました。既にキャンセルされている可能性があります。');
+        btn.disabled = false;
+        btn.innerText = 'この予約をキャンセルする';
       }
     };
   </script>
