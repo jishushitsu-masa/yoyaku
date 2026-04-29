@@ -100,7 +100,6 @@
           document.getElementById('selectedVenue').value = item['会場名'];
           document.getElementById('selectedTime').value = item['時間'] || '';
           
-          // 選択後の表示を分かりやすく改行と強調で構成
           document.getElementById('selectedDateText').innerHTML = `
             <div style="font-weight: bold; font-size: 1.05rem; color: var(--primary);">${display}</div>
             <div style="font-size: 0.85rem; color: #666; margin-top: 2px;">場所：${item['会場名']}</div>
@@ -118,6 +117,7 @@
       saveUserInfo();
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.innerText = "送信中...";
+
       const res = await apiFetch('reserve', {
         venue: document.getElementById('selectedVenue').value,
         studentName: document.getElementById('studentName').value,
@@ -128,11 +128,14 @@
         time: document.getElementById('selectedTime').value,
         lineUserId: lineUserId
       });
+
       if (res.status === 'success') {
         document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2><p>LINE通知をご確認ください。</p></div>';
       } else {
-        alert("予約に失敗しました。LINE設定を確認してください。");
-        btn.disabled = false; btn.innerText = "予約を確定する";
+        // 同姓同名の重複エラー等をアラートで表示
+        alert(res.message || "予約に失敗しました。内容をご確認ください。");
+        btn.disabled = false; 
+        btn.innerText = "予約を確定する";
       }
     };
   </script>
