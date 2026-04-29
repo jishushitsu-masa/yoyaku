@@ -5,32 +5,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>予約キャンセル</title>
   <link rel="stylesheet" href="index.css">
+  <style>
+    :root { --primary: #1E3A8A; --secondary: #3B82F6; }
+    .detail-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; text-align: left; }
+    .detail-item { display: flex; margin-bottom: 0.5rem; font-size: 0.95rem; }
+    .detail-label { color: #64748b; width: 5rem; flex-shrink: 0; }
+    .detail-value { color: #1e293b; font-weight: bold; }
+    .btn-cancel { background-color: var(--primary); color: white; border: none; padding: 1rem; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
+  </style>
 </head>
 <body>
-  <div class="container" style="text-align:center; padding-top:100px;">
-    <div id="mainContent" class="card">
-      <h2 style="color:#EF4444;">予約をキャンセルしますか？</h2>
-      <p style="margin:20px 0;">この操作は取り消せません。</p>
-      <button id="cancelBtn" class="btn btn-primary" style="background:#EF4444; border:none;">はい、キャンセルします</button>
+  <div class="container">
+    <header>
+      <h1 style="color: var(--primary);">予約のキャンセル</h1>
+      <p>内容をご確認の上、ボタンを押してください</p>
+    </header>
+    <div class="card" id="mainCard">
+      <div id="loader" style="text-align:center; padding: 2rem;">情報を読み込み中...</div>
+      <div id="content" style="display:none;">
+        <div class="detail-card">
+          <div class="detail-item"><div class="detail-label">参加者</div><div class="detail-value" id="resStudent"></div></div>
+          <div class="detail-item"><div class="detail-label">会場</div><div class="detail-value" id="resVenue"></div></div>
+          <div class="detail-item"><div class="detail-label">日付</div><div class="detail-value" id="resDate"></div></div>
+          <div class="detail-item"><div class="detail-label">時間</div><div class="detail-value" id="resTime"></div></div>
+        </div>
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.5rem;">※一度キャンセルすると元に戻せません。</p>
+        <button id="cancelBtn" class="btn-cancel">この予約をキャンセルする</button>
+      </div>
     </div>
   </div>
+
   <script src="index.js"></script>
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const cancelId = urlParams.get('id');
+    const params = new URLSearchParams(window.location.search);
+    const cancelId = params.get('id');
+
+    window.onload = async () => {
+      if (!cancelId) {
+        document.getElementById('mainCard').innerHTML = '<p>無効なアクセスです。</p>';
+        return;
+      }
+      const res = await apiFetch('getReservationDetail', { cancelId: cancelId });
+      if (res.status === 'success') {
+        document.getElementById('resStudent').innerText = res.data.studentName + " さん";
+        document.getElementById('resVenue').innerText = res.data.venue;
+        document.getElementById('resDate').innerText = res.data.date;
+        document.getElementById('resTime').innerText = res.data.time;
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+      } else {
+        document.getElementById('mainCard').innerHTML = '<p>予約が見つからないか、既にキャンセルされています。</p>';
+      }
+    };
 
     document.getElementById('cancelBtn').onclick = async () => {
-      const btn = document.getElementById('cancelBtn');
-      btn.disabled = true;
-      btn.innerText = "処理中...";
-      
+      if (!confirm('本当にキャンセルしてもよろしいですか？')) return;
+      document.getElementById('cancelBtn').disabled = true;
+      document.getElementById('cancelBtn').innerText = '処理中...';
       const res = await apiFetch('cancel', { cancelId: cancelId });
       if (res.status === 'success') {
-        document.getElementById('mainContent').innerHTML = '<h2>キャンセルが完了しました</h2><p>LINE通知をご確認ください。</p>';
+        document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2 style="color:var(--primary);">キャンセルが完了しました</h2><p>ご利用ありがとうございました。</p></div>';
       } else {
-        alert('エラーが発生しました。予約が既に取り消されている可能性があります。');
-        btn.disabled = false;
-        btn.innerText = "はい、キャンセルします";
+        alert('エラーが発生しました。');
+        document.getElementById('cancelBtn').disabled = false;
       }
     };
   </script>
