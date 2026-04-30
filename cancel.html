@@ -44,23 +44,12 @@
       await liff.init({ liffId: LIFF_ID });
       const res = await apiFetch('getReservationDetail', { cancelId: cancelId });
       if (res.status === 'success') {
-        document.getElementById('resStudent').innerText = res.data.studentName + " さん";
-        document.getElementById('resVenue').innerText = `${res.data.area} ${res.data.venue}`;
+        // 項目名でデータを受け取るように修正
+        document.getElementById('resStudent').innerText = res.data['studentName'] + " さん";
+        document.getElementById('resVenue').innerText = `${res.data['area']} ${res.data['venue']}`;
+        document.getElementById('resDate').innerText = res.data['date'];
+        document.getElementById('resTime').innerText = res.data['time'];
         
-        // 曜日付き日付の整形処理
-        const dateObj = new Date(res.data.date);
-        if (!isNaN(dateObj.getTime())) {
-          const days = ["日","月","火","水","木","金","土"];
-          const y = dateObj.getFullYear();
-          const m = ('0'+(dateObj.getMonth()+1)).slice(-2);
-          const d = ('0'+dateObj.getDate()).slice(-2);
-          const day = days[dateObj.getDay()];
-          document.getElementById('resDate').innerText = `${y}/${m}/${d}(${day})`;
-        } else {
-          document.getElementById('resDate').innerText = res.data.date;
-        }
-        
-        document.getElementById('resTime').innerText = res.data.time;
         document.getElementById('loader').style.display = 'none';
         document.getElementById('content').style.display = 'block';
       }
