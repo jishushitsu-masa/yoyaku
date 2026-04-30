@@ -14,6 +14,7 @@
     .res-time { color: #475569; font-size: 0.95rem; margin-bottom: 0.5rem; }
     .res-student { color: #64748b; font-size: 0.85rem; }
     
+    /* キャンセルボタンをネイビーの枠線デザインに変更 */
     .btn-cancel-mini { 
       position: absolute; 
       top: 1.25rem; 
@@ -54,29 +55,21 @@
       const profile = await liff.getProfile();
       fetchUserReservations(profile.userId);
     };
-
     async function fetchUserReservations(lineUserId) {
       const res = await apiFetch('getUserReservations', { lineUserId });
       document.getElementById('loader').style.display = 'none';
       const listEl = document.getElementById('reservationList');
-      
       if (res.status === 'success' && res.data.length > 0) {
         res.data.forEach(item => {
-          // 項目名でデータを受け取るように修正
+          const d = new Date(item.date);
+          const days = ["日","月","火","水","木","金","土"];
+          const displayDate = !isNaN(d.getTime()) ? `${d.getMonth()+1}月${d.getDate()}日(${days[d.getDay()]})` : item.date;
           const card = document.createElement('div');
           card.className = 'res-card';
-          card.innerHTML = `
-            <div class="res-venue">【${item['エリア']}】${item['会場名']}</div>
-            <div class="res-date">${item['日付']}</div>
-            <div class="res-time">${item['時間']}</div>
-            <div class="res-student">生徒名: ${item['生徒名']} さん</div>
-            <button class="btn-cancel-mini" onclick="window.location.href='https://liff.line.me/2009652448-DTbJgRRj?id=${item['cancelId']}'">キャンセル</button>
-          `;
+          card.innerHTML = `<div class="res-venue">【${item.area}】${item.venue}</div><div class="res-date">${displayDate}</div><div class="res-time">${item.time}</div><div class="res-student">生徒名: ${item.studentName} さん</div><button class="btn-cancel-mini" onclick="window.location.href='https://liff.line.me/2009652448-DTbJgRRj?id=${item.cancelId}'">キャンセル</button>`;
           listEl.appendChild(card);
         });
-      } else { 
-        listEl.innerHTML = '<div class="no-data"><p>予約はありません。</p></div>'; 
-      }
+      } else { listEl.innerHTML = '<div class="no-data"><p>予約はありません。</p></div>'; }
     }
   </script>
 </body>
