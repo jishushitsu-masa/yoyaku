@@ -7,13 +7,32 @@
   <link rel="stylesheet" href="index.css">
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    :root { --primary: #1E3A8A; --secondary: #3B82F6; }
+    :root { --primary: #1E3A8A; --secondary: #3B82F6; --navy: #1E3A8A; }
     .res-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; text-align: left; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative; }
     .res-venue { font-weight: bold; color: var(--secondary); font-size: 0.9rem; margin-bottom: 0.25rem; }
     .res-date { font-weight: bold; color: #1e293b; font-size: 1.1rem; margin-bottom: 0.25rem; }
     .res-time { color: #475569; font-size: 0.95rem; margin-bottom: 0.5rem; }
     .res-student { color: #64748b; font-size: 0.85rem; }
-    .btn-cancel-mini { position: absolute; top: 1.25rem; right: 1.25rem; background-color: #fecaca; color: #b91c1c; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
+    
+    /* キャンセルボタンをネイビーの枠線デザインに変更 */
+    .btn-cancel-mini { 
+      position: absolute; 
+      top: 1.25rem; 
+      right: 1.25rem; 
+      background-color: transparent; 
+      color: var(--navy); 
+      border: 1px solid var(--navy); 
+      padding: 0.4rem 0.8rem; 
+      border-radius: 6px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+    .btn-cancel-mini:active {
+      background-color: var(--navy);
+      color: white;
+    }
     .no-data { text-align: center; padding: 3rem 1rem; color: #64748b; }
   </style>
 </head>
@@ -43,10 +62,10 @@
       if (res.status === 'success' && res.data.length > 0) {
         res.data.forEach(item => {
           const d = new Date(item.date);
-          const displayDate = !isNaN(d.getTime()) ? `${d.getMonth()+1}月${d.getDate()}日(${["日","月","火","水","木","金","土"][d.getDay()]})` : item.date;
+          const days = ["日","月","火","水","木","金","土"];
+          const displayDate = !isNaN(d.getTime()) ? `${d.getMonth()+1}月${d.getDate()}日(${days[d.getDay()]})` : item.date;
           const card = document.createElement('div');
           card.className = 'res-card';
-          // item.studentName を表示するように修正しました
           card.innerHTML = `<div class="res-venue">【${item.area}】${item.venue}</div><div class="res-date">${displayDate}</div><div class="res-time">${item.time}</div><div class="res-student">生徒名: ${item.studentName} さん</div><button class="btn-cancel-mini" onclick="window.location.href='https://liff.line.me/2009652448-DTbJgRRj?id=${item.cancelId}'">キャンセル</button>`;
           listEl.appendChild(card);
         });
