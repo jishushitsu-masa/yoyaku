@@ -1,63 +1,171 @@
-<script>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>無料体験申込 | まさちゃんの自習室</title>
+  <style>
+    /* CSSは以前のものを維持 */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;600;700&display=swap');
+    :root { --primary: #4F46E5; --secondary: #10B981; --background: #F3F4F6; --surface: #FFFFFF; --text-main: #1F2937; --border: #E5E7EB; --radius: 12px; }
+    body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background-color: var(--background); color: var(--text-main); padding: 1rem; }
+    .container { max-width: 500px; margin: 0 auto; }
+    .card { background: var(--surface); border-radius: var(--radius); box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 1.5rem; margin-top: 1rem; }
+    .form-group { margin-bottom: 1.2rem; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
+    input, select, textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; }
+    .accordion-header { display: flex; justify-content: space-between; padding: 0.8rem 1rem; background: #F9FAFB; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; }
+    .accordion-header.active { border-color: var(--primary); border-radius: 8px 8px 0 0; }
+    .accordion-content { display: none; border: 2px solid var(--primary); border-top: none; border-radius: 0 0 8px 8px; background: #fff; max-height: 250px; overflow-y: auto; }
+    .accordion-content.open { display: block; }
+    .schedule-item { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; }
+    .schedule-item:hover { background: #F3F4F6; }
+    .radio-group { display: flex; gap: 0.5rem; }
+    .radio-card { flex: 1; position: relative; }
+    .radio-card input { position: absolute; opacity: 0; }
+    .radio-card label { display: block; text-align: center; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; background: #F9FAFB; }
+    .radio-card input:checked + label { border-color: var(--primary); background: #EEF2FF; color: var(--primary); font-weight: bold; }
+    .btn-primary { width: 100%; padding: 1rem; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; background: var(--primary); color: white; margin-top: 1rem; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header style="text-align:center;"><h1>無料体験申込</h1></header>
+    
+    <div class="card" id="form-card">
+      <form id="trial-form">
+        <div class="form-group">
+          <label>会場を選択</label>
+          <div class="radio-group">
+            <div class="radio-card">
+              <input type="radio" name="venue" value="おぶせ" id="v-obuse" required>
+              <label for="v-obuse">おぶせ</label>
+            </div>
+            <div class="radio-card">
+              <input type="radio" name="venue" value="すざか" id="v-suzaka">
+              <label for="v-suzaka">すざか</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>体験希望日</label>
+          <div class="accordion-header" id="accordion-header">
+            <span id="selected-date-text">会場を選択してください</span>
+            <span>▼</span>
+          </div>
+          <div class="accordion-content" id="accordion-content">
+            <div id="schedule-list"></div>
+          </div>
+          <input type="hidden" name="date" id="input-date" required>
+          <input type="hidden" name="time" id="input-time">
+        </div>
+
+        <div style="display:flex; gap:1rem; margin-bottom:1.2rem;">
+          <div style="flex:1;">
+            <label>学年</label>
+            <select name="grade" required>
+              <option value="">選択</option>
+              <option value="中1">中1</option><option value="中2">中2</option><option value="中3">中3</option>
+              <option value="高1">高1</option><option value="高2">高2</option><option value="高3">高3</option>
+            </select>
+          </div>
+          <div style="flex:2;">
+            <label>生徒氏名</label>
+            <input type="text" name="studentName" required placeholder="例: 長野 太郎">
+          </div>
+        </div>
+
+        <div class="form-group"><label>保護者様お名前</label><input type="text" name="parentName" required placeholder="例: 長野 花子"></div>
+        <div class="form-group"><label>電話番号</label><input type="tel" name="phone" required placeholder="例: 09012345678"></div>
+        <div class="form-group"><label>メールアドレス</label><input type="email" name="email" required placeholder="sample@example.com"></div>
+        <div class="form-group"><label>備考</label><textarea name="message" rows="2"></textarea></div>
+
+        <button type="submit" class="btn btn-primary" id="submit-btn">この内容で申し込む</button>
+      </form>
+    </div>
+    
+    <div class="card hidden" id="success-card" style="text-align:center; padding:3rem 1.5rem;">
+      <h2 style="color:var(--secondary);">申込完了</h2>
+      <p style="margin-top:1rem;">内容を確認し、折り返しご連絡いたします。</p>
+    </div>
+  </div>
+
+  <script>
+    // API URLは提供されたものを固定[cite: 2]
     const API_URL = 'https://script.google.com/macros/s/AKfycbyDCVMhbQ4N_j8SXy5QCpaIMtDmMpOwfdYInGcTwZofQomfGqui4iI65KPtShW5J1D5gg/exec';
     let allSchedule = [];
 
-    async function apiFetch(action, data = {}) {
+    // 会場スケジュールを取得[cite: 2, 4]
+    async function loadSchedule() {
       try {
-        const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, ...data }) });
-        return await response.json();
-      } catch (e) { return { status: 'error' }; }
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'getSchedule' })
+        });
+        const res = await response.json();
+        if (res.status === 'success') {
+          allSchedule = res.data;
+        }
+      } catch (e) {
+        console.error("Schedule Load Error:", e);
+      }
     }
 
-    window.onload = async () => {
-      const res = await apiFetch('getSchedule');
-      if (res.status === 'success') allSchedule = res.data;
-    };
+    window.onload = loadSchedule;
 
+    // アコーディオン制御
     const header = document.getElementById('accordion-header');
     const content = document.getElementById('accordion-content');
+    
     header.onclick = () => {
-      if (document.querySelector('input[name="venue"]:checked')) {
+      const selectedVenue = document.querySelector('input[name="venue"]:checked');
+      if (selectedVenue) {
         header.classList.toggle('active');
         content.classList.toggle('open');
+      } else {
+        alert("先に会場を選択してください");
       }
     };
 
+    // 会場選択時のイベント
     document.getElementsByName('venue').forEach(el => {
       el.onchange = () => {
-        const venue = el.value;
         header.classList.remove('active');
         content.classList.remove('open');
-        updateScheduleList(venue);
+        document.getElementById('selected-date-text').textContent = "日程を選択してください";
+        updateScheduleList(el.value);
       };
     });
 
-    function updateScheduleList(venue) {
+    function updateScheduleList(venueName) {
       const list = document.getElementById('schedule-list');
       list.innerHTML = '';
+      
       const today = new Date();
-      // 時間を除いた今日の日付（yyyy/MM/dd）
-      const todayStr = today.getFullYear() + "/" + ("0"+(today.getMonth()+1)).slice(-2) + "/" + ("0"+today.getDate()).slice(-2);
+      today.setHours(0, 0, 0, 0);
 
-      // エラー箇所を修正：item['会場'] が存在するかチェックを追加
       const filtered = allSchedule.filter(item => {
-        if (!item['会場'] || !item['日付']) return false; 
-        return item['会場'].indexOf(venue) !== -1 && !item.isYasumi && item['日付'] >= todayStr;
+        // スプレッドシートの「会場名」列と部分一致するか判定
+        const vName = item['会場名'] || item['会場'] || "";
+        const d = new Date(item['日付']);
+        return vName.includes(venueName) && !item.isYasumi && d >= today;
       });
 
       if (filtered.length === 0) {
-        list.innerHTML = '<p style="padding:1rem; color:var(--text-muted);">現在選択可能な日程がありません</p>';
+        list.innerHTML = '<p style="padding:1rem; color:#999;">可能な日程がありません</p>';
         return;
       }
 
       filtered.forEach(item => {
         const div = document.createElement('div');
         div.className = 'schedule-item';
-        div.innerHTML = `<span>${item['日付']}</span><span class="status-badge">${item['時間'] || '実施'}</span>`;
+        div.innerHTML = `<span>${item['日付']}</span><span style="font-size:0.8rem; background:#eee; padding:2px 8px; border-radius:4px;">${item['時間']}</span>`;
         div.onclick = () => {
-          document.getElementById('selected-date-text').textContent = `${item['日付']} ${item['時間'] || ''}`;
+          document.getElementById('selected-date-text').textContent = `${item['日付']} ${item['時間']}`;
           document.getElementById('input-date').value = item['日付'];
-          document.getElementById('input-time').value = item['時間'] || '';
+          document.getElementById('input-time').value = item['時間'];
           header.classList.remove('active');
           content.classList.remove('open');
         };
@@ -65,19 +173,38 @@
       });
     }
 
+    // 送信処理[cite: 2, 4]
     document.getElementById('trial-form').onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submit-btn');
       btn.disabled = true;
+      btn.textContent = "送信中...";
+
       const formData = new FormData(e.target);
       const data = Object.fromEntries(formData.entries());
-      const res = await apiFetch('trial', data);
-      if (res.status === 'success') {
-        document.getElementById('form-card').classList.add('hidden');
-        document.getElementById('success-card').classList.remove('hidden');
-      } else {
-        alert('送信に失敗しました');
+      data.action = 'trial';
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+        const res = await response.json();
+        if (res.status === 'success') {
+          document.getElementById('form-card').classList.add('hidden');
+          document.getElementById('success-card').classList.remove('hidden');
+          window.scrollTo(0, 0);
+        } else {
+          alert("送信に失敗しました: " + res.message);
+          btn.disabled = false;
+          btn.textContent = "この内容で申し込む";
+        }
+      } catch (err) {
+        alert("通信エラーが発生しました");
         btn.disabled = false;
+        btn.textContent = "この内容で申し込む";
       }
     };
-</script>
+  </script>
+</body>
+</html>
