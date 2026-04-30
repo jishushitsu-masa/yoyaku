@@ -21,76 +21,35 @@
   <div class="container">
     <header>
       <h1 style="color: var(--primary);">予約確認・キャンセル</h1>
-      <p>あなたの現在の予約状況です</p>
     </header>
     <div id="mainContent">
       <div id="loader" style="text-align:center; padding: 3rem;">情報を読み込み中...</div>
       <div id="reservationList"></div>
     </div>
   </div>
-
   <script src="index.js"></script>
   <script>
-    const LIFF_ID = "2009652448-8WjGp7jc"; 
-    let lineUserId = "";
-
+    const LIFF_ID = "2009652448-8WjGp7jc";
     window.onload = async () => {
-      try {
-        await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
-        const profile = await liff.getProfile();
-        lineUserId = profile.userId;
-        fetchUserReservations();
-      } catch (err) {
-        console.error(err);
-      }
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) { liff.login(); return; }
+      const profile = await liff.getProfile();
+      fetchUserReservations(profile.userId);
     };
-
-    async function fetchUserReservations() {
-      try {
-        const res = await apiFetch('getUserReservations', { lineUserId: lineUserId });
-        document.getElementById('loader').style.display = 'none';
-        
-        const listEl = document.getElementById('reservationList');
-        listEl.innerHTML = '';
-
-        if (res.status === 'success' && res.data && res.data.length > 0) {
-          res.data.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'res-card';
-            
-            // 日付文字列の整形（YYYY-MM-DDをM月D日(曜)に変換）
-            let displayDate = item.date;
-            try {
-              const d = new Date(item.date.replace(/-/g, '/'));
-              const day = ["日","月","火","水","木","金","土"][d.getDay()];
-              displayDate = `${d.getMonth()+1}月${d.getDate()}日(${day})`;
-            } catch(e) {}
-
-            card.innerHTML = `
-              <div class="res-venue">【${item.area}】${item.venue}</div>
-              <div class="res-date">${displayDate}</div>
-              <div class="res-time">${item.time}</div>
-              <div class="res-student">参加者: ${item.studentName} さん</div>
-              <button class="btn-cancel-mini" onclick="goToCancelPage('${item.cancelId}')">キャンセル</button>
-            `;
-            listEl.appendChild(card);
-          });
-        } else {
-          listEl.innerHTML = '<div class="no-data"><p>現在、有効な予約はありません。</p></div>';
-        }
-      } catch (e) {
-        document.getElementById('loader').style.display = 'none';
-        console.error(e);
-      }
-    }
-
-    function goToCancelPage(cancelId) {
-      const liffUrl = `https://liff.line.me/2009652448-DTbJgRRj?id=${cancelId}`;
-      window.location.href = liffUrl;
+    async function fetchUserReservations(lineUserId) {
+      const res = await apiFetch('getUserReservations', { lineUserId });
+      document.getElementById('loader').style.display = 'none';
+      const listEl = document.getElementById('reservationList');
+      if (res.status === 'success' && res.data.length > 0) {
+        res.data.forEach(item => {
+          const d = new Date(item.date);
+          const displayDate = !isNaN(d.getTime()) ? `${d.getMonth()+1}月${d.getDate()}日(${["日","月","火","水","木","金","土"][d.getDay()]})` : item.date;
+          const card = document.createElement('div');
+          card.className = 'res-card';
+          card.innerHTML = `<div class="res-venue">【${item.area}】${item.venue}</div><div class="res-date">${displayDate}</div><div class="res-time">${item.time}</div><div class="res-student">参加者: ${item.studentName} さん</div><button class="btn-cancel-mini" onclick="window.location.href='https://liff.line.me/2009652448-DTbJgRRj?id=${item.cancelId}'">キャンセル</button>`;
+          listEl.appendChild(card);
+        });
+      } else { listEl.innerHTML = '<div class="no-data"><p>予約はありません。</p></div>'; }
     }
   </script>
 </body>
