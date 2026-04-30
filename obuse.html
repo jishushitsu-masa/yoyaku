@@ -64,12 +64,30 @@
 
     function renderSchedule() {
       scheduleList.innerHTML = '';
-      const today = new Date(); today.setHours(0,0,0,0);
+      
+      // 今日の 00:00:00 を取得
+      const now = new Date();
+      const todayTime = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      // 14日後の 23:59:59 付近を取得
+      const limitTime = todayTime + (14 * 24 * 60 * 60 * 1000);[cite: 5]
+
       const filtered = scheduleData.filter(item => {
+        if (!item['日付']) return false;
         const d = new Date(item['日付'].replace(/-/g, '/'));
-        return (item['エリア'] === AREA_NAME) && d >= today && item['isYasumi'] !== true;
+        const targetTime = d.getTime();
+
+        // 比較条件：エリア一致 且つ 今日以降 且つ 14日以内 且つ 休みでない[cite: 5, 8]
+        return (item['エリア'] === AREA_NAME) && 
+               (targetTime >= todayTime) && 
+               (targetTime <= limitTime) && 
+               (item['isYasumi'] !== true);
       });
-      if (filtered.length === 0) { scheduleList.innerHTML = '<p style="text-align:center;padding:1rem;">予約可能な日程がありません。</p>'; return; }
+
+      if (filtered.length === 0) {
+        scheduleList.innerHTML = '<p style="text-align:center;padding:1rem;">予約可能な日程がありません。</p>';
+        return;
+      }
+
       filtered.forEach(item => {
         const d = new Date(item['日付'].replace(/-/g, '/'));
         const day = ["日","月","火","水","木","金","土"][d.getDay()];
@@ -79,7 +97,7 @@
         div.innerHTML = `<div class="schedule-date">${displayDate} ${item['時間'] || ''}<br><span style="font-size:0.8rem;color:#666;">場所：${item['会場名']}</span></div>`;
         div.onclick = () => {
           document.getElementById('selectedDate').value = item['日付'];
-          document.getElementById('selectedVenue').value = `${AREA_NAME} ${item['会場名']}`;
+          document.getElementById('selectedVenue').value = `${AREA_NAME} ${item['会場名']}`;[cite: 8]
           document.getElementById('selectedTime').value = item['時間'] || '';
           document.getElementById('selectedDateText').innerHTML = `<div style="font-weight:bold;color:var(--primary);">${displayDate} ${item['時間'] || ''}</div><div style="font-size:0.85rem;color:#666;">場所：${item['会場名']}</div>`;
           document.getElementById('submitBtn').disabled = false;
@@ -93,7 +111,7 @@
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.innerText = "送信中...";
-      const res = await apiFetch('reserve', {
+      const res = await apiFetch('reserve', {[cite: 8]
         venue: document.getElementById('selectedVenue').value,
         studentName: document.getElementById('studentName').value,
         parentName: document.getElementById('parentName').value,
