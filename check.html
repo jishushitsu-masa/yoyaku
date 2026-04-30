@@ -51,7 +51,6 @@
 
     async function fetchUserReservations() {
       try {
-        // エリアと会場を分けて表示するように調整済みの API を呼び出し[cite: 8]
         const res = await apiFetch('getUserReservations', { lineUserId: lineUserId });
         document.getElementById('loader').style.display = 'none';
         
@@ -62,7 +61,6 @@
           res.data.forEach(item => {
             const card = document.createElement('div');
             card.className = 'res-card';
-            // スプレッドシートの新構成（エリア・会場）を反映
             card.innerHTML = `
               <div class="res-venue">【${item.area}】${item.venue}</div>
               <div class="res-date">${item.date}</div>
@@ -82,7 +80,9 @@
     }
 
     function goToCancelPage(cancelId) {
-      window.location.href = `cancel.html?id=${cancelId}`;
+      // 新しく作成されたキャンセル専用の LIFF URL へ遷移
+      const liffUrl = `https://liff.line.me/2009652448-DTbJgRRj?id=${cancelId}`;
+      window.location.href = liffUrl;
     }
   </script>
 </body>
