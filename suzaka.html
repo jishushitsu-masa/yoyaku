@@ -65,10 +65,14 @@
     function renderSchedule() {
       scheduleList.innerHTML = '';
       const today = new Date(); today.setHours(0,0,0,0);
+      const limit = new Date(); limit.setDate(today.getDate() + 14); // 14日後ルール[cite: 6]
+
       const filtered = scheduleData.filter(item => {
         const d = new Date(item['日付'].replace(/-/g, '/'));
-        return (item['エリア'] === AREA_NAME) && d >= today && item['isYasumi'] !== true;
+        // 今日以降、14日後以内、エリア一致、休みでない[cite: 6]
+        return (item['エリア'] === AREA_NAME) && d >= today && d <= limit && item['isYasumi'] !== true;
       });
+
       if (filtered.length === 0) { scheduleList.innerHTML = '<p style="text-align:center;padding:1rem;">予約可能な日程がありません。</p>'; return; }
       filtered.forEach(item => {
         const d = new Date(item['日付'].replace(/-/g, '/'));
