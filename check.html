@@ -10,9 +10,9 @@
     :root { --primary: #1E3A8A; --secondary: #3B82F6; }
     .res-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; text-align: left; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative; }
     .res-venue { font-weight: bold; color: var(--secondary); font-size: 0.9rem; margin-bottom: 0.25rem; }
-    .res-date { font-weight: bold; color: #1e293b; font-size: 1.2rem; margin-bottom: 0.25rem; }
-    .res-time { color: #475569; font-size: 1rem; margin-bottom: 0.5rem; }
-    .res-student { color: #64748b; font-size: 0.9rem; }
+    .res-date { font-weight: bold; color: #1e293b; font-size: 1.1rem; margin-bottom: 0.25rem; }
+    .res-time { color: #475569; font-size: 0.95rem; margin-bottom: 0.5rem; }
+    .res-student { color: #64748b; font-size: 0.85rem; }
     .btn-cancel-mini { position: absolute; top: 1.25rem; right: 1.25rem; background-color: #fecaca; color: #b91c1c; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
     .no-data { text-align: center; padding: 3rem 1rem; color: #64748b; }
   </style>
@@ -61,9 +61,18 @@
           res.data.forEach(item => {
             const card = document.createElement('div');
             card.className = 'res-card';
+            
+            // 日付文字列の整形（YYYY-MM-DDをM月D日(曜)に変換）
+            let displayDate = item.date;
+            try {
+              const d = new Date(item.date.replace(/-/g, '/'));
+              const day = ["日","月","火","水","木","金","土"][d.getDay()];
+              displayDate = `${d.getMonth()+1}月${d.getDate()}日(${day})`;
+            } catch(e) {}
+
             card.innerHTML = `
               <div class="res-venue">【${item.area}】${item.venue}</div>
-              <div class="res-date">${item.date}</div>
+              <div class="res-date">${displayDate}</div>
               <div class="res-time">${item.time}</div>
               <div class="res-student">参加者: ${item.studentName} さん</div>
               <button class="btn-cancel-mini" onclick="goToCancelPage('${item.cancelId}')">キャンセル</button>
@@ -80,7 +89,6 @@
     }
 
     function goToCancelPage(cancelId) {
-      // 新しく作成されたキャンセル専用の LIFF URL へ遷移
       const liffUrl = `https://liff.line.me/2009652448-DTbJgRRj?id=${cancelId}`;
       window.location.href = liffUrl;
     }
