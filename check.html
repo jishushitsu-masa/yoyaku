@@ -46,7 +46,8 @@
           const displayDate = !isNaN(d.getTime()) ? `${d.getMonth()+1}月${d.getDate()}日(${["日","月","火","水","木","金","土"][d.getDay()]})` : item.date;
           const card = document.createElement('div');
           card.className = 'res-card';
-          card.innerHTML = `<div class="res-venue">【${item.area}】${item.venue}</div><div class="res-date">${displayDate}</div><div class="res-time">${item.time}</div><div class="res-student">参加者: ${item.studentName} さん</div><button class="btn-cancel-mini" onclick="window.location.href='https://liff.line.me/2009652448-DTbJgRRj?id=${item.cancelId}'">キャンセル</button>`;
+          // item.studentName を表示するように修正しました
+          card.innerHTML = `<div class="res-venue">【${item.area}】${item.venue}</div><div class="res-date">${displayDate}</div><div class="res-time">${item.time}</div><div class="res-student">生徒名: ${item.studentName} さん</div><button class="btn-cancel-mini" onclick="window.location.href='https://liff.line.me/2009652448-DTbJgRRj?id=${item.cancelId}'">キャンセル</button>`;
           listEl.appendChild(card);
         });
       } else { listEl.innerHTML = '<div class="no-data"><p>予約はありません。</p></div>'; }
