@@ -1,86 +1,43 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
+<base target="_top">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>無料体験予約</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 <style>
-body {
-font-family: 'Noto Sans JP', sans-serif;
-background-color: #f4f7f6;
-color: #333;
-padding: 40px 15px;
-}
-.form-container {
-max-width: 600px;
-margin: 0 auto;
-background-color: #fff;
-padding: 30px;
-border-radius: 12px;
-box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-}
-h2 {
-font-weight: 700;
-margin-bottom: 30px;
-text-align: center;
-color: #2c3e50;
-}
-.form-group label {
-font-weight: 700;
-font-size: 0.9rem;
-margin-bottom: 8px;
-}
-.form-control {
-border-radius: 6px;
-padding: 12px;
-border: 1px solid #ced4da;
-}
-.btn-primary {
-background-color: #3498db;
-border: none;
-padding: 12px;
-font-weight: 700;
-border-radius: 6px;
-transition: all 0.3s;
-width: 100%;
-}
-.btn-primary:hover {
-background-color: #2980b9;
-transform: translateY(-1px);
-}
-#loading, #successMessage, #errorMessage {
-display: none;
-margin-top: 20px;
-text-align: center;
-}
+body { padding: 20px; background-color: #f8f9fa; font-family: sans-serif; }
+.container { max-width: 600px; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-top: 20px; }
+h2 { text-align: center; margin-bottom: 30px; color: #333; font-weight: bold; }
+.form-group label { font-weight: bold; }
+.btn-primary { width: 100%; padding: 12px; font-size: 18px; background-color: #007bff; border: none; }
+#loading { display: none; text-align: center; margin-top: 20px; }
+#success-message { display: none; text-align: center; margin-top: 20px; color: #28a745; font-weight: bold; font-size: 18px; }
 </style>
 </head>
 <body>
-
-<div class="form-container">
-<h2>無料体験予約</h2>
-<form id="taikenForm">
+<div class="container">
+<h2>無料体験 予約フォーム</h2>
+<form id="combinedForm">
 <div class="form-group">
 <label>保護者様お名前</label>
-<input type="text" name="parent_name" class="form-control" placeholder="例：山田 太郎" required>
+<input type="text" class="form-control" name="parent_name" required>
 </div>
 <div class="form-group">
 <label>お子様お名前</label>
-<input type="text" name="child_name" class="form-control" placeholder="例：山田 花子" required>
+<input type="text" class="form-control" name="child_name" required>
 </div>
 <div class="form-group">
 <label>電話番号</label>
-<input type="tel" name="tel" class="form-control" placeholder="例：09012345678" required>
+<input type="tel" class="form-control" name="tel" required>
 </div>
 <div class="form-group">
 <label>メールアドレス</label>
-<input type="email" name="email" class="form-control" placeholder="例：example@mail.com" required>
+<input type="email" class="form-control" name="email" required>
 </div>
 <div class="form-group">
 <label>会場</label>
-<select name="venue" class="form-control" required>
+<select class="form-control" name="venue" required>
 <option value="">選択してください</option>
 <option value="須坂会場">須坂会場</option>
 <option value="小布施会場">小布施会場</option>
@@ -88,55 +45,58 @@ text-align: center;
 </div>
 <div class="form-group">
 <label>希望日時</label>
-<input type="text" name="preferred_date" class="form-control" placeholder="例：5月10日 17時〜" required>
+<input type="text" class="form-control" name="preferred_date" placeholder="例：5月10日 17:00〜" required>
 </div>
 <div class="form-group">
-<label>備考</label>
-<textarea name="remarks" class="form-control" rows="3" placeholder="ご質問などあればご記入ください"></textarea>
+<label>備考（学年やご要望など）</label>
+<textarea class="form-control" name="remarks" rows="3"></textarea>
 </div>
-<button type="submit" class="btn btn-primary">この内容で送信する</button>
+<button type="submit" class="btn btn-primary">送信する</button>
 </form>
 
 <div id="loading">
 <div class="spinner-border text-primary" role="status"></div>
-<p class="mt-2">送信中です。そのままお待ちください...</p>
+<p class="mt-2">送信中...</p>
 </div>
 
-<div id="successMessage" class="alert alert-success">
-申し込みが完了しました。確認メールをお送りしましたのでご確認ください。
-</div>
-
-<div id="errorMessage" class="alert alert-danger">
-エラーが発生しました。お手数ですが再度お試しいただくか、お電話にてご連絡ください。
+<div id="success-message">
+申し込みが完了しました。<br>
+折り返しご連絡いたします。
 </div>
 </div>
 
 <script>
-const scriptUrl = 'YOUR_GAS_WEB_APP_URL'; // GASのURLを入れてください
-const form = document.getElementById('taikenForm');
+const form = document.getElementById('combinedForm');
 const loading = document.getElementById('loading');
-const success = document.getElementById('successMessage');
-const errorMsg = document.getElementById('errorMessage');
+const success = document.getElementById('success-message');
 
-form.addEventListener('submit', e => {
+form.addEventListener('submit', function(e) {
 e.preventDefault();
 form.style.display = 'none';
 loading.style.display = 'block';
 
 const formData = new FormData(form);
+const data = {};
+formData.forEach((value, key) => { data[key] = value; });
 
-fetch(scriptUrl, { method: 'POST', body: formData })
-.then(response => {
+// taikenサイトと同じく google.script.run を使用する場合
+// ※GASのHTMLサービスとして利用する場合のみ有効です
+if (typeof google !== 'undefined') {
+google.script.run
+.withSuccessHandler(() => {
 loading.style.display = 'none';
 success.style.display = 'block';
 })
-.catch(error => {
+.processForm(data);
+} else {
+// GitHub Pagesなどでプレビューする場合はアラートを表示
+setTimeout(() => {
 loading.style.display = 'none';
-errorMsg.style.display = 'block';
-console.error('Error!', error.message);
-});
+success.style.display = 'block';
+console.log("送信データ:", data);
+}, 1000);
+}
 });
 </script>
-
 </body>
 </html>
