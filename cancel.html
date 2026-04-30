@@ -9,29 +9,26 @@
   <style>
     :root { --primary: #1E3A8A; --secondary: #3B82F6; }
     .detail-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; text-align: left; }
-    .detail-item { display: flex; margin-bottom: 0.5rem; font-size: 0.95rem; line-height: 1.6; }
+    .detail-item { display: flex; margin-bottom: 0.8rem; font-size: 1rem; line-height: 1.6; }
     .detail-label { color: #64748b; width: 5rem; flex-shrink: 0; }
     .detail-value { color: #1e293b; font-weight: bold; flex: 1; }
-    .btn-cancel { background-color: var(--primary); color: white; border: none; padding: 1rem; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
-    .btn-cancel:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-cancel { background-color: var(--primary); color: white; border: none; padding: 1rem; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <h1 style="color: var(--primary);">予約のキャンセル</h1>
-      <p>内容をご確認の上、ボタンを押してください</p>
     </header>
     <div class="card" id="mainCard">
       <div id="loader" style="text-align:center; padding: 2rem;">情報を読み込み中...</div>
       <div id="content" style="display:none;">
         <div class="detail-card">
-          <div class="detail-item"><div class="detail-label">参加者</div><div class="detail-value" id="resStudent"></div></div>
+          <div class="detail-item"><div class="detail-label">生徒名</div><div class="detail-value" id="resStudent"></div></div>
           <div class="detail-item"><div class="detail-label">会場</div><div class="detail-value" id="resVenue"></div></div>
-          <div class="detail-item"><div class="detail-label">日程</div><div class="detail-value" id="resDate"></div></div>
+          <div class="detail-item"><div class="detail-label">日付</div><div class="detail-value" id="resDate"></div></div>
           <div class="detail-item"><div class="detail-label">時間</div><div class="detail-value" id="resTime"></div></div>
         </div>
-        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.5rem;">※ボタンを押すとすぐにキャンセルが実行されます。</p>
         <button id="cancelBtn" class="btn-cancel">この予約をキャンセルする</button>
       </div>
     </div>
@@ -39,46 +36,40 @@
 
   <script src="index.js"></script>
   <script>
-    const LIFF_ID = "2009652448-DTbJgRRj"; // 新しい LIFF ID
+    const LIFF_ID = "2009652448-DTbJgRRj";
     const params = new URLSearchParams(window.location.search);
     const cancelId = params.get('id');
 
     window.onload = async () => {
-      try {
-        await liff.init({ liffId: LIFF_ID });
-        if (!cancelId) {
-          document.getElementById('mainCard').innerHTML = '<p>予約情報が正しく渡されませんでした。</p>';
-          return;
-        }
-
-        const res = await apiFetch('getReservationDetail', { cancelId: cancelId });
-        if (res.status === 'success') {
-          document.getElementById('resStudent').innerText = res.data.studentName + " さん";
-          document.getElementById('resVenue').innerText = `${res.data.area} ${res.data.venue}`;
-          document.getElementById('resDate').innerText = res.data.date;
-          document.getElementById('resTime').innerText = res.data.time;
-          document.getElementById('loader').style.display = 'none';
-          document.getElementById('content').style.display = 'block';
+      await liff.init({ liffId: LIFF_ID });
+      const res = await apiFetch('getReservationDetail', { cancelId: cancelId });
+      if (res.status === 'success') {
+        document.getElementById('resStudent').innerText = res.data.studentName + " さん";
+        document.getElementById('resVenue').innerText = `${res.data.area} ${res.data.venue}`;
+        
+        // 曜日付き日付の整形処理
+        const dateObj = new Date(res.data.date);
+        if (!isNaN(dateObj.getTime())) {
+          const days = ["日","月","火","水","木","金","土"];
+          const y = dateObj.getFullYear();
+          const m = ('0'+(dateObj.getMonth()+1)).slice(-2);
+          const d = ('0'+dateObj.getDate()).slice(-2);
+          const day = days[dateObj.getDay()];
+          document.getElementById('resDate').innerText = `${y}/${m}/${d}(${day})`;
         } else {
-          document.getElementById('mainCard').innerHTML = '<p style="padding:2rem;">予約が見つからないか、既にキャンセルされています。</p>';
+          document.getElementById('resDate').innerText = res.data.date;
         }
-      } catch (err) {
-        console.error(err);
+        
+        document.getElementById('resTime').innerText = res.data.time;
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
       }
     };
 
     document.getElementById('cancelBtn').onclick = async () => {
-      const btn = document.getElementById('cancelBtn');
-      btn.disabled = true;
-      btn.innerText = 'キャンセル処理中...';
-      
       const res = await apiFetch('cancel', { cancelId: cancelId });
       if (res.status === 'success') {
-        document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2 style="color:var(--primary);">キャンセルが完了しました</h2><p>ご利用ありがとうございました。</p></div>';
-      } else {
-        alert('エラーが発生しました。既にキャンセルされている可能性があります。');
-        btn.disabled = false;
-        btn.innerText = 'この予約をキャンセルする';
+        document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>キャンセルが完了しました</h2></div>';
       }
     };
   </script>
