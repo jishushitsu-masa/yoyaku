@@ -16,12 +16,13 @@
         .segment-btn.active { background: white; color: var(--main-color); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
         /* 入力項目 */
-        .form-group { margin-bottom: 20px; display: none; } 
-        .form-group.visible { display: block; } 
+        .form-group { margin-bottom: 20px; } 
         label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 0.9rem; color: #555; }
         label .required { color: #d93025; margin-left: 4px; }
         
-        input, select, textarea { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        input, select, textarea { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; background-color: white; }
+        input:disabled, select:disabled { background-color: #f0f0f0; cursor: not-allowed; }
+        
         .row { display: flex; gap: 15px; }
         .row > .form-group { flex: 1; }
         
@@ -35,7 +36,8 @@
 <div class="container" id="form-container">
     <h1>無料体験申込フォーム</h1>
     
-    <label>まずは会場を選んでください</label>
+    <!-- Step 1: 会場選択 -->
+    <label>1. 会場を選んでください<span class="required">*</span></label>
     <div class="segment-control">
         <button type="button" class="segment-btn" data-venue="おぶせ" data-days="2,5">おぶせ会場<br><span style="font-size:0.8rem; font-weight:normal;">(火・金)</span></button>
         <button type="button" class="segment-btn" data-venue="すざか" data-days="1,4">すざか会場<br><span style="font-size:0.8rem; font-weight:normal;">(月・木)</span></button>
@@ -44,16 +46,18 @@
     <form id="trial-form">
         <input type="hidden" name="venue" id="selected-venue">
 
+        <!-- Step 2: 日程選択（アコーディオン） -->
         <div class="form-group" id="date-group">
-            <label>体験希望日<span class="required">*</span></label>
-            <select name="date" id="date-select" required>
-                <option value="">日程を選択してください</option>
+            <label>2. 体験希望日<span class="required">*</span></label>
+            <select name="date" id="date-select" required disabled>
+                <option value="">先に会場を選択してください</option>
             </select>
         </div>
 
-        <div id="other-fields" class="form-group">
+        <!-- Step 3: 基本情報（最初から表示） -->
+        <div id="other-fields">
             <div class="row">
-                <div class="form-group visible">
+                <div class="form-group">
                     <label>学年<span class="required">*</span></label>
                     <select name="grade" required>
                         <option value="">選択</option>
@@ -62,28 +66,28 @@
                         <option value="その他">その他</option>
                     </select>
                 </div>
-                <div class="form-group visible" style="flex: 2;">
+                <div class="form-group" style="flex: 2;">
                     <label>生徒氏名<span class="required">*</span></label>
                     <input type="text" name="studentName" required placeholder="例：長野 太郎">
                 </div>
             </div>
 
-            <div class="form-group visible">
+            <div class="form-group">
                 <label>保護者様お名前<span class="required">*</span></label>
                 <input type="text" name="parentName" required placeholder="例：長野 花子">
             </div>
 
-            <div class="form-group visible">
+            <div class="form-group">
                 <label>電話番号<span class="required">*</span></label>
                 <input type="tel" name="phone" required placeholder="例：09012345678">
             </div>
 
-            <div class="form-group visible">
+            <div class="form-group">
                 <label>メールアドレス<span class="required">*</span></label>
                 <input type="email" name="email" required placeholder="sample@example.com">
             </div>
 
-            <div class="form-group visible">
+            <div class="form-group">
                 <label>備考・ご質問</label>
                 <textarea name="message" rows="3" placeholder="学習上の悩みなど"></textarea>
             </div>
@@ -99,38 +103,34 @@
 </div>
 
 <script>
-    // ▼▼▼ 修正したGASのウェブアプリURLをここに貼り付けてください ▼▼▼
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyDCVMhbQ4N_j8SXy5QCpaIMtDmMpOwfdYInGcTwZofQomfGqui4iI65KPtShW5J1D5gg/exec'; 
+    // ▼▼▼ あなたのGASウェブアプリURLをここに貼り付けてください ▼▼▼
+    const GAS_URL = 'GAS_URL_HERE'; 
 
     const segmentBtns = document.querySelectorAll('.segment-btn');
     const selectedVenueInput = document.getElementById('selected-venue');
-    const dateGroup = document.getElementById('date-group');
     const dateSelect = document.getElementById('date-select');
-    const otherFields = document.getElementById('other-fields');
     const formContainer = document.getElementById('form-container');
     const completionMessage = document.getElementById('completion-message');
 
+    // 会場切り替え時の処理
     segmentBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelector('.segment-btn.active')?.classList.remove('active');
             this.classList.add('active');
+            
             selectedVenueInput.value = this.dataset.venue;
+            dateSelect.disabled = false;
+            
             generateDateOptions(this.dataset.days.split(',').map(Number));
-            dateGroup.classList.add('visible');
-            otherFields.classList.remove('visible');
-            dateSelect.value = "";
         });
     });
 
-    dateSelect.addEventListener('change', function() {
-        if (this.value !== "") otherFields.classList.add('visible');
-        else otherFields.classList.remove('visible');
-    });
-
+    // 14日後までの対応曜日を自動算出
     function generateDateOptions(enabledDays) {
         dateSelect.innerHTML = '<option value="">日程を選択してください</option>';
         const today = new Date();
         const jpnDays = ['日', '月', '火', '水', '木', '金', '土'];
+        
         for (let i = 0; i <= 14; i++) {
             const targetDate = new Date(today);
             targetDate.setDate(today.getDate() + i);
@@ -144,6 +144,7 @@
         }
     }
 
+    // 送信処理
     document.getElementById('trial-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const btn = document.getElementById('submit-btn');
@@ -151,7 +152,7 @@
         btn.innerText = '送信中...';
 
         const formData = new FormData(this);
-        const object = { action: 'trial' }; // ここで action: 'trial' を指定
+        const object = { action: 'trial' };
         formData.forEach((value, key) => { object[key] = value; });
 
         fetch(GAS_URL, {
@@ -171,7 +172,7 @@
             }
         })
         .catch(() => {
-            // no-cors対策：実際は保存できていてもエラー扱いになる場合があるための暫定処理
+            // エラー時も成功画面を出す（no-corsなどの環境対策）
             formContainer.style.display = 'none';
             completionMessage.style.display = 'block';
         });
