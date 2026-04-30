@@ -9,7 +9,9 @@
 </head>
 <body>
   <div class="container">
-    <h1>おぶせ自習室 予約</h1>
+    <header>
+      <h1>おぶせ自習室 予約</h1>
+    </header>
     <div id="scheduleList"></div>
   </div>
 
@@ -26,24 +28,24 @@
 
     function renderSchedule(data) {
       const listEl = document.getElementById('scheduleList');
-      // ここで、データの中から「おぶせ」のデータだけを抽出
-      const obuseData = data.filter(item => item['エリア'] === 'おぶせ');
+      listEl.innerHTML = ''; // 一度クリア
+
+      // スプレッドシートの1行目(項目名)と完全に一致させる必要があります
+      // エリア、会場名、日付、時間 という名前でシートを作成してください
+      const obuseData = data.filter(item => item['エリア'] && item['エリア'].trim() === 'おぶせ');
       
       obuseData.forEach(item => {
         const div = document.createElement('div');
         div.className = 'res-card';
-        // 項目名で直接指定！これなら列がズレても安心です
         div.innerHTML = `
-          <div class="res-date">${item['日付']}</div>
-          <div class="res-time">${item['時間']}</div>
-          <div class="res-venue">${item['会場名']}</div>
+          <div class="res-date">${item['日付'] || '日付未定'}</div>
+          <div class="res-time">${item['時間'] || '時間未定'}</div>
+          <div class="res-venue">${item['会場名'] || '会場未定'}</div>
           <button onclick="reserve('${item['日付']}','${item['時間']}','${item['会場名']}')">予約する</button>
         `;
         listEl.appendChild(div);
       });
     }
-
-    // 予約実行関数は別途調整が必要な場合があります
   </script>
 </body>
 </html>
