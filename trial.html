@@ -6,96 +6,98 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 <style>
-body { padding: 20px; background-color: #f8f9fa; font-family: sans-serif; }
-.container { max-width: 600px; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-top: 20px; }
-h2 { text-align: center; margin-bottom: 30px; color: #333; font-weight: bold; }
+body { padding: 20px; background-color: #f8f9fa; }
+.container { max-width: 600px; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+h2 { text-align: center; margin-bottom: 30px; }
 .form-group label { font-weight: bold; }
-.btn-primary { width: 100%; padding: 12px; font-size: 18px; background-color: #007bff; border: none; }
+.btn-primary { width: 100%; padding: 10px; font-size: 18px; }
 #loading { display: none; text-align: center; margin-top: 20px; }
-#success-message { display: none; text-align: center; margin-top: 20px; color: #28a745; font-weight: bold; font-size: 18px; }
+#success-message { display: none; text-align: center; margin-top: 20px; color: green; font-weight: bold; }
 </style>
 </head>
 <body>
 <div class="container">
-<h2>無料体験 予約フォーム</h2>
-<form id="combinedForm">
+<h2>無料体験申し込み</h2>
+<form id="taikenForm">
 <div class="form-group">
-<label>保護者様お名前</label>
-<input type="text" class="form-control" name="parent_name" required>
+<label for="guardian_name">保護者様お名前</label>
+<input type="text" class="form-control" id="guardian_name" name="guardian_name" required>
 </div>
 <div class="form-group">
-<label>お子様お名前</label>
-<input type="text" class="form-control" name="child_name" required>
+<label for="participant_name">お子様お名前</label>
+<input type="text" class="form-control" id="participant_name" name="participant_name" required>
 </div>
 <div class="form-group">
-<label>電話番号</label>
-<input type="tel" class="form-control" name="tel" required>
+<label for="phone">電話番号</label>
+<input type="tel" class="form-control" id="phone" name="phone" required>
+</div>
+<div class="form-group)
+<label for="email">メールアドレス</label>
+<input type="email" class="form-control" id="email" name="email" required>
 </div>
 <div class="form-group">
-<label>メールアドレス</label>
-<input type="email" class="form-control" name="email" required>
-</div>
-<div class="form-group">
-<label>会場</label>
-<select class="form-control" name="venue" required>
+<label for="location">会場</label>
+<select class="form-control" id="location" name="location" required>
 <option value="">選択してください</option>
 <option value="須坂会場">須坂会場</option>
 <option value="小布施会場">小布施会場</option>
 </select>
 </div>
 <div class="form-group">
-<label>希望日時</label>
-<input type="text" class="form-control" name="preferred_date" placeholder="例：5月10日 17:00〜" required>
+<label for="datetime">希望日時</label>
+<input type="text" class="form-control" id="datetime" name="datetime" placeholder="例：4月30日 17:00〜" required>
 </div>
 <div class="form-group">
-<label>備考（学年やご要望など）</label>
-<textarea class="form-control" name="remarks" rows="3"></textarea>
+<label for="remarks">備考（学年やご質問など）</label>
+<textarea class="form-control" id="remarks" name="remarks" rows="3"></textarea>
 </div>
 <button type="submit" class="btn btn-primary">送信する</button>
 </form>
 
 <div id="loading">
-<div class="spinner-border text-primary" role="status"></div>
-<p class="mt-2">送信中...</p>
+<div class="spinner-border text-primary" role="status">
+<span class="sr-only">Loading...</span>
+</div>
+<p>送信中...</p>
 </div>
 
 <div id="success-message">
-申し込みが完了しました。<br>
-折り返しご連絡いたします。
+申し込みを受け付けました。折り返しご連絡いたします。
 </div>
 </div>
 
 <script>
-const form = document.getElementById('combinedForm');
+const form = document.getElementById('taikenForm');
 const loading = document.getElementById('loading');
-const success = document.getElementById('success-message');
+const successMessage = document.getElementById('success-message');
 
 form.addEventListener('submit', function(e) {
 e.preventDefault();
+
 form.style.display = 'none';
 loading.style.display = 'block';
 
-const formData = new FormData(form);
-const data = {};
-formData.forEach((value, key) => { data[key] = value; });
+const formData = {
+guardian_name: form.guardian_name.value,
+participant_name: form.participant_name.value,
+phone: form.phone.value,
+email: form.email.value,
+location: form.location.value,
+datetime: form.datetime.value,
+remarks: form.remarks.value
+};
 
-// taikenサイトと同じく google.script.run を使用する場合
-// ※GASのHTMLサービスとして利用する場合のみ有効です
-if (typeof google !== 'undefined') {
 google.script.run
-.withSuccessHandler(() => {
+.withSuccessHandler(function() {
 loading.style.display = 'none';
-success.style.display = 'block';
+successMessage.style.display = 'block';
 })
-.processForm(data);
-} else {
-// GitHub Pagesなどでプレビューする場合はアラートを表示
-setTimeout(() => {
+.withFailureHandler(function(msg) {
+alert('エラーが発生しました: ' + msg);
+form.style.display = 'block';
 loading.style.display = 'none';
-success.style.display = 'block';
-console.log("送信データ:", data);
-}, 1000);
-}
+})
+.processForm(formData);
 });
 </script>
 </body>
