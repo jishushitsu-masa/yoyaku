@@ -97,7 +97,10 @@ function renderSchedule() {
       filtered.forEach(item => {
         const d = new Date(item['日付']);
         const day = ["日","月","火","水","木","金","土"][d.getDay()];
-        const displayDate = `${d.getMonth()+1}/${d.getDate()}(${day})`;
+        const year = d.getFullYear();
+        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+        const date = d.getDate().toString().padStart(2, '0');
+        const displayDate = `${year}/${month}/${date}`;
         
         const div = document.createElement('div');
         div.className = 'schedule-item selectable';
