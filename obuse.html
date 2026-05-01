@@ -75,7 +75,7 @@
         return (item['エリア'] === AREA_NAME) && 
                (targetTime >= todayTime) && 
                (targetTime <= limitTime) && 
-               (item['isYasumi'] !== true);
+               (item['休み'] !== '休み'); // スプレッドシートの「休み」列に「休み」と入力されている場合を除外する;
       });
 
       if (filtered.length === 0) {
