@@ -2,131 +2,62 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>小布施会場 予約フォーム</title>
   <link rel="stylesheet" href="index.css">
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>小布施会場 予約フォーム</h1>
-      <p>元塾講師マサちゃんの自習室</p>
-    </header>
-    <div class="card">
-      <form id="reservationForm">
-        <div class="form-group">
-          <label>予約日を選択</label>
-          <div id="accordionHeader" class="accordion-header">
-            <div id="selectedDateText" style="line-height: 1.4; flex: 1;">タップして日程を選択してください</div>
-            <span class="arrow">▼</span>
-          </div>
-          <div id="scheduleLoader"></div>
-          <div id="scheduleList" class="schedule-list accordion-content"></div>
+    <h1>小布施会場 予約フォーム</h1>
+    <form id="reservationForm">
+      <div class="form-group">
+        <label>予約日を選択</label>
+        <div id="accordionHeader" class="accordion-header">タップして日程を選択</div>
+        <div id="scheduleList" class="accordion-content"></div>
+      </div>
+      <div class="form-group"><label>生徒名</label><input type="text" id="studentName" required></div>
+      <div class="form-group"><label>保護者名</label><input type="text" id="parentName" required></div>
+      <div class="form-group"><label>電話番号</label><input type="tel" id="phone" required></div>
+      <div class="form-group">
+        <label>利用区分</label>
+        <div style="display:flex; gap:10px;">
+          <input type="radio" id="d2" name="duration" value="2時間利用" checked><label for="d2">2時間利用</label>
+          <input type="radio" id="d1" name="duration" value="1時間利用"><label for="d1">1時間利用</label>
         </div>
-        <div class="form-group"><label>生徒名</label><input type="text" id="studentName" required></div>
-        <div class="form-group"><label>保護者名</label><input type="text" id="parentName" required></div>
-        <div class="form-group"><label>電話番号</label><input type="tel" id="phone" required></div>
-        <div class="form-group">
-          <label>利用区分</label>
-          <div class="radio-group">
-            <div class="radio-card"><input type="radio" id="d2" name="duration" value="2時間利用" checked><label for="d2">2時間利用</label></div>
-            <div class="radio-card"><input type="radio" id="d1" name="duration" value="1時間利用"><label for="d1">1時間利用</label></div>
-          </div>
-        </div>
-        <input type="hidden" id="selectedDate"><input type="hidden" id="selectedVenue"><input type="hidden" id="selectedTime">
-        <button type="submit" class="btn btn-primary" id="submitBtn" disabled>予約を確定する</button>
-      </form>
-    </div>
+      </div>
+      <input type="hidden" id="selectedDate"><input type="hidden" id="selectedArea">
+      <input type="hidden" id="selectedVenue"><input type="hidden" id="selectedTime">
+      <button type="submit" id="submitBtn" disabled>予約を確定する</button>
+    </form>
   </div>
   <script src="index.js"></script>
   <script>
-    const LIFF_ID = "2009652448-yEc3eycW";
     const AREA_NAME = 'おぶせ';
-    let lineUserId = "";
-    let scheduleData = [];
-
-    const accordionHeader = document.getElementById('accordionHeader');
-    const scheduleList = document.getElementById('scheduleList');
-    accordionHeader.onclick = () => { scheduleList.classList.toggle('open'); accordionHeader.classList.toggle('active'); };
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      loadSavedUserInfo();
-      liff.init({ liffId: LIFF_ID }).then(() => {
-        if (liff.isLoggedIn()) { liff.getProfile().then(p => { lineUserId = p.userId; }); }
-        else { liff.login(); }
-      });
-      showLoader('scheduleLoader');
-      const res = await apiFetch('getSchedule');
-      hideLoader('scheduleLoader');
-      if (res.status === 'success') { scheduleData = res.data; renderSchedule(); }
-    });
-
-    function renderSchedule() {
-      scheduleList.innerHTML = '';
-      const now = new Date();
-      const todayTime = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-      const limitTime = todayTime + (14 * 24 * 60 * 60 * 1000);
-
-      const filtered = scheduleData;
-        // 日付形式を変換して比較
-        const d = new Date(item['日付'].toString().replace(/-/g, '/'));
-        const targetTime = d.getTime();
-        
-        // 【修正】項目名をスプレッドシートに合わせて「休み」に変更
-        return (item['エリア'] === AREA_NAME) && 
-               (targetTime >= todayTime) && 
-               (targetTime <= limitTime) && 
-               (item['休み'] !== '休み'); // ここが「休み」列の判定
-      });
-
-      if (filtered.length === 0) {
-        scheduleList.innerHTML = '<p style="text-align:center;padding:1rem;">予約可能な日程がありません。</p>';
-        return;
-      }
-
-      filtered.forEach(item => {
-        const d = new Date(item['日付'].toString().replace(/-/g, '/'));
-        const day = ["日","月","火","水","木","金","土"][d.getDay()];
-        const displayDate = `${item['日付']}(${day})`;
-        const div = document.createElement('div');
-        div.className = 'schedule-item selectable';
-        div.innerHTML = `<div class="schedule-date">${displayDate} ${item['時間'] || ''}<br><span style="font-size:0.8rem;color:#666;">場所：${item['会場名']}</span></div>`;
-        
-        // 【重要】クリックした時の代入先をそれぞれ正しく指定
-        div.onclick = () => {
-          document.getElementById('selectedDate').value = item['日付'];
-          document.getElementById('selectedArea').value = item['エリア']; // 日付ではなくエリアへ
-          document.getElementById('selectedVenue').value = item['会場名']; // 日付ではなく会場名へ
-          document.getElementById('selectedTime').value = item['時間'] || '';
-          
-          document.getElementById('selectedDateText').innerHTML = `<div style="font-weight:bold;color:var(--primary);">${displayDate} ${item['時間'] || ''}</div><div style="font-size:0.85rem;color:#666;">場所：${item['会場名']}</div>`;
-          document.getElementById('submitBtn').disabled = false;
-          scheduleList.classList.remove('open'); accordionHeader.classList.remove('active');
-        };
-        scheduleList.appendChild(div);
-      });
-    }
-    document.getElementById('reservationForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('submitBtn');
-      btn.disabled = true; btn.innerText = "送信中...";
-      const res = await apiFetch('reserve', {
-        venue: document.getElementById('selectedVenue').value,
-        studentName: document.getElementById('studentName').value,
-        parentName: document.getElementById('parentName').value,
-        phone: document.getElementById('phone').value,
-        duration: document.querySelector('input[name="duration"]:checked').value,
-        date: document.getElementById('selectedDate').value,
-        time: document.getElementById('selectedTime').value,
-        lineUserId: lineUserId
-      });
-      if (res.status === 'success') {
-        document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2><p>LINE通知をご確認ください。</p></div>';
-      } else { alert(res.message || "予約に失敗しました。"); btn.disabled = false; btn.innerText = "予約を確定する"; }
+    document.getElementById('accordionHeader').onclick = function(){
+      document.getElementById('scheduleList').classList.toggle('open');
     };
-    function saveUserInfo() { const info = { s: document.getElementById('studentName').value, p: document.getElementById('parentName').value, t: document.getElementById('phone').value }; localStorage.setItem('user_info', JSON.stringify(info)); }
-    function loadSavedUserInfo() { const saved = localStorage.getItem('user_info'); if (saved) { const info = JSON.parse(saved); document.getElementById('studentName').value = info.s || ''; document.getElementById('parentName').value = info.p || ''; document.getElementById('phone').value = info.t || ''; } }
+    
+    // データ取得
+    async function init() {
+      const res = await apiFetch('getSchedule');
+      if (res.status === 'success') {
+        const list = document.getElementById('scheduleList');
+        res.data.filter(i => i['エリア'] === AREA_NAME).forEach(item => {
+          const div = document.createElement('div');
+          div.innerHTML = item['日付'] + ' ' + item['時間'];
+          div.onclick = function(){
+            document.getElementById('selectedDate').value = item['日付'];
+            document.getElementById('selectedArea').value = item['エリア'];
+            document.getElementById('selectedVenue').value = item['会場名'];
+            document.getElementById('selectedTime').value = item['時間'];
+            document.getElementById('selectedDateText').innerText = item['日付'] + ' ' + item['時間'];
+            document.getElementById('submitBtn').disabled = false;
+          };
+          list.appendChild(div);
+        });
+      }
+    }
+    init();
   </script>
 </body>
 </html>
