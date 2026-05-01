@@ -70,12 +70,15 @@
 
       const filtered = scheduleData.filter(item => {
         if (!item['日付']) return false;
-        const d = new Date(item['日付'].replace(/-/g, '/'));
+        // 日付形式を変換して比較
+        const d = new Date(item['日付'].toString().replace(/-/g, '/'));
         const targetTime = d.getTime();
+        
+        // 【修正】項目名をスプレッドシートに合わせて「休み」に変更
         return (item['エリア'] === AREA_NAME) && 
                (targetTime >= todayTime) && 
                (targetTime <= limitTime) && 
-               (item['isYasumi'] !== true);
+               (item['休み'] !== '休み'); // ここが「休み」列の判定
       });
 
       if (filtered.length === 0) {
@@ -84,17 +87,20 @@
       }
 
       filtered.forEach(item => {
-        const d = new Date(item['日付'].replace(/-/g, '/'));
+        const d = new Date(item['日付'].toString().replace(/-/g, '/'));
         const day = ["日","月","火","水","木","金","土"][d.getDay()];
         const displayDate = `${item['日付']}(${day})`;
         const div = document.createElement('div');
         div.className = 'schedule-item selectable';
         div.innerHTML = `<div class="schedule-date">${displayDate} ${item['時間'] || ''}<br><span style="font-size:0.8rem;color:#666;">場所：${item['会場名']}</span></div>`;
+        
+        // 【重要】クリックした時の代入先をそれぞれ正しく指定
         div.onclick = () => {
           document.getElementById('selectedDate').value = item['日付'];
-          document.getElementById('selectedDate').value = item['エリア'];
-          document.getElementById('selectedDate').value = item['会場名'];
+          document.getElementById('selectedArea').value = item['エリア']; // 日付ではなくエリアへ
+          document.getElementById('selectedVenue').value = item['会場名']; // 日付ではなく会場名へ
           document.getElementById('selectedTime').value = item['時間'] || '';
+          
           document.getElementById('selectedDateText').innerHTML = `<div style="font-weight:bold;color:var(--primary);">${displayDate} ${item['時間'] || ''}</div><div style="font-size:0.85rem;color:#666;">場所：${item['会場名']}</div>`;
           document.getElementById('submitBtn').disabled = false;
           scheduleList.classList.remove('open'); accordionHeader.classList.remove('active');
@@ -102,7 +108,6 @@
         scheduleList.appendChild(div);
       });
     }
-
     document.getElementById('reservationForm').onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
