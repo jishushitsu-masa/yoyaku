@@ -105,7 +105,11 @@ function renderSchedule() {
         const div = document.createElement('div');
         div.className = 'schedule-item selectable';
         div.innerHTML = `<div class="schedule-date">${displayDate} ${item['時間'] || ''}<br><span style="font-size:0.8rem;color:#666;">場所：${item['会場名']}</span></div>`;
-        
+
+        div.onclick = () => {
+  alert("タップされました！"); // これが表示されるか確認
+  // ...以下の処理
+};
         div.onclick = () => {
           document.getElementById('selectedDate').value = item['日付'];
           document.getElementById('selectedArea').value = item['エリア'];
