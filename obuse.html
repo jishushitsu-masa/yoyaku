@@ -63,29 +63,21 @@
     });
 
 function renderSchedule() {
+      const scheduleList = document.getElementById('scheduleList');
+      const accordionHeader = document.getElementById('accordionHeader');
       scheduleList.innerHTML = '';
+      
       const now = new Date();
-      // 今日の日付で時間を0時にセット
       const todayTime = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
       const limitTime = todayTime + (14 * 24 * 60 * 60 * 1000);
 
       const filtered = scheduleData.filter(item => {
         if (!item['日付']) return false;
-        
-        // 1. 日付データを文字列に変換して、Dateオブジェクトを作成
-        // どんな形式でGASから来ても、これで確実に日付として解釈されます
         const d = new Date(item['日付']);
-        
-        // 日付が無効なら除外
         if (isNaN(d.getTime())) return false;
-
-        const targetTime = d.getTime();
-        
-        // 2. フィルタリング（エリア一致、今日以降2週間以内、かつ「休み」ではない）
-        // スプレッドシートの「休み」列に何も入力がない場合は「休みではない」と判定されます
         return (item['エリア'] === AREA_NAME) && 
-               (targetTime >= todayTime) && 
-               (targetTime <= limitTime) && 
+               (d.getTime() >= todayTime) && 
+               (d.getTime() <= limitTime) && 
                (item['休み'] !== '休み');
       });
 
@@ -97,33 +89,41 @@ function renderSchedule() {
       filtered.forEach(item => {
         const d = new Date(item['日付']);
         const day = ["日","月","火","水","木","金","土"][d.getDay()];
-        const year = d.getFullYear();
-        const month = (d.getMonth() + 1).toString().padStart(2, '0');
-        const date = d.getDate().toString().padStart(2, '0');
-        const displayDate = `${year}/${month}/${date}`;
+        const displayDate = `${d.getMonth()+1}/${d.getDate()}(${day})`;
         
+        // divを作成
         const div = document.createElement('div');
         div.className = 'schedule-item selectable';
-        div.innerHTML = `<div class="schedule-date">${displayDate} ${item['時間'] || ''}<br><span style="font-size:0.8rem;color:#666;">場所：${item['会場名']}</span></div>`;
-
-        div.onclick = () => {
-  alert("タップされました！"); // これが表示されるか確認
-  // ...以下の処理
-};
-        div.onclick = () => {
-          document.getElementById('selectedDate').value = item['日付'];
-          document.getElementById('selectedArea').value = item['エリア'];
-          document.getElementById('selectedVenue').value = item['会場名'];
-          document.getElementById('selectedTime').value = item['時間'] || '';
-          document.getElementById('selectedDateText').innerHTML = `<div style="font-weight:bold;color:var(--primary);">${displayDate} ${item['時間'] || ''}</div><div style="font-size:0.85rem;color:#666;">場所：${item['会場名']}</div>`;
-          document.getElementById('submitBtn').disabled = false;
-          scheduleList.classList.remove('open'); 
+        div.style.padding = '15px';
+        div.style.borderBottom = '1px solid #ccc';
+        div.innerHTML = `<div>${displayDate} ${item['時間'] || ''}<br><small>場所：${item['会場名']}</small></div>`;
+        
+        // 【重要】確実にクリックを紐付けるために addEventListener を使用
+        div.addEventListener('click', function() {
+          alert("日程が選択されました"); // これでテストします
+          
+          // hiddenフィールドに値をセット（※HTMLにこれらIDのinputがある前提）
+          if(document.getElementById('selectedDate')) document.getElementById('selectedDate').value = item['日付'];
+          if(document.getElementById('selectedArea')) document.getElementById('selectedArea').value = item['エリア'];
+          if(document.getElementById('selectedVenue')) document.getElementById('selectedVenue').value = item['会場名'];
+          if(document.getElementById('selectedTime')) document.getElementById('selectedTime').value = item['時間'] || '';
+          
+          // 表示の更新
+          document.getElementById('selectedDateText').innerHTML = `<b>${displayDate} ${item['時間'] || ''}</b><br><small>場所：${item['会場名']}</small>`;
+          
+          // 送信ボタン有効化
+          const btn = document.getElementById('submitBtn');
+          if(btn) btn.disabled = false;
+          
+          // 閉じる
+          scheduleList.classList.remove('open');
           accordionHeader.classList.remove('active');
-        };
+        });
+        
         scheduleList.appendChild(div);
       });
     }
-
+    
     document.getElementById('reservationForm').onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
