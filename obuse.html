@@ -9,32 +9,24 @@
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>小布施会場 予約フォーム</h1>
-      <p>元塾講師マサちゃんの自習室</p>
-    </header>
+    <header><h1>小布施会場 予約フォーム</h1></header>
     <div class="card">
       <form id="reservationForm">
         <div class="form-group">
           <label>予約日を選択</label>
           <div id="accordionHeader" class="accordion-header">
             <div id="selectedDateText" style="line-height: 1.4; flex: 1;">タップして日程を選択してください</div>
-            <span class="arrow">▼</span>
+            <span>▼</span>
           </div>
-          <div id="scheduleLoader"></div>
           <div id="scheduleList" class="schedule-list accordion-content"></div>
         </div>
         <div class="form-group"><label>生徒名</label><input type="text" id="studentName" required></div>
         <div class="form-group"><label>保護者名</label><input type="text" id="parentName" required></div>
         <div class="form-group"><label>電話番号</label><input type="tel" id="phone" required></div>
-        <div class="form-group">
-          <label>利用区分</label>
-          <div class="radio-group">
-            <div class="radio-card"><input type="radio" id="d2" name="duration" value="2時間利用" checked><label for="d2">2時間利用</label></div>
-            <div class="radio-card"><input type="radio" id="d1" name="duration" value="1時間利用"><label for="d1">1時間利用</label></div>
-          </div>
-        </div>
-        <input type="hidden" id="selectedDate"><input type="hidden" id="selectedArea"><input type="hidden" id="selectedVenue"><input type="hidden" id="selectedTime">
+        <input type="hidden" id="selectedDate">
+        <input type="hidden" id="selectedArea">
+        <input type="hidden" id="selectedVenue">
+        <input type="hidden" id="selectedTime">
         <button type="submit" class="btn btn-primary" id="submitBtn" disabled>予約を確定する</button>
       </form>
     </div>
@@ -46,64 +38,40 @@
     let lineUserId = "";
     let scheduleData = [];
 
-    const accordionHeader = document.getElementById('accordionHeader');
-    const scheduleList = document.getElementById('scheduleList');
-    accordionHeader.onclick = () => { scheduleList.classList.toggle('open'); accordionHeader.classList.toggle('active'); };
+    document.getElementById('accordionHeader').onclick = () => {
+        document.getElementById('scheduleList').classList.toggle('open');
+        document.getElementById('accordionHeader').classList.toggle('active');
+    };
 
     document.addEventListener('DOMContentLoaded', async () => {
-      loadSavedUserInfo();
-      liff.init({ liffId: LIFF_ID }).then(() => {
-        if (liff.isLoggedIn()) { liff.getProfile().then(p => { lineUserId = p.userId; }); }
-        else { liff.login(); }
-      });
-      showLoader('scheduleLoader');
+      liff.init({ liffId: LIFF_ID }).then(() => { if (liff.isLoggedIn()) liff.getProfile().then(p => lineUserId = p.userId); else liff.login(); });
       const res = await apiFetch('getSchedule');
-      hideLoader('scheduleLoader');
       if (res.status === 'success') { scheduleData = res.data; renderSchedule(); }
     });
 
     function renderSchedule() {
-      scheduleList.innerHTML = '';
-      const now = new Date();
-      const todayTime = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-      const limitTime = todayTime + (14 * 24 * 60 * 60 * 1000);
-
-      const filtered = scheduleData.filter(item => {
-        if (!item['日付']) return false;
-        const d = new Date(item['日付']);
-        if (isNaN(d.getTime())) return false;
-        return (item['エリア'] === AREA_NAME) && (d.getTime() >= todayTime) && (d.getTime() <= limitTime) && (item['休み'] !== '休み');
-      });
-
-      if (filtered.length === 0) {
-        scheduleList.innerHTML = '<p style="text-align:center;padding:1rem;">予約可能な日程がありません。</p>';
-        return;
-      }
+      const list = document.getElementById('scheduleList');
+      list.innerHTML = '';
+      const filtered = scheduleData.filter(item => item['エリア'] === AREA_NAME && item['休み'] !== '休み');
 
       filtered.forEach(item => {
         const d = new Date(item['日付']);
-        const year = d.getFullYear();
-        const month = (d.getMonth() + 1).toString().padStart(2, '0');
-        const date = d.getDate().toString().padStart(2, '0');
-        const displayDate = `${year}/${month}/${date}`;
-        
+        const displayDate = `${d.getMonth()+1}/${d.getDate()}`;
         const div = document.createElement('div');
         div.className = 'schedule-item selectable';
-        div.style.padding = '15px';
-        div.style.borderBottom = '1px solid #ccc';
-        div.innerHTML = `<div>${displayDate} ${item['時間'] || ''}<br><small>場所：${item['会場名']}</small></div>`;
+        div.innerHTML = `<div>${displayDate} ${item['時間']}<br><small>${item['会場名']}</small></div>`;
         
-        div.addEventListener('click', function() {
+        div.addEventListener('click', () => {
+          // item['日付'] を直接使用してrawDate問題を防ぐ
           document.getElementById('selectedDate').value = item['日付'];
           document.getElementById('selectedArea').value = item['エリア'];
           document.getElementById('selectedVenue').value = item['会場名'];
-          document.getElementById('selectedTime').value = item['時間'] || '';
-          document.getElementById('selectedDateText').innerHTML = `<b>${displayDate} ${item['時間'] || ''}</b><br><small>場所：${item['会場名']}</small>`;
+          document.getElementById('selectedTime').value = item['時間'];
+          document.getElementById('selectedDateText').innerHTML = `<b>${displayDate} ${item['時間']}</b><br><small>${item['会場名']}</small>`;
           document.getElementById('submitBtn').disabled = false;
-          scheduleList.classList.remove('open');
-          accordionHeader.classList.remove('active');
+          document.getElementById('scheduleList').classList.remove('open');
         });
-        scheduleList.appendChild(div);
+        list.appendChild(div);
       });
     }
     
@@ -117,17 +85,13 @@
         studentName: document.getElementById('studentName').value,
         parentName: document.getElementById('parentName').value,
         phone: document.getElementById('phone').value,
-        duration: document.querySelector('input[name="duration"]:checked').value,
         date: document.getElementById('selectedDate').value,
         time: document.getElementById('selectedTime').value,
         lineUserId: lineUserId
       });
-      if (res.status === 'success') {
-        document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2><p>LINE通知をご確認ください。</p></div>';
-      } else { alert(res.message || "予約に失敗しました。"); btn.disabled = false; btn.innerText = "予約を確定する"; }
+      if (res.status === 'success') document.body.innerHTML = '<h2>予約が完了しました</h2>';
+      else { alert(res.message); btn.disabled = false; btn.innerText = "予約を確定する"; }
     };
-    function saveUserInfo() { const info = { s: document.getElementById('studentName').value, p: document.getElementById('parentName').value, t: document.getElementById('phone').value }; localStorage.setItem('user_info', JSON.stringify(info)); }
-    function loadSavedUserInfo() { const saved = localStorage.getItem('user_info'); if (saved) { const info = JSON.parse(saved); document.getElementById('studentName').value = info.s || ''; document.getElementById('parentName').value = info.p || ''; document.getElementById('phone').value = info.t || ''; } }
   </script>
 </body>
 </html>
