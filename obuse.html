@@ -129,6 +129,7 @@ function renderSchedule() {
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.innerText = "送信中...";
       const res = await apiFetch('reserve', {
+        area: document.getElementById('selectedArea').value,
         venue: document.getElementById('selectedVenue').value,
         studentName: document.getElementById('studentName').value,
         parentName: document.getElementById('parentName').value,
