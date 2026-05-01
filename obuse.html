@@ -92,7 +92,8 @@
         div.innerHTML = `<div class="schedule-date">${displayDate} ${item['時間'] || ''}<br><span style="font-size:0.8rem;color:#666;">場所：${item['会場名']}</span></div>`;
         div.onclick = () => {
           document.getElementById('selectedDate').value = item['日付'];
-          document.getElementById('selectedVenue').value = `${AREA_NAME} ${item['会場名']}`;
+          document.getElementById('selectedDate').value = item['エリア'];
+          document.getElementById('selectedDate').value = item['会場名'];
           document.getElementById('selectedTime').value = item['時間'] || '';
           document.getElementById('selectedDateText').innerHTML = `<div style="font-weight:bold;color:var(--primary);">${displayDate} ${item['時間'] || ''}</div><div style="font-size:0.85rem;color:#666;">場所：${item['会場名']}</div>`;
           document.getElementById('submitBtn').disabled = false;
