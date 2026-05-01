@@ -84,7 +84,7 @@
       }
 
       filtered.forEach(item => {
-        const d = new Date(item['日付'].replace(/-/g, '/'));
+        const d = new Date(item['日付'].split(' ')[0]);
         const day = ["日","月","火","水","木","金","土"][d.getDay()];
         const displayDate = `${item['日付']}(${day})`;
         const div = document.createElement('div');
