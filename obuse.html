@@ -34,7 +34,7 @@
             <div class="radio-card"><input type="radio" id="d1" name="duration" value="1時間利用"><label for="d1">1時間利用</label></div>
           </div>
         </div>
-        <input type="hidden" id="selectedDate"><input type="hidden" id="selectedVenue"><input type="hidden" id="selectedTime">
+        <input type="hidden" id="selectedDate"><input type="hidden" id="selectedArea"><input type="hidden" id="selectedVenue"><input type="hidden" id="selectedTime">
         <button type="submit" class="btn btn-primary" id="submitBtn" disabled>予約を確定する</button>
       </form>
     </div>
@@ -62,11 +62,8 @@
       if (res.status === 'success') { scheduleData = res.data; renderSchedule(); }
     });
 
-function renderSchedule() {
-      const scheduleList = document.getElementById('scheduleList');
-      const accordionHeader = document.getElementById('accordionHeader');
+    function renderSchedule() {
       scheduleList.innerHTML = '';
-      
       const now = new Date();
       const todayTime = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
       const limitTime = todayTime + (14 * 24 * 60 * 60 * 1000);
@@ -75,10 +72,7 @@ function renderSchedule() {
         if (!item['日付']) return false;
         const d = new Date(item['日付']);
         if (isNaN(d.getTime())) return false;
-        return (item['エリア'] === AREA_NAME) && 
-               (d.getTime() >= todayTime) && 
-               (d.getTime() <= limitTime) && 
-               (item['休み'] !== '休み');
+        return (item['エリア'] === AREA_NAME) && (d.getTime() >= todayTime) && (d.getTime() <= limitTime) && (item['休み'] !== '休み');
       });
 
       if (filtered.length === 0) {
@@ -88,38 +82,27 @@ function renderSchedule() {
 
       filtered.forEach(item => {
         const d = new Date(item['日付']);
-        const day = ["日","月","火","水","木","金","土"][d.getDay()];
-        const displayDate = `${d.getMonth()+1}/${d.getDate()}(${day})`;
+        const year = d.getFullYear();
+        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+        const date = d.getDate().toString().padStart(2, '0');
+        const displayDate = `${year}/${month}/${date}`;
         
-        // divを作成
         const div = document.createElement('div');
         div.className = 'schedule-item selectable';
         div.style.padding = '15px';
         div.style.borderBottom = '1px solid #ccc';
         div.innerHTML = `<div>${displayDate} ${item['時間'] || ''}<br><small>場所：${item['会場名']}</small></div>`;
         
-        // 【重要】確実にクリックを紐付けるために addEventListener を使用
         div.addEventListener('click', function() {
-          alert("日程が選択されました"); // これでテストします
-          
-          // hiddenフィールドに値をセット（※HTMLにこれらIDのinputがある前提）
-          if(document.getElementById('selectedDate')) document.getElementById('selectedDate').value = rawDate;
-          if(document.getElementById('selectedArea')) document.getElementById('selectedArea').value = item['エリア'];
-          if(document.getElementById('selectedVenue')) document.getElementById('selectedVenue').value = item['会場名'];
-          if(document.getElementById('selectedTime')) document.getElementById('selectedTime').value = item['時間'] || '';
-          
-          // 表示の更新
+          document.getElementById('selectedDate').value = item['日付'];
+          document.getElementById('selectedArea').value = item['エリア'];
+          document.getElementById('selectedVenue').value = item['会場名'];
+          document.getElementById('selectedTime').value = item['時間'] || '';
           document.getElementById('selectedDateText').innerHTML = `<b>${displayDate} ${item['時間'] || ''}</b><br><small>場所：${item['会場名']}</small>`;
-          
-          // 送信ボタン有効化
-          const btn = document.getElementById('submitBtn');
-          if(btn) btn.disabled = false;
-          
-          // 閉じる
+          document.getElementById('submitBtn').disabled = false;
           scheduleList.classList.remove('open');
           accordionHeader.classList.remove('active');
         });
-        
         scheduleList.appendChild(div);
       });
     }
