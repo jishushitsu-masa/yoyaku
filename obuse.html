@@ -62,20 +62,31 @@
       if (res.status === 'success') { scheduleData = res.data; renderSchedule(); }
     });
 
-    function renderSchedule() {
+function renderSchedule() {
       scheduleList.innerHTML = '';
       const now = new Date();
+      // 今日の日付で時間を0時にセット
       const todayTime = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
       const limitTime = todayTime + (14 * 24 * 60 * 60 * 1000);
 
       const filtered = scheduleData.filter(item => {
         if (!item['日付']) return false;
-        const d = new Date(item['日付'].replace(/-/g, '/'));
+        
+        // 1. 日付データを文字列に変換して、Dateオブジェクトを作成
+        // どんな形式でGASから来ても、これで確実に日付として解釈されます
+        const d = new Date(item['日付']);
+        
+        // 日付が無効なら除外
+        if (isNaN(d.getTime())) return false;
+
         const targetTime = d.getTime();
+        
+        // 2. フィルタリング（エリア一致、今日以降2週間以内、かつ「休み」ではない）
+        // スプレッドシートの「休み」列に何も入力がない場合は「休みではない」と判定されます
         return (item['エリア'] === AREA_NAME) && 
                (targetTime >= todayTime) && 
                (targetTime <= limitTime) && 
-               (item['休み'] !== '休み'); // スプレッドシートの「休み」列に「休み」と入力されている場合を除外する;
+               (item['休み'] !== '休み');
       });
 
       if (filtered.length === 0) {
@@ -84,19 +95,22 @@
       }
 
       filtered.forEach(item => {
-        const d = new Date(item['日付'].split(' ')[0]);
+        const d = new Date(item['日付']);
         const day = ["日","月","火","水","木","金","土"][d.getDay()];
-        const displayDate = `${item['日付']}(${day})`;
+        const displayDate = `${d.getMonth()+1}/${d.getDate()}(${day})`;
+        
         const div = document.createElement('div');
         div.className = 'schedule-item selectable';
         div.innerHTML = `<div class="schedule-date">${displayDate} ${item['時間'] || ''}<br><span style="font-size:0.8rem;color:#666;">場所：${item['会場名']}</span></div>`;
+        
         div.onclick = () => {
           document.getElementById('selectedDate').value = item['日付'];
           document.getElementById('selectedVenue').value = `${AREA_NAME} ${item['会場名']}`;
           document.getElementById('selectedTime').value = item['時間'] || '';
           document.getElementById('selectedDateText').innerHTML = `<div style="font-weight:bold;color:var(--primary);">${displayDate} ${item['時間'] || ''}</div><div style="font-size:0.85rem;color:#666;">場所：${item['会場名']}</div>`;
           document.getElementById('submitBtn').disabled = false;
-          scheduleList.classList.remove('open'); accordionHeader.classList.remove('active');
+          scheduleList.classList.remove('open'); 
+          accordionHeader.classList.remove('active');
         };
         scheduleList.appendChild(div);
       });
