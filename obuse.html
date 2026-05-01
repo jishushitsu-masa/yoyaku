@@ -103,7 +103,7 @@ function renderSchedule() {
           alert("日程が選択されました"); // これでテストします
           
           // hiddenフィールドに値をセット（※HTMLにこれらIDのinputがある前提）
-          if(document.getElementById('selectedDate')) document.getElementById('selectedDate').value = item['日付'];
+          if(document.getElementById('selectedDate')) document.getElementById('selectedDate').value = rawDate;
           if(document.getElementById('selectedArea')) document.getElementById('selectedArea').value = item['エリア'];
           if(document.getElementById('selectedVenue')) document.getElementById('selectedVenue').value = item['会場名'];
           if(document.getElementById('selectedTime')) document.getElementById('selectedTime').value = item['時間'] || '';
