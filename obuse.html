@@ -23,11 +23,9 @@
           </div>
           <div id="scheduleList" class="schedule-list accordion-content"></div>
         </div>
-        
         <div class="form-group"><label>生徒名</label><input type="text" id="studentName" required></div>
         <div class="form-group"><label>保護者名</label><input type="text" id="parentName" required></div>
         <div class="form-group"><label>電話番号</label><input type="tel" id="phone" required></div>
-        
         <div class="form-group">
           <label>利用区分</label>
           <div class="radio-group" style="display:flex; gap:10px;">
@@ -35,12 +33,10 @@
             <div class="radio-card"><input type="radio" id="d1" name="duration" value="1時間利用"><label for="d1">1時間利用</label></div>
           </div>
         </div>
-
         <input type="hidden" id="selectedDate">
         <input type="hidden" id="selectedArea">
         <input type="hidden" id="selectedVenue">
         <input type="hidden" id="selectedTime">
-        
         <button type="submit" class="btn btn-primary" id="submitBtn" disabled>予約を確定する</button>
       </form>
     </div>
@@ -52,7 +48,6 @@
     let lineUserId = "";
     let scheduleData = [];
 
-    // アコーディオン開閉
     document.getElementById('accordionHeader').onclick = () => {
         document.getElementById('scheduleList').classList.toggle('open');
         document.getElementById('accordionHeader').classList.toggle('active');
@@ -68,7 +63,6 @@
       const list = document.getElementById('scheduleList');
       list.innerHTML = '';
       const filtered = scheduleData.filter(item => item['エリア'] === AREA_NAME && item['休み'] !== '休み');
-
       filtered.forEach(item => {
         const d = new Date(item['日付']);
         const displayDate = `${d.getMonth()+1}/${d.getDate()}`;
@@ -96,7 +90,6 @@
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.innerText = "送信中...";
-      
       const res = await apiFetch('reserve', {
         area: document.getElementById('selectedArea').value,
         venue: document.getElementById('selectedVenue').value,
@@ -108,8 +101,7 @@
         time: document.getElementById('selectedTime').value,
         lineUserId: lineUserId
       });
-      
-      if (res.status === 'success') document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約完了しました</h2></div>';
+      if (res.status === 'success') document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2></div>';
       else { alert(res.message); btn.disabled = false; btn.innerText = "予約を確定する"; }
     };
   </script>
