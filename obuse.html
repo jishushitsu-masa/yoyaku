@@ -68,8 +68,7 @@
       const todayTime = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
       const limitTime = todayTime + (14 * 24 * 60 * 60 * 1000);
 
-      const filtered = scheduleData.filter(item => {
-        if (!item['日付']) return false;
+      const filtered = scheduleData;
         // 日付形式を変換して比較
         const d = new Date(item['日付'].toString().replace(/-/g, '/'));
         const targetTime = d.getTime();
