@@ -67,7 +67,23 @@
     function renderSchedule() {
       const list = document.getElementById('scheduleList');
       list.innerHTML = '';
-      const filtered = scheduleData.filter(item => item['エリア'] === AREA_NAME && item['休み'] !== '休み');
+      
+      // 今日の日付を取得（時間部分は無視）
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // 14日後の日付を計算
+      const limitDate = new Date(today);
+      limitDate.setDate(today.getDate() + 14);
+      
+      // フィルタリング：エリア・休み・14日以内の3条件
+      const filtered = scheduleData.filter(item => {
+        const itemDate = new Date(item['日付']);
+        return item['エリア'] === AREA_NAME && 
+               item['休み'] !== '休み' && 
+               itemDate >= today && 
+               itemDate <= limitDate;
+      });
 
       filtered.forEach(item => {
         const d = new Date(item['日付']);
@@ -76,12 +92,10 @@
         div.className = 'schedule-item selectable';
         div.style.padding = "10px";
         div.style.borderBottom = "1px solid #eee";
-        div.innerHTML = `<div>${displayDate} ${item['時間']}<br><small>場所：${item['会場名']}</small></div>`;
+        div.innerHTML = `<div><b>${displayDate} ${item['時間']}</b><br><small>場所：${item['会場名']}</small></div>`;
         
         div.onclick = () => {
           document.getElementById('selectedDate').value = item['日付'];
-          document.getElementById('selectedArea').value = item['エリア'];
-          document.getElementById('selectedVenue').value = item['会場名'];
           document.getElementById('selectedTime').value = item['時間'];
           document.getElementById('selectedDateText').innerHTML = `<b>${displayDate} ${item['時間']}</b><br><small>場所：${item['会場名']}</small>`;
           document.getElementById('submitBtn').disabled = false;
@@ -90,25 +104,7 @@
         };
         list.appendChild(div);
       });
-    }
-    
-    document.getElementById('reservationForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('submitBtn');
-      btn.disabled = true; btn.innerText = "送信中...";
-      
-      const res = await apiFetch('reserve', {
-        area: document.getElementById('selectedArea').value,
-        venue: document.getElementById('selectedVenue').value,
-        studentName: document.getElementById('studentName').value,
-        parentName: document.getElementById('parentName').value,
-        phone: document.getElementById('phone').value,
-        duration: document.querySelector('input[name="duration"]:checked').value,
-        date: document.getElementById('selectedDate').value,
-        time: document.getElementById('selectedTime').value,
-        lineUserId: lineUserId
-      });
-      
+    }      
       if (res.status === 'success') document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2></div>';
       else { alert(res.message); btn.disabled = false; btn.innerText = "予約を確定する"; }
     };
