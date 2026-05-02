@@ -40,9 +40,6 @@
         <input type="hidden" id="selectedArea"value="おぶせ">
         <input type="hidden" id="selectedVenue">
         <input type="hidden" id="selectedTime">
-        <input type="text" id="studentName" oninput="localStorage.setItem('studentName', this.value)" placeholder="生徒名">
-<input type="text" id="parentName" oninput="localStorage.setItem('parentName', this.value)" placeholder="保護者名">
-<input type="tel" id="phone" oninput="localStorage.setItem('phone', this.value)" placeholder="電話番号">
         
         <button type="submit" class="btn btn-primary" id="submitBtn" disabled>予約を確定する</button>
       </form>
@@ -169,42 +166,4 @@
       if (res.status === 'success') document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2></div>';
       else { alert(res.message); btn.disabled = false; btn.innerText = "予約を確定する"; }
     };
-
-  // 予約フォーム送信時の処理
-  document.getElementById('reservationForm').onsubmit = async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true; btn.innerText = "送信中...";
-    
-    // 送信時にローカルストレージへ保存（保存処理をここに追加）
-    localStorage.setItem('studentName', document.getElementById('studentName').value);
-    localStorage.setItem('parentName', document.getElementById('parentName').value);
-    localStorage.setItem('phone', document.getElementById('phone').value);
-
-    const res = await apiFetch('reserve', {
-      area: document.getElementById('selectedArea').value,
-      venue: document.getElementById('selectedVenue').value,
-      studentName: document.getElementById('studentName').value,
-      parentName: document.getElementById('parentName').value,
-      phone: document.getElementById('phone').value,
-      duration: document.querySelector('input[name="duration"]:checked').value,
-      date: document.getElementById('selectedDate').value,
-      time: document.getElementById('selectedTime').value,
-      lineUserId: lineUserId
-    });
-    if (res.status === 'success') {
-        document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2></div>';
-    } else { 
-        alert(res.message); 
-        btn.disabled = false; 
-        btn.innerText = "予約を確定する"; 
-    }
-  };
-
-  // 画面表示時の自動入力（ここを整理）
-  window.onload = function() {
-    if(localStorage.getItem('studentName')) document.getElementById('studentName').value = localStorage.getItem('studentName');
-    if(localStorage.getItem('parentName')) document.getElementById('parentName').value = localStorage.getItem('parentName');
-    if(localStorage.getItem('phone')) document.getElementById('phone').value = localStorage.getItem('phone');
-  };
   </script>
