@@ -110,6 +110,9 @@
       const today = new Date(); today.setHours(0, 0, 0, 0);
       const limitDate = new Date(today); limitDate.setDate(today.getDate() + 14);
       
+      // 曜日用の配列
+      const days = ['日', '月', '火', '水', '木', '金', '土'];
+      
       const filtered = scheduleData.filter(item => {
         const itemDate = new Date(item['日付']);
         return item['エリア'] === AREA_NAME && itemDate >= today && itemDate <= limitDate;
@@ -118,7 +121,11 @@
       filtered.forEach(item => {
         const isOff = item['休み'] === '休み';
         const d = new Date(item['日付']);
-        const displayDate = `${d.getMonth()+1}/${d.getDate()}`;
+        
+        // 曜日を取得して「(曜)」の形式にする
+        const dayStr = days[d.getDay()];
+        const displayDate = `${d.getMonth()+1}/${d.getDate()}(${dayStr})`;
+        
         const div = document.createElement('div');
         div.className = `schedule-item ${isOff ? 'disabled' : 'selectable'}`;
         div.style.padding = "10px"; div.style.borderBottom = "1px solid #eee";
