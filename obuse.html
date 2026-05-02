@@ -46,71 +46,84 @@
     </div>
   </div>
   <script src="index.js"></script>
-  <script>
+<script>
     const LIFF_ID = "2009652448-yEc3eycW";
     const AREA_NAME = 'おぶせ';
     let lineUserId = "";
     let scheduleData = [];
 
-    // アコーディオン開閉
-    // この関数の中身を以下に差し替えてください
-    document.getElementById('accordionHeader').onclick = () => {
-      const list = document.getElementById('scheduleList');
-      const text = document.getElementById('selectedDateText');
-      
-      // リストが開いていないとき（閉じる操作をする前）のみ処理
-      if (!list.classList.contains('open')) {
-        // 現在の表示を保持して「読み込み中」に変える
-        const originalText = text.innerHTML;
-        text.innerHTML = '読み込み中...';
-        
-        // リストを開く処理（DOM操作後にテキストを戻す）
-        list.classList.add('open');
-        document.getElementById('accordionHeader').classList.add('active');
-        
-        // もしテキストが「読み込み中...」のままなら元に戻す（念のため）
-        setTimeout(() => {
-            if(text.innerHTML === '読み込み中...') text.innerHTML = originalText;
-        }, 500);
-      } else {
-        // 閉じる時の処理
-        list.classList.remove('open');
-        document.getElementById('accordionHeader').classList.remove('active');
+    // 1. LIFFとデータの初期化処理
+    async function initApp() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (liff.isLoggedIn()) {
+          const p = await liff.getProfile();
+          lineUserId = p.userId;
+        } else {
+          liff.login();
+        }
+        // ここで初めてデータを取得し、表示を確定させる
+        const res = await apiFetch('getSchedule');
+        if (res.status === 'success') {
+          scheduleData = res.data;
+          renderSchedule();
+        }
+      } catch (err) {
+        console.error("Initialization failed", err);
       }
+    }
+
+    // 2. アコーディオン開閉＋ローディング処理
+    document.getElementById('accordionHeader').onclick = async () => {
+        const list = document.getElementById('scheduleList');
+        const header = document.getElementById('accordionHeader');
+        const text = document.getElementById('selectedDateText');
+
+        if (!list.classList.contains('open')) {
+            // 開く時の処理
+            if (scheduleData.length === 0) {
+                const originalText = text.innerHTML;
+                text.innerHTML = '読み込み中...';
+                // データが空なら再取得を試みる
+                const res = await apiFetch('getSchedule');
+                if (res.status === 'success') {
+                    scheduleData = res.data;
+                    renderSchedule();
+                }
+                text.innerHTML = originalText;
+            }
+            list.classList.add('open');
+            header.classList.add('active');
+        } else {
+            // 閉じる時の処理
+            list.classList.remove('open');
+            header.classList.remove('active');
+        }
     };
+
+    // 3. アプリ起動
+    initApp();
 
     function renderSchedule() {
       const list = document.getElementById('scheduleList');
       list.innerHTML = '';
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const limitDate = new Date(today); limitDate.setDate(today.getDate() + 14);
       
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const limitDate = new Date(today);
-      limitDate.setDate(today.getDate() + 14);
-      
-      // 全日程を対象にする（休みフラグでの除外をやめる）
       const filtered = scheduleData.filter(item => {
         const itemDate = new Date(item['日付']);
-        return item['エリア'] === AREA_NAME && 
-               itemDate >= today && 
-               itemDate <= limitDate;
+        return item['エリア'] === AREA_NAME && itemDate >= today && itemDate <= limitDate;
       });
 
       filtered.forEach(item => {
-        const isOff = item['休み'] === '休み'; // 休みフラグの判定
+        const isOff = item['休み'] === '休み';
         const d = new Date(item['日付']);
         const displayDate = `${d.getMonth()+1}/${d.getDate()}`;
-        
         const div = document.createElement('div');
-        // 休みなら 'disabled' クラスを追加（後でCSSで定義）
         div.className = `schedule-item ${isOff ? 'disabled' : 'selectable'}`;
-        div.style.padding = "10px";
-        div.style.borderBottom = "1px solid #eee";
-        
-        // 休みなら「（休）」と表示を付ける
+        div.style.padding = "10px"; div.style.borderBottom = "1px solid #eee";
         div.innerHTML = `<div><b>${displayDate} ${item['時間']}</b> ${isOff ? '<small style="color:red;">(休み)</small>' : ''}<br><small>場所：${item['会場名']}</small></div>`;
         
-        // 休みではない場合のみタップできるようにする
         if (!isOff) {
           div.onclick = () => {
             document.getElementById('selectedDate').value = item['日付'];
@@ -122,17 +135,16 @@
             document.getElementById('accordionHeader').classList.remove('active');
           };
         } else {
-          div.style.opacity = "0.5"; // ここでグレーアウトを直接指定
-          div.style.cursor = "not-allowed";
+          div.style.opacity = "0.5"; div.style.cursor = "not-allowed";
         }
         list.appendChild(div);
       });
     }    
+    
     document.getElementById('reservationForm').onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.innerText = "送信中...";
-      
       const res = await apiFetch('reserve', {
         area: document.getElementById('selectedArea').value,
         venue: document.getElementById('selectedVenue').value,
@@ -144,10 +156,7 @@
         time: document.getElementById('selectedTime').value,
         lineUserId: lineUserId
       });
-      
       if (res.status === 'success') document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2></div>';
       else { alert(res.message); btn.disabled = false; btn.innerText = "予約を確定する"; }
     };
   </script>
-</body>
-</html>
