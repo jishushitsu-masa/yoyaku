@@ -54,15 +54,26 @@
 
     // アコーディオン開閉
     document.getElementById('accordionHeader').onclick = () => {
-        document.getElementById('scheduleList').classList.toggle('open');
-        document.getElementById('accordionHeader').classList.toggle('active');
+      const header = document.getElementById('accordionHeader');
+      const list = document.getElementById('scheduleList');
+      const text = document.getElementById('selectedDateText');
+      
+      // まだリストが閉じている時（＝これから開く時）のみ「読み込み中」を表示
+      if (!list.classList.contains('open')) {
+        const originalText = text.innerHTML;
+        text.innerHTML = '読み込み中...';
+        
+        // 少し遅らせてリストを表示し、文字を元に戻す（必要に応じて）
+        setTimeout(() => {
+          list.classList.add('open');
+          header.classList.remove('active');
+          text.innerHTML = originalText;
+        }, 100); 
+      } else {
+        // 閉じる時は即座に閉じる
+        list.classList.remove('open');
+      }
     };
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      liff.init({ liffId: LIFF_ID }).then(() => { if (liff.isLoggedIn()) liff.getProfile().then(p => lineUserId = p.userId); else liff.login(); });
-      const res = await apiFetch('getSchedule');
-      if (res.status === 'success') { scheduleData = res.data; renderSchedule(); }
-    });
 
     function renderSchedule() {
       const list = document.getElementById('scheduleList');
