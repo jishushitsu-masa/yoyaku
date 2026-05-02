@@ -27,6 +27,7 @@
         <div class="form-group"><label>生徒名</label><input type="text" id="studentName" required></div>
         <div class="form-group"><label>保護者名</label><input type="text" id="parentName" required></div>
         <div class="form-group"><label>電話番号</label><input type="tel" id="phone" required></div>
+        
         <div class="form-group">
           <label>利用時間</label>
           <div class="radio-group">
@@ -34,56 +35,41 @@
             <label><input type="radio" name="duration" value="2時間"> 2時間</label>
           </div>
         </div>
-        <input type="hidden" id="selectedArea" value="小布施">
-        <input type="hidden" id="selectedVenue" value="小布施会場">
+
         <input type="hidden" id="selectedDate">
+        <input type="hidden" id="selectedArea">
+        <input type="hidden" id="selectedVenue">
         <input type="hidden" id="selectedTime">
+        
         <button type="submit" id="submitBtn" disabled>予約を確定する</button>
       </form>
     </div>
   </div>
-
   <script src="index.js"></script>
   <script>
-    const AREA_NAME = "小布施";
+    const LIFF_ID = "2009652448-yEc3eycW";
+    const AREA_NAME = 'おぶせ';
     let lineUserId = "";
-    let scheduleData = [];
 
-    // 正しいLIFF IDに修正済みです
-    liff.init({ liffId: "2009652448-yEc3eycW" }).then(() => {
-      if (liff.isLoggedIn()) {
-        liff.getProfile().then(p => { lineUserId = p.userId; });
-        loadSchedule();
-      } else {
-        liff.login();
-      }
-    });
+    // ページ読み込みとLIFF初期化を連結
+    window.onload = async () => {
+        await liff.init({ liffId: LIFF_ID });
+        if (liff.isLoggedIn()) {
+            const profile = await liff.getProfile();
+            lineUserId = profile.userId;
+        } else {
+            liff.login();
+        }
+        // 初期化後にスケジュールをロード
+        const res = await apiFetch('getSchedule');
+        if (res.status === 'success') {
+            renderSchedule(res.data);
+        }
+    };
 
-    async function loadSchedule() {
-      const res = await apiFetch('getSchedule');
-      if (res.status === 'success') {
-        scheduleData = res.data;
-        renderSchedule();
-      }
-    }
-
-    function renderSchedule() {
+    function renderSchedule(data) {
       const list = document.getElementById('scheduleList');
-      list.innerHTML = '';
-      
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const limitDate = new Date(today);
-      limitDate.setDate(today.getDate() + 14);
-      
-      // 14日以内かつエリア・休み条件でフィルタリング
-      const filtered = scheduleData.filter(item => {
-        const itemDate = new Date(item['日付']);
-        return item['エリア'] === AREA_NAME && 
-               item['休み'] !== '休み' && 
-               itemDate >= today && 
-               itemDate <= limitDate;
-      });
+      const filtered = data.filter(item => item['エリア'] === AREA_NAME && item['休み'] !== '休み');
 
       filtered.forEach(item => {
         const d = new Date(item['日付']);
@@ -92,7 +78,7 @@
         div.className = 'schedule-item selectable';
         div.style.padding = "10px";
         div.style.borderBottom = "1px solid #eee";
-        div.innerHTML = `<div><b>${displayDate} ${item['時間']}</b><br><small>場所：${item['会場名']}</small></div>`;
+        div.innerHTML = `<div>${displayDate} ${item['時間']}<br><small>場所：${item['会場名']}</small></div>`;
         
         div.onclick = () => {
           document.getElementById('selectedDate').value = item['日付'];
@@ -109,10 +95,10 @@
     }
 
     document.getElementById('accordionHeader').onclick = () => {
-      document.getElementById('scheduleList').classList.toggle('open');
-      document.getElementById('accordionHeader').classList.toggle('active');
+        document.getElementById('scheduleList').classList.toggle('open');
+        document.getElementById('accordionHeader').classList.toggle('active');
     };
-
+    
     document.getElementById('reservationForm').onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
