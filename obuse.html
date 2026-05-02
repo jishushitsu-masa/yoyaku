@@ -73,6 +73,13 @@
       }
     }
 
+  // 画面を開いた時にローカルストレージから値をセット
+  window.addEventListener('load', () => {
+    if(localStorage.getItem('studentName')) document.getElementById('studentName').value = localStorage.getItem('studentName');
+    if(localStorage.getItem('parentName')) document.getElementById('parentName').value = localStorage.getItem('parentName');
+    if(localStorage.getItem('phone')) document.getElementById('phone').value = localStorage.getItem('phone');
+  });
+  
     // 2. アコーディオン開閉＋ローディング処理
     document.getElementById('accordionHeader').onclick = async () => {
         const list = document.getElementById('scheduleList');
@@ -150,6 +157,10 @@
     
     document.getElementById('reservationForm').onsubmit = async (e) => {
       e.preventDefault();
+      // 【ここに追加】送信時に保存
+    localStorage.setItem('studentName', document.getElementById('studentName').value);
+    localStorage.setItem('parentName', document.getElementById('parentName').value);
+    localStorage.setItem('phone', document.getElementById('phone').value);
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.innerText = "送信中...";
       const res = await apiFetch('reserve', {
