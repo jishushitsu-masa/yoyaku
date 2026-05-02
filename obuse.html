@@ -40,6 +40,9 @@
         <input type="hidden" id="selectedArea"value="おぶせ">
         <input type="hidden" id="selectedVenue">
         <input type="hidden" id="selectedTime">
+        <input type="text" id="studentName" oninput="localStorage.setItem('studentName', this.value)" placeholder="生徒名">
+<input type="text" id="parentName" oninput="localStorage.setItem('parentName', this.value)" placeholder="保護者名">
+<input type="tel" id="phone" oninput="localStorage.setItem('phone', this.value)" placeholder="電話番号">
         
         <button type="submit" class="btn btn-primary" id="submitBtn" disabled>予約を確定する</button>
       </form>
@@ -166,4 +169,11 @@
       if (res.status === 'success') document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2></div>';
       else { alert(res.message); btn.disabled = false; btn.innerText = "予約を確定する"; }
     };
+
+  window.onload = function() {
+  // 保存されたデータがあればフォームにセットする
+  if(localStorage.getItem('studentName')) document.getElementById('studentName').value = localStorage.getItem('studentName');
+  if(localStorage.getItem('parentName')) document.getElementById('parentName').value = localStorage.getItem('parentName');
+  if(localStorage.getItem('phone')) document.getElementById('phone').value = localStorage.getItem('phone');
+};
   </script>
