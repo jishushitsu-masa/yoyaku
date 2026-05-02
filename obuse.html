@@ -65,33 +65,42 @@
     });
 
     function renderSchedule() {
-      const list = document.getElementById('scheduleList');
-      list.innerHTML = '';
-      const filtered = scheduleData.filter(item => item['エリア'] === AREA_NAME && item['休み'] !== '休み');
+      const list = document.getElementById('scheduleList');
+      list.innerHTML = '';
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const limitDate = new Date(today);
+      limitDate.setDate(today.getDate() + 14);
+      
+      const filtered = scheduleData.filter(item => {
+        const itemDate = new Date(item['日付']);
+        return item['エリア'] === AREA_NAME && 
+               item['休み'] !== '休み' && 
+               itemDate >= today && 
+               itemDate <= limitDate;
+      });
 
-      filtered.forEach(item => {
-        const d = new Date(item['日付']);
-        const displayDate = `${d.getMonth()+1}/${d.getDate()}`;
-        const div = document.createElement('div');
-        div.className = 'schedule-item selectable';
-        div.style.padding = "10px";
-        div.style.borderBottom = "1px solid #eee";
-        div.innerHTML = `<div>${displayDate} ${item['時間']}<br><small>場所：${item['会場名']}</small></div>`;
-        
-        div.onclick = () => {
-          document.getElementById('selectedDate').value = item['日付'];
-          document.getElementById('selectedArea').value = item['エリア'];
-          document.getElementById('selectedVenue').value = item['会場名'];
-          document.getElementById('selectedTime').value = item['時間'];
-          document.getElementById('selectedDateText').innerHTML = `<b>${displayDate} ${item['時間']}</b><br><small>場所：${item['会場名']}</small>`;
-          document.getElementById('submitBtn').disabled = false;
-          document.getElementById('scheduleList').classList.remove('open');
-          document.getElementById('accordionHeader').classList.remove('active');
-        };
-        list.appendChild(div);
-      });
-    }
-    
+      filtered.forEach(item => {
+        const d = new Date(item['日付']);
+        const displayDate = `${d.getMonth()+1}/${d.getDate()}`;
+        const div = document.createElement('div');
+        div.className = 'schedule-item selectable';
+        div.style.padding = "10px";
+        div.style.borderBottom = "1px solid #eee";
+        div.innerHTML = `<div><b>${displayDate} ${item['時間']}</b><br><small>場所：${item['会場名']}</small></div>`;
+        
+        div.onclick = () => {
+          document.getElementById('selectedDate').value = item['日付'];
+          document.getElementById('selectedTime').value = item['時間'];
+          document.getElementById('selectedDateText').innerHTML = `<b>${displayDate} ${item['時間']}</b><br><small>場所：${item['会場名']}</small>`;
+          document.getElementById('submitBtn').disabled = false;
+          document.getElementById('scheduleList').classList.remove('open');
+          document.getElementById('accordionHeader').classList.remove('active');
+        };
+        list.appendChild(div);
+      });
+    }    
     document.getElementById('reservationForm').onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
