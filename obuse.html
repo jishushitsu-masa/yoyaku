@@ -53,16 +53,31 @@
     let scheduleData = [];
 
     // アコーディオン開閉
+    // この関数の中身を以下に差し替えてください
     document.getElementById('accordionHeader').onclick = () => {
-        document.getElementById('scheduleList').classList.toggle('open');
-        document.getElementById('accordionHeader').classList.toggle('active');
+      const list = document.getElementById('scheduleList');
+      const text = document.getElementById('selectedDateText');
+      
+      // リストが開いていないとき（閉じる操作をする前）のみ処理
+      if (!list.classList.contains('open')) {
+        // 現在の表示を保持して「読み込み中」に変える
+        const originalText = text.innerHTML;
+        text.innerHTML = '読み込み中...';
+        
+        // リストを開く処理（DOM操作後にテキストを戻す）
+        list.classList.add('open');
+        document.getElementById('accordionHeader').classList.add('active');
+        
+        // もしテキストが「読み込み中...」のままなら元に戻す（念のため）
+        setTimeout(() => {
+            if(text.innerHTML === '読み込み中...') text.innerHTML = originalText;
+        }, 500);
+      } else {
+        // 閉じる時の処理
+        list.classList.remove('open');
+        document.getElementById('accordionHeader').classList.remove('active');
+      }
     };
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      liff.init({ liffId: LIFF_ID }).then(() => { if (liff.isLoggedIn()) liff.getProfile().then(p => lineUserId = p.userId); else liff.login(); });
-      const res = await apiFetch('getSchedule');
-      if (res.status === 'success') { scheduleData = res.data; renderSchedule(); }
-    });
 
     function renderSchedule() {
       const list = document.getElementById('scheduleList');
