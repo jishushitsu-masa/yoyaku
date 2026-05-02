@@ -27,56 +27,53 @@
         <div class="form-group"><label>生徒名</label><input type="text" id="studentName" required></div>
         <div class="form-group"><label>保護者名</label><input type="text" id="parentName" required></div>
         <div class="form-group"><label>電話番号</label><input type="tel" id="phone" required></div>
-        
         <div class="form-group">
-          <label>利用区分</label>
-          <div class="radio-group" style="display:flex; gap:10px;">
-            <div class="radio-card"><input type="radio" id="d2" name="duration" value="2時間利用" checked><label for="d2">2時間利用</label></div>
-            <div class="radio-card"><input type="radio" id="d1" name="duration" value="1時間利用"><label for="d1">1時間利用</label></div>
+          <label>利用時間</label>
+          <div class="radio-group">
+            <label><input type="radio" name="duration" value="1時間" checked> 1時間</label>
+            <label><input type="radio" name="duration" value="2時間"> 2時間</label>
           </div>
         </div>
-
+        <input type="hidden" id="selectedArea" value="小布施">
+        <input type="hidden" id="selectedVenue" value="小布施会場">
         <input type="hidden" id="selectedDate">
-        <input type="hidden" id="selectedArea">
-        <input type="hidden" id="selectedVenue">
         <input type="hidden" id="selectedTime">
-        
-        <button type="submit" class="btn btn-primary" id="submitBtn" disabled>予約を確定する</button>
+        <button type="submit" id="submitBtn" disabled>予約を確定する</button>
       </form>
     </div>
   </div>
+
   <script src="index.js"></script>
   <script>
     const LIFF_ID = "2009652448-yEc3eycW";
-    const AREA_NAME = 'おぶせ';
+    const AREA_NAME = "小布施";
     let lineUserId = "";
     let scheduleData = [];
 
-    // アコーディオン開閉
-    document.getElementById('accordionHeader').onclick = () => {
-        document.getElementById('scheduleList').classList.toggle('open');
-        document.getElementById('accordionHeader').classList.toggle('active');
-    };
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      liff.init({ liffId: LIFF_ID }).then(() => { if (liff.isLoggedIn()) liff.getProfile().then(p => lineUserId = p.userId); else liff.login(); });
+    window.onload = async () => {
+      await liff.init({ liffId: LIFF_ID });
+      if (liff.isLoggedIn()) {
+        const p = await liff.getProfile();
+        lineUserId = p.userId;
+      } else {
+        liff.login();
+      }
       const res = await apiFetch('getSchedule');
-      if (res.status === 'success') { scheduleData = res.data; renderSchedule(); }
-    });
+      if (res.status === 'success') {
+        scheduleData = res.data;
+        renderSchedule();
+      }
+    };
 
     function renderSchedule() {
       const list = document.getElementById('scheduleList');
       list.innerHTML = '';
       
-      // 今日の日付を取得（時間部分は無視）
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
-      // 14日後の日付を計算
       const limitDate = new Date(today);
       limitDate.setDate(today.getDate() + 14);
       
-      // フィルタリング：エリア・休み・14日以内の3条件
       const filtered = scheduleData.filter(item => {
         const itemDate = new Date(item['日付']);
         return item['エリア'] === AREA_NAME && 
@@ -104,7 +101,30 @@
         };
         list.appendChild(div);
       });
-    }      
+    }
+
+    document.getElementById('accordionHeader').onclick = () => {
+      document.getElementById('scheduleList').classList.toggle('open');
+      document.getElementById('accordionHeader').classList.remove('active');
+    };
+
+    document.getElementById('reservationForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true; btn.innerText = "送信中...";
+      
+      const res = await apiFetch('reserve', {
+        area: document.getElementById('selectedArea').value,
+        venue: document.getElementById('selectedVenue').value,
+        studentName: document.getElementById('studentName').value,
+        parentName: document.getElementById('parentName').value,
+        phone: document.getElementById('phone').value,
+        duration: document.querySelector('input[name="duration"]:checked').value,
+        date: document.getElementById('selectedDate').value,
+        time: document.getElementById('selectedTime').value,
+        lineUserId: lineUserId
+      });
+      
       if (res.status === 'success') document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2></div>';
       else { alert(res.message); btn.disabled = false; btn.innerText = "予約を確定する"; }
     };
