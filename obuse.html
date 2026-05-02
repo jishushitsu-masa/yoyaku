@@ -29,10 +29,10 @@
         <div class="form-group"><label>電話番号</label><input type="tel" id="phone" required></div>
         
         <div class="form-group">
-          <label>利用時間</label>
-          <div class="radio-group">
-            <label><input type="radio" name="duration" value="1時間" checked> 1時間</label>
-            <label><input type="radio" name="duration" value="2時間"> 2時間</label>
+          <label>利用区分</label>
+          <div class="radio-group" style="display:flex; gap:10px;">
+            <div class="radio-card"><input type="radio" id="d2" name="duration" value="2時間利用" checked><label for="d2">2時間利用</label></div>
+            <div class="radio-card"><input type="radio" id="d1" name="duration" value="1時間利用"><label for="d1">1時間利用</label></div>
           </div>
         </div>
 
@@ -41,7 +41,7 @@
         <input type="hidden" id="selectedVenue">
         <input type="hidden" id="selectedTime">
         
-        <button type="submit" id="submitBtn" disabled>予約を確定する</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn" disabled>予約を確定する</button>
       </form>
     </div>
   </div>
@@ -50,26 +50,24 @@
     const LIFF_ID = "2009652448-yEc3eycW";
     const AREA_NAME = 'おぶせ';
     let lineUserId = "";
+    let scheduleData = [];
 
-    // ページ読み込みとLIFF初期化を連結
-    window.onload = async () => {
-        await liff.init({ liffId: LIFF_ID });
-        if (liff.isLoggedIn()) {
-            const profile = await liff.getProfile();
-            lineUserId = profile.userId;
-        } else {
-            liff.login();
-        }
-        // 初期化後にスケジュールをロード
-        const res = await apiFetch('getSchedule');
-        if (res.status === 'success') {
-            renderSchedule(res.data);
-        }
+    // アコーディオン開閉
+    document.getElementById('accordionHeader').onclick = () => {
+        document.getElementById('scheduleList').classList.toggle('open');
+        document.getElementById('accordionHeader').classList.toggle('active');
     };
 
-    function renderSchedule(data) {
+    document.addEventListener('DOMContentLoaded', async () => {
+      liff.init({ liffId: LIFF_ID }).then(() => { if (liff.isLoggedIn()) liff.getProfile().then(p => lineUserId = p.userId); else liff.login(); });
+      const res = await apiFetch('getSchedule');
+      if (res.status === 'success') { scheduleData = res.data; renderSchedule(); }
+    });
+
+    function renderSchedule() {
       const list = document.getElementById('scheduleList');
-      const filtered = data.filter(item => item['エリア'] === AREA_NAME && item['休み'] !== '休み');
+      list.innerHTML = '';
+      const filtered = scheduleData.filter(item => item['エリア'] === AREA_NAME && item['休み'] !== '休み');
 
       filtered.forEach(item => {
         const d = new Date(item['日付']);
@@ -93,11 +91,6 @@
         list.appendChild(div);
       });
     }
-
-    document.getElementById('accordionHeader').onclick = () => {
-        document.getElementById('scheduleList').classList.toggle('open');
-        document.getElementById('accordionHeader').classList.toggle('active');
-    };
     
     document.getElementById('reservationForm').onsubmit = async (e) => {
       e.preventDefault();
