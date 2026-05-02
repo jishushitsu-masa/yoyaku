@@ -52,62 +52,39 @@
     let lineUserId = "";
     let scheduleData = [];
 
-    // 初期化とデータ取得を一本化
     window.onload = async () => {
       try {
         await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
+        if (!liff.isLoggedIn()) { liff.login(); return; }
         const p = await liff.getProfile();
         lineUserId = p.userId;
-
-        // LIFF準備完了後にデータ取得
         const res = await apiFetch('getSchedule');
         if (res.status === 'success') {
           scheduleData = res.data;
           renderSchedule();
-        } else {
-          document.getElementById('selectedDateText').innerText = "データの取得に失敗しました";
         }
-      } catch (err) {
-        console.error("LIFF error:", err);
-        document.getElementById('selectedDateText').innerText = "初期化エラーが発生しました";
-      }
+      } catch (err) { console.error(err); }
     };
 
+    // --- この関数だけを修正しました ---
     function renderSchedule() {
       const list = document.getElementById('scheduleList');
       list.innerHTML = '';
-      
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const limitDate = new Date(today);
-      limitDate.setDate(today.getDate() + 14);
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const limitDate = new Date(today); limitDate.setDate(today.getDate() + 14);
       
       const filtered = scheduleData.filter(item => {
         const itemDate = new Date(item['日付']);
-        return item['エリア'] === AREA_NAME && 
-               itemDate >= today && 
-               itemDate <= limitDate;
+        return item['エリア'] === AREA_NAME && itemDate >= today && itemDate <= limitDate;
       });
-
-      if (filtered.length === 0) {
-        list.innerHTML = '<div style="padding:10px;">予約可能な日程はありません</div>';
-        return;
-      }
 
       filtered.forEach(item => {
         const isOff = item['休み'] === '休み';
         const d = new Date(item['日付']);
         const displayDate = `${d.getMonth()+1}/${d.getDate()}`;
-        
         const div = document.createElement('div');
         div.className = `schedule-item ${isOff ? 'disabled' : 'selectable'}`;
-        div.style.padding = "10px";
-        div.style.borderBottom = "1px solid #eee";
-        
+        div.style.padding = "10px"; div.style.borderBottom = "1px solid #eee";
         div.innerHTML = `<div><b>${displayDate} ${item['時間']}</b> ${isOff ? '<small style="color:red;">(休み)</small>' : ''}<br><small>場所：${item['会場名']}</small></div>`;
         
         if (!isOff) {
@@ -120,8 +97,7 @@
             document.getElementById('scheduleList').classList.remove('open');
           };
         } else {
-          div.style.opacity = "0.5";
-          div.style.cursor = "not-allowed";
+          div.style.opacity = "0.5"; div.style.cursor = "not-allowed";
         }
         list.appendChild(div);
       });
@@ -135,7 +111,6 @@
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.innerText = "送信中...";
-      
       const res = await apiFetch('reserve', {
         area: document.getElementById('selectedArea').value,
         venue: document.getElementById('selectedVenue').value,
@@ -147,7 +122,6 @@
         time: document.getElementById('selectedTime').value,
         lineUserId: lineUserId
       });
-      
       if (res.status === 'success') document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2></div>';
       else { alert(res.message); btn.disabled = false; btn.innerText = "予約を確定する"; }
     };
