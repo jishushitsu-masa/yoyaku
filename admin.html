@@ -274,24 +274,8 @@
       <h1 style="margin:0; text-align:center; flex:1; font-size:1.15rem; font-weight:bold;">👥 生徒名簿</h1>
       <div style="width:60px;"></div>
     </header>
-    <div class="container-large" style="padding:1rem 10px;">
-      <div class="card">
-        <div class="table-responsive">
-          <table>
-            <thead>
-              <tr>
-                <th>生徒名</th>
-                <th>学年</th>
-                <th>中学校</th>
-                <th>志望校</th>
-              </tr>
-            </thead>
-            <tbody id="studentsTableBody">
-              <!-- Data will be loaded here -->
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div class="container-large" style="padding:1rem 10px;" id="studentsScreenBody">
+      <!-- カード形式で生徒一覧が入ります -->
     </div>
   </div>
 
@@ -602,8 +586,8 @@
     }
 
     function renderStudents() {
-      const tbody = document.getElementById('studentsTableBody');
-      tbody.innerHTML = '';
+      const container = document.getElementById('studentsScreenBody');
+      container.innerHTML = '';
       
       const sorted = [...adminData.students].sort((a, b) => {
         const fA = a['ふりがな'] || a['生徒名'] || "";
@@ -611,16 +595,51 @@
         return fA.localeCompare(fB, 'ja');
       });
 
+      if (sorted.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-muted);">生徒データがありません</div>';
+        return;
+      }
+
       sorted.forEach(s => {
         if (!s['生徒名']) return;
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><span class="student-link" onclick="openStudentRecord('${s['生徒名']}')">${s['生徒名']}</span></td>
-          <td>${s['現在の学年'] || ''}</td>
-          <td>${s['中学校名'] || ''}</td>
-          <td>${s['志望校1'] || s['志望校'] || ''}</td>
+        const name = s['生徒名'] || '';
+        const furigana = s['ふりがな'] || '';
+        const grade = s['現在の学年'] || s['登録時の学年'] || '-';
+        const gender = s['性別'] || '';
+        const school = s['中学校名'] || '中学校未登録';
+
+        let genderBadge = '';
+        if (gender === '男' || gender === '男子') {
+          genderBadge = '<span style="display:inline-block; font-size:0.7rem; color:#2563EB; background:#DBEAFE; padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle;">男子</span>';
+        } else if (gender === '女' || gender === '女子') {
+          genderBadge = '<span style="display:inline-block; font-size:0.7rem; color:#DB2777; background:#FCE7F3; padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle;">女子</span>';
+        } else if (gender) {
+          genderBadge = `<span style="display:inline-block; font-size:0.7rem; color:#4B5563; background:#F3F4F6; padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle;">${gender}</span>`;
+        }
+
+        const card = document.createElement('div');
+        card.style.cssText = "background:white; border:1px solid var(--border); border-radius:8px; padding:1rem; margin-bottom:0.8rem; box-shadow:0 2px 4px rgba(0,0,0,0.05); cursor:pointer; transition:background 0.2s;";
+        card.onmouseover = () => card.style.background = "#F8FAFC";
+        card.onmouseout = () => card.style.background = "white";
+        card.onclick = () => openStudentRecord(name);
+        
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div style="flex:1;">
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">${furigana}</div>
+              <div style="font-size:1.15rem; font-weight:bold; margin-bottom:6px; color:var(--text-main); display:flex; align-items:center;">
+                ${name} ${genderBadge}
+              </div>
+              <div style="font-size:0.85rem; color:var(--text-muted);">
+                🏫 ${school}
+              </div>
+            </div>
+            <div style="text-align:right; margin-left:10px;">
+              <span style="display:inline-block; background:#EEF2FF; color:var(--primary); border:1px solid #C7D2FE; padding:4px 10px; border-radius:6px; font-size:0.9rem; font-weight:bold;">${grade}</span>
+            </div>
+          </div>
         `;
-        tbody.appendChild(tr);
+        container.appendChild(card);
       });
     }
 
