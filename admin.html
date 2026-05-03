@@ -386,11 +386,23 @@
       }
 
       document.getElementById('calendarLoader').classList.remove('hidden');
-      const res = await apiFetch('getAdminData');
+      
+      // GASの連続リクエストによるエラー（CORS/リダイレクト失敗）を防ぐため少し待機
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      let res = await apiFetch('getAdminData');
+      if (res.status !== 'success') {
+        // エラーの場合は1秒待って1度だけリトライ
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        res = await apiFetch('getAdminData');
+      }
+
       document.getElementById('calendarLoader').classList.add('hidden');
       if (res.status === 'success') {
         adminData = res;
         renderCalendar();
+      } else {
+        alert("データの読み込みに失敗しました。右上の「更新」ボタンを押して再読み込みしてください。");
       }
     }
 
