@@ -106,6 +106,7 @@
 
     document.getElementById('reservationForm').onsubmit = async (e) => {
       e.preventDefault();
+      saveUserInfo();
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.innerText = "送信中...";
       const res = await apiFetch('reserve', {
@@ -123,8 +124,16 @@
         document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2><p>LINE通知をご確認ください。</p></div>';
       } else { alert(res.message || "予約に失敗しました。"); btn.disabled = false; btn.innerText = "予約を確定する"; }
     };
-    function saveUserInfo() { const info = { s: document.getElementById('studentName').value, p: document.getElementById('parentName').value, t: document.getElementById('phone').value }; localStorage.setItem('user_info', JSON.stringify(info)); }
-    function loadSavedUserInfo() { const saved = localStorage.getItem('user_info'); if (saved) { const info = JSON.parse(saved); document.getElementById('studentName').value = info.s || ''; document.getElementById('parentName').value = info.p || ''; document.getElementById('phone').value = info.t || ''; } }
+    function saveUserInfo() {
+      localStorage.setItem('studentName', document.getElementById('studentName').value);
+      localStorage.setItem('parentName', document.getElementById('parentName').value);
+      localStorage.setItem('phone', document.getElementById('phone').value);
+    }
+    function loadSavedUserInfo() {
+      if(localStorage.getItem('studentName')) document.getElementById('studentName').value = localStorage.getItem('studentName');
+      if(localStorage.getItem('parentName')) document.getElementById('parentName').value = localStorage.getItem('parentName');
+      if(localStorage.getItem('phone')) document.getElementById('phone').value = localStorage.getItem('phone');
+    }
   </script>
 </body>
 </html>
