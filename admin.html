@@ -259,13 +259,23 @@
         <!-- Days will be generated here -->
       </div>
 
-      <button id="toggleStudentsBtn" style="display:flex; justify-content:center; align-items:center; gap:0.5rem; width:calc(100% - 20px); margin:0 10px 2rem 10px; background:white; color:#1E3A8A; border:2px solid #1E3A8A; border-radius:8px; padding:1rem; font-size:1.1rem; font-weight:bold; cursor:pointer; box-sizing:border-box;" onclick="toggleStudents()">
+      <button id="toggleStudentsBtn" style="display:flex; justify-content:center; align-items:center; gap:0.5rem; width:calc(100% - 20px); margin:0 10px 2rem 10px; background:white; color:#1E3A8A; border:2px solid #1E3A8A; border-radius:8px; padding:1rem; font-size:1.1rem; font-weight:bold; cursor:pointer; box-sizing:border-box;" onclick="showStudentsScreen()">
         👥 生徒名簿を表示・管理
       </button>
+    </div>
+  </div>
 
-      <!-- 生徒名簿タブ -->
-      <div id="tab-students" class="card hidden" style="margin:0 10px;">
-        <h2 style="margin-top:0;">生徒一覧</h2>
+  <!-- 生徒名簿画面 -->
+  <div id="studentsScreen" class="hidden">
+    <header class="app-header" style="background:#1E3A8A; color:white; padding:1rem 0.5rem; display:flex; justify-content:space-between; align-items:center;">
+      <div style="width:60px; text-align:left;">
+        <button style="background:transparent; border:none; color:white; font-size:1rem; cursor:pointer; padding:0; white-space:nowrap;" onclick="closeStudentsScreen()">◀ 戻る</button>
+      </div>
+      <h1 style="margin:0; text-align:center; flex:1; font-size:1.15rem; font-weight:bold;">👥 生徒名簿</h1>
+      <div style="width:60px;"></div>
+    </header>
+    <div class="container-large" style="padding:1rem 10px;">
+      <div class="card">
         <div class="table-responsive">
           <table>
             <thead>
@@ -491,19 +501,20 @@
       if (res.status === 'success') {
         adminData = res;
         renderCalendar();
-        if (!document.getElementById('tab-students').classList.contains('hidden')) renderStudents();
+        if (!document.getElementById('studentsScreen').classList.contains('hidden')) renderStudents();
       }
     }
 
-    function toggleStudents() {
-      const el = document.getElementById('tab-students');
-      if (el.classList.contains('hidden')) {
-        el.classList.remove('hidden');
-        renderStudents();
-        el.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        el.classList.add('hidden');
-      }
+    function showStudentsScreen() {
+      document.getElementById('dashboard').classList.add('hidden');
+      document.getElementById('studentsScreen').classList.remove('hidden');
+      renderStudents();
+      window.scrollTo(0, 0);
+    }
+
+    function closeStudentsScreen() {
+      document.getElementById('studentsScreen').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
     }
 
     function showParticipants(dateStr, area, reservations) {
@@ -693,7 +704,7 @@
         const idx = adminData.students.findIndex(s => s['生徒名'] === currentStudentName);
         if (idx !== -1) {
           adminData.students[idx] = { ...adminData.students[idx], ...studentData };
-          if (!document.getElementById('tab-students').classList.contains('hidden')) renderStudents();
+          if (!document.getElementById('studentsScreen').classList.contains('hidden')) renderStudents();
         }
       } else {
         alert(res.message || '保存に失敗しました');
