@@ -26,16 +26,18 @@
       background-color: #fff;
       min-height: 100px;
       padding: 10px;
+      position: relative;
     }
     .calendar-day.other-month { background-color: #F9FAFB; color: var(--text-muted); }
     .calendar-date { font-weight: bold; margin-bottom: 5px; }
     
     .event-badge {
       font-size: 0.75rem;
-      padding: 2px 6px;
+      padding: 4px 6px;
       border-radius: 4px;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
       color: #fff;
+      cursor: pointer;
     }
     .event-obuse { background-color: var(--primary); }
     .event-suzaka { background-color: var(--secondary); }
@@ -44,6 +46,24 @@
     #loginScreen {
       max-width: 400px;
       margin: 10vh auto;
+    }
+
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white; padding: 2rem; border-radius: var(--radius);
+      width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;
+    }
+    .modal-close {
+      float: right; font-size: 1.5rem; cursor: pointer; border: none; background: none;
+    }
+    .student-link {
+      color: var(--primary); cursor: pointer; text-decoration: underline;
     }
   </style>
 </head>
@@ -67,26 +87,27 @@
     <header style="display: flex; justify-content: space-between; align-items: center; text-align: left;">
       <div>
         <h1 style="margin-bottom: 0;">自習室 管理ダッシュボード</h1>
+        <p id="role-badge" style="display:inline-block; background:#eee; padding:2px 8px; border-radius:4px; font-size:0.8rem; margin-top:5px;"></p>
       </div>
       <button class="btn btn-secondary" style="width: auto; padding: 0.5rem 1rem;" onclick="logout()">ログアウト</button>
     </header>
 
     <div class="nav-tabs">
       <div class="nav-tab active" data-target="tab-calendar">スケジュール</div>
-      <div class="nav-tab" data-target="tab-students">生徒名簿・カルテ</div>
-      <div class="nav-tab" data-target="tab-tests">テスト結果入力</div>
+      <div class="nav-tab" data-target="tab-students">生徒一覧</div>
     </div>
 
     <!-- カレンダータブ -->
     <div id="tab-calendar" class="tab-content card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h2>カレンダー (日曜始まり)</h2>
+        <h2>カレンダー</h2>
         <div>
           <button class="btn btn-secondary" style="width: auto; padding: 0.5rem;" onclick="prevMonth()">&lt; 前月</button>
           <span id="currentMonthYear" style="margin: 0 1rem; font-weight: bold; font-size: 1.2rem;"></span>
           <button class="btn btn-secondary" style="width: auto; padding: 0.5rem;" onclick="nextMonth()">次月 &gt;</button>
         </div>
       </div>
+      <div id="calendarLoader" class="hidden" style="text-align:center; padding:1rem;">読み込み中...</div>
       <div class="calendar" id="calendarGrid">
         <div class="calendar-header sun">日</div>
         <div class="calendar-header">月</div>
@@ -101,11 +122,7 @@
 
     <!-- 生徒名簿タブ -->
     <div id="tab-students" class="tab-content card hidden">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h2>生徒名簿一覧</h2>
-        <button class="btn btn-primary" style="width: auto; padding: 0.5rem 1rem;" onclick="loadStudents()">データ更新</button>
-      </div>
-      <div id="studentsLoader" class="hidden"></div>
+      <h2>生徒一覧</h2>
       <div class="table-responsive">
         <table>
           <thead>
@@ -114,7 +131,6 @@
               <th>学年</th>
               <th>中学校</th>
               <th>志望校</th>
-              <th>アクション</th>
             </tr>
           </thead>
           <tbody id="studentsTableBody">
@@ -123,256 +139,256 @@
         </table>
       </div>
     </div>
+  </div>
 
-    <!-- テスト結果入力タブ -->
-    <div id="tab-tests" class="tab-content card hidden">
-      <h2>テスト結果入力</h2>
-      <p style="color: var(--text-muted); margin-bottom: 1.5rem;">5教科の点数を入力すると合計点が自動計算されます。</p>
-      
-      <form id="testForm">
-        <div class="dashboard-grid">
-          <div>
-            <div class="form-group">
-              <label for="testStudent">生徒名</label>
-              <input type="text" id="testStudent" required>
-            </div>
-            <div style="display: flex; gap: 1rem;">
-              <div class="form-group" style="flex: 1;">
-                <label for="testGrade">学年 (1-3)</label>
-                <input type="number" id="testGrade" min="1" max="3" required>
-              </div>
-              <div class="form-group" style="flex: 1;">
-                <label for="testTerm">学期 (1-3)</label>
-                <input type="number" id="testTerm" min="1" max="3" required>
-              </div>
-              <div class="form-group" style="flex: 1;">
-                <label for="testType">種類 (1:中間, 2:期末)</label>
-                <input type="number" id="testType" min="1" max="2" required>
-              </div>
-            </div>
-          </div>
-          <div style="background-color: #F9FAFB; padding: 1.5rem; border-radius: var(--radius);">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-              <div class="form-group"><label>国語</label><input type="number" class="score-input" id="scoreJp" min="0" max="100" required></div>
-              <div class="form-group"><label>数学</label><input type="number" class="score-input" id="scoreMath" min="0" max="100" required></div>
-              <div class="form-group"><label>英語</label><input type="number" class="score-input" id="scoreEn" min="0" max="100" required></div>
-              <div class="form-group"><label>理科</label><input type="number" class="score-input" id="scoreSci" min="0" max="100" required></div>
-              <div class="form-group"><label>社会</label><input type="number" class="score-input" id="scoreSoc" min="0" max="100" required></div>
-            </div>
-            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 1.2rem; font-weight: bold; text-align: right;">
-              合計点: <span id="scoreTotal" style="color: var(--primary); font-size: 1.5rem;">0</span> 点
-            </div>
-          </div>
+  <!-- モーダル: 参加者一覧 -->
+  <div id="participantsModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('participantsModal')">×</button>
+      <h2 id="modalDateTitle" style="margin-bottom: 1rem;">参加者一覧</h2>
+      <ul id="participantsList" style="list-style:none; padding:0;"></ul>
+    </div>
+  </div>
+
+  <!-- モーダル: 生徒カルテ -->
+  <div id="studentModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('studentModal')">×</button>
+      <h2 style="margin-bottom: 1rem;">生徒カルテ: <span id="recordStudentName"></span></h2>
+      <form id="studentRecordForm">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group"><label>性別</label><select name="性別"><option value="">選択</option><option value="男">男</option><option value="女">女</option><option value="その他">その他</option></select></div>
+          <div class="form-group"><label>中学校名</label><input type="text" name="中学校名"></div>
+          <div class="form-group"><label>学年</label><input type="text" name="現在の学年"></div>
+          <div class="form-group"><label>部活動・習い事</label><input type="text" name="部活動・習い事"></div>
+          <div class="form-group"><label>志望校</label><input type="text" name="志望校"></div>
+          <div class="form-group"><label>得意科目</label><input type="text" name="得意科目"></div>
+          <div class="form-group"><label>苦手科目</label><input type="text" name="苦手科目"></div>
         </div>
-        <div id="testMessageArea" class="hidden"></div>
-        <button type="submit" class="btn btn-primary" id="testSubmitBtn" style="margin-top: 1.5rem;">結果を保存する</button>
+        
+        <h3 style="margin-top:1.5rem; margin-bottom:0.5rem; border-bottom:1px solid #ccc;">過去の定期テスト結果</h3>
+        <div style="display:flex; gap: 0.5rem;">
+          <div class="form-group" style="flex:1;"><label>国語</label><input type="number" name="国語"></div>
+          <div class="form-group" style="flex:1;"><label>数学</label><input type="number" name="数学"></div>
+          <div class="form-group" style="flex:1;"><label>英語</label><input type="number" name="英語"></div>
+          <div class="form-group" style="flex:1;"><label>理科</label><input type="number" name="理科"></div>
+          <div class="form-group" style="flex:1;"><label>社会</label><input type="number" name="社会"></div>
+        </div>
+
+        <div id="saveRecordMsg" class="hidden" style="margin-top:1rem;"></div>
+        <button type="submit" class="btn btn-primary" id="saveRecordBtn" style="margin-top: 1.5rem;">保存する</button>
       </form>
     </div>
-
   </div>
 
   <script src="index.js"></script>
   <script>
     let currentDate = new Date();
     let authToken = sessionStorage.getItem('adminToken');
+    let adminData = { schedule: [], reservations: [], students: [] };
+    let currentStudentName = "";
 
     document.addEventListener('DOMContentLoaded', () => {
-      // ログイン状態チェック
-      if (authToken) {
-        showDashboard();
-      }
+      if (authToken) showDashboard();
 
-      // タブ切り替え
       document.querySelectorAll('.nav-tab').forEach(tab => {
         tab.addEventListener('click', () => {
           document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
           document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-          
           tab.classList.add('active');
           document.getElementById(tab.dataset.target).classList.remove('hidden');
-
-          if (tab.dataset.target === 'tab-students') {
-            loadStudents();
-          } else if (tab.dataset.target === 'tab-calendar') {
-            renderCalendar();
-          }
+          if (tab.dataset.target === 'tab-students') renderStudents();
         });
-      });
-
-      // 合計点自動計算
-      document.querySelectorAll('.score-input').forEach(input => {
-        input.addEventListener('input', calculateTotal);
       });
     });
 
-    // --- 認証系 ---
     document.getElementById('loginBtn').addEventListener('click', async () => {
       const pwd = document.getElementById('password').value;
       const btn = document.getElementById('loginBtn');
-      btn.textContent = '確認中...';
-      btn.disabled = true;
-
+      btn.textContent = '確認中...'; btn.disabled = true;
       const result = await apiFetch('login', { password: pwd });
-      
       if (result.status === 'success') {
         sessionStorage.setItem('adminToken', result.token);
         authToken = result.token;
         showDashboard();
       } else {
-        showMessage('loginMessage', result.message, true);
-        btn.textContent = 'ログイン';
-        btn.disabled = false;
+        alert(result.message);
+        btn.textContent = 'ログイン'; btn.disabled = false;
       }
     });
 
-    function logout() {
-      sessionStorage.removeItem('adminToken');
-      location.reload();
-    }
+    function logout() { sessionStorage.removeItem('adminToken'); location.reload(); }
 
-    function showDashboard() {
+    async function showDashboard() {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('dashboard').classList.remove('hidden');
-      renderCalendar(); // 初期表示
+      document.getElementById('role-badge').textContent = (authToken === 'master') ? '権限: マスター (編集可)' : '権限: 閲覧専用';
+      if (authToken !== 'master') document.getElementById('saveRecordBtn').style.display = 'none';
+
+      document.getElementById('calendarLoader').classList.remove('hidden');
+      const res = await apiFetch('getAdminData');
+      document.getElementById('calendarLoader').classList.add('hidden');
+      if (res.status === 'success') {
+        adminData = res;
+        renderCalendar();
+      }
     }
 
-    // --- カレンダー機能 ---
     function renderCalendar() {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
       document.getElementById('currentMonthYear').textContent = `${year}年 ${month + 1}月`;
-      
       const grid = document.getElementById('calendarGrid');
-      // ヘッダーを残してクリア
-      while (grid.children.length > 7) {
-        grid.removeChild(grid.lastChild);
-      }
+      while (grid.children.length > 7) grid.removeChild(grid.lastChild);
 
-      const firstDay = new Date(year, month, 1).getDay(); // 0: Sun, 6: Sat
+      const firstDay = new Date(year, month, 1).getDay();
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       
-      // 前月の埋め草
       for (let i = 0; i < firstDay; i++) {
         const div = document.createElement('div');
         div.className = 'calendar-day other-month';
         grid.appendChild(div);
       }
 
-      // 当月の日付
       for (let i = 1; i <= daysInMonth; i++) {
         const div = document.createElement('div');
         div.className = 'calendar-day';
         div.innerHTML = `<div class="calendar-date">${i}</div>`;
         
-        // （仮）スケジュールのモック表示。実際には getSchedule API 等から取ったデータを配置する
-        // 今回は仕様書の簡略化のためダミーイベント
-        if (i === 15) {
-          div.innerHTML += `<div class="event-badge event-obuse">小布施 17:00-</div>`;
-        }
+        const dateStr = `${year}/${('0'+(month+1)).slice(-2)}/${('0'+i).slice(-2)}`;
         
+        // 当日のスケジュールを検索
+        const todaysSchedules = adminData.schedule.filter(s => {
+          if (!s['日付']) return false;
+          const sDate = String(s['日付']).split('T')[0].replace(/-/g, '/');
+          return sDate === dateStr && s['休み'] !== '休み';
+        });
+
+        todaysSchedules.forEach(sch => {
+          const area = sch['エリア'];
+          // 該当エリア・該当日の予約者を抽出
+          const reservations = adminData.reservations.filter(r => {
+            if (!r['日付']) return false;
+            const rDate = String(r['日付']).split('T')[0].replace(/-/g, '/');
+            return rDate === dateStr && r['エリア'] === area && String(r['管理ID'] || '').trim() !== "" && String(r['キャンセル日時'] || '').trim() === "";
+          });
+          
+          const count = reservations.length;
+          const badgeClass = area === 'おぶせ' ? 'event-obuse' : 'event-suzaka';
+          
+          const badge = document.createElement('div');
+          badge.className = `event-badge ${badgeClass}`;
+          badge.innerHTML = `${area} <span style="background:#fff; color:#333; padding:1px 4px; border-radius:10px; font-weight:bold;">${count}人</span>`;
+          
+          badge.onclick = () => showParticipants(dateStr, area, reservations);
+          div.appendChild(badge);
+        });
+
         grid.appendChild(div);
       }
     }
 
-    function prevMonth() {
-      currentDate.setMonth(currentDate.getMonth() - 1);
-      renderCalendar();
+    function prevMonth() { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); }
+    function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); }
+
+    function showParticipants(dateStr, area, reservations) {
+      document.getElementById('modalDateTitle').textContent = `${dateStr} ${area} 参加者 (${reservations.length}人)`;
+      const list = document.getElementById('participantsList');
+      list.innerHTML = '';
+      if (reservations.length === 0) {
+        list.innerHTML = '<li>予約はありません</li>';
+      } else {
+        reservations.forEach(r => {
+          const li = document.createElement('li');
+          li.style.padding = '10px 0'; li.style.borderBottom = '1px solid #eee';
+          li.innerHTML = `<span class="student-link" onclick="openStudentRecord('${r['生徒名']}')">${r['生徒名']}</span> <span style="color:#666; font-size:0.8rem;">(${r['時間']})</span>`;
+          list.appendChild(li);
+        });
+      }
+      document.getElementById('participantsModal').classList.remove('hidden');
     }
 
-    function nextMonth() {
-      currentDate.setMonth(currentDate.getMonth() + 1);
-      renderCalendar();
-    }
-
-    // --- 生徒名簿・PDF機能 ---
-    async function loadStudents() {
-      showLoader('studentsLoader');
+    function renderStudents() {
       const tbody = document.getElementById('studentsTableBody');
       tbody.innerHTML = '';
       
-      const result = await apiFetch('getStudents');
-      hideLoader('studentsLoader');
+      const sorted = [...adminData.students].sort((a, b) => {
+        const fA = a['ふりがな'] || a['生徒名'] || "";
+        const fB = b['ふりがな'] || b['生徒名'] || "";
+        return fA.localeCompare(fB, 'ja');
+      });
 
-      if (result.status === 'success') {
-        result.data.forEach(student => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${student['生徒名']}</td>
-            <td>${student['現在の学年']}年</td>
-            <td>${student['中学校名']}</td>
-            <td>${student['志望校']}</td>
-            <td>
-              <button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" 
-                onclick="generateStudentPDF('${student['生徒名']}', '${student['現在の学年']}')">
-                PDF出力
-              </button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-      } else {
-        tbody.innerHTML = '<tr><td colspan="5">データ取得に失敗しました</td></tr>';
-      }
+      sorted.forEach(s => {
+        if (!s['生徒名']) return;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span class="student-link" onclick="openStudentRecord('${s['生徒名']}')">${s['生徒名']}</span></td>
+          <td>${s['現在の学年'] || ''}</td>
+          <td>${s['中学校名'] || ''}</td>
+          <td>${s['志望校1'] || s['志望校'] || ''}</td>
+        `;
+        tbody.appendChild(tr);
+      });
     }
 
-    async function generateStudentPDF(studentName, grade) {
-      if(!confirm(`${studentName}さんのカルテをPDFで出力しますか？\n（裏側でGoogleドキュメントテンプレートから生成されます）`)) return;
+    function openStudentRecord(studentName) {
+      currentStudentName = studentName;
+      document.getElementById('recordStudentName').textContent = studentName;
+      document.getElementById('participantsModal').classList.add('hidden'); // 他のモーダルを閉じる
 
-      const result = await apiFetch('generatePDF', { studentName: studentName, grade: grade });
+      const student = adminData.students.find(s => s['生徒名'] === studentName) || {};
       
-      if (result.status === 'success') {
-        alert('PDFが生成されました。\n' + result.message);
-        if(result.url && result.url !== '#') {
-          window.open(result.url, '_blank');
+      const form = document.getElementById('studentRecordForm');
+      form.reset();
+      
+      // Populate fields
+      ['性別', '中学校名', '現在の学年', '部活動・習い事', '志望校', '得意科目', '苦手科目', '国語', '数学', '英語', '理科', '社会'].forEach(k => {
+        const el = form.elements[k];
+        if (el) {
+          el.value = student[k] || '';
+          if (authToken !== 'master') el.disabled = true;
+        }
+      });
+
+      document.getElementById('saveRecordMsg').classList.add('hidden');
+      document.getElementById('studentModal').classList.remove('hidden');
+    }
+
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    document.getElementById('studentRecordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (authToken !== 'master') return;
+
+      const btn = document.getElementById('saveRecordBtn');
+      btn.disabled = true; btn.textContent = '保存中...';
+      
+      const formData = new FormData(e.target);
+      const studentData = Object.fromEntries(formData.entries());
+
+      const res = await apiFetch('updateStudent', {
+        token: authToken,
+        studentName: currentStudentName,
+        studentData: studentData
+      });
+
+      if (res.status === 'success') {
+        const msg = document.getElementById('saveRecordMsg');
+        msg.textContent = '保存しました！';
+        msg.style.color = 'green';
+        msg.classList.remove('hidden');
+        
+        // Update local cache
+        const idx = adminData.students.findIndex(s => s['生徒名'] === currentStudentName);
+        if (idx !== -1) {
+          adminData.students[idx] = { ...adminData.students[idx], ...studentData };
+          if (!document.getElementById('tab-students').classList.contains('hidden')) renderStudents();
         }
       } else {
-        alert('エラー: ' + result.message);
+        alert(res.message || '保存に失敗しました');
       }
-    }
-
-    // --- テスト結果入力機能 ---
-    function calculateTotal() {
-      let total = 0;
-      document.querySelectorAll('.score-input').forEach(input => {
-        total += Number(input.value) || 0;
-      });
-      document.getElementById('scoreTotal').textContent = total;
-    }
-
-    document.getElementById('testForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const submitBtn = document.getElementById('testSubmitBtn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = '保存中...';
-
-      const data = {
-        studentName: document.getElementById('testStudent').value,
-        grade: document.getElementById('testGrade').value,
-        term: document.getElementById('testTerm').value,
-        type: document.getElementById('testType').value,
-        kokugo: document.getElementById('scoreJp').value,
-        sugaku: document.getElementById('scoreMath').value,
-        eigo: document.getElementById('scoreEn').value,
-        rika: document.getElementById('scoreSci').value,
-        shakai: document.getElementById('scoreSoc').value,
-        total: document.getElementById('scoreTotal').textContent
-      };
-
-      const result = await apiFetch('updateTestResult', data);
-
-      if (result.status === 'success') {
-        showMessage('testMessageArea', 'テスト結果を保存しました。');
-        document.getElementById('testForm').reset();
-        document.getElementById('scoreTotal').textContent = '0';
-      } else {
-        showMessage('testMessageArea', result.message || '保存に失敗しました。', true);
-      }
-      
-      submitBtn.disabled = false;
-      submitBtn.textContent = '結果を保存する';
+      btn.disabled = false; btn.textContent = '保存する';
     });
-
   </script>
 </body>
 </html>
