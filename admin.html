@@ -285,12 +285,29 @@
     </div>
   </div>
 
-  <!-- モーダル: 参加者一覧 -->
-  <div id="participantsModal" class="modal-overlay hidden">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeModal('participantsModal')">×</button>
-      <h2 id="modalDateTitle" style="margin-bottom: 1rem;">参加者一覧</h2>
-      <ul id="participantsList" style="list-style:none; padding:0;"></ul>
+  <!-- 参加者一覧画面 -->
+  <div id="participantsScreen" class="hidden">
+    <header class="app-header" style="background:#1E3A8A; color:white; padding:1rem; display:flex; justify-content:space-between; align-items:center;">
+      <button style="background:transparent; border:none; color:white; font-size:1rem; cursor:pointer;" onclick="closeParticipantsScreen()">◀ 戻る</button>
+      <h1 style="margin:0; font-size:1.1rem; color:white;" id="participantsScreenTitle"></h1>
+      <div style="width:50px;"></div> <!-- 右側のスペーサー（中央揃え用） -->
+    </header>
+    <div class="container-large" style="padding:1rem 10px;">
+      <div class="table-responsive card">
+        <table style="font-size:0.9rem;">
+          <thead>
+            <tr>
+              <th>生徒名</th>
+              <th>性別</th>
+              <th>中学校名</th>
+              <th>学年</th>
+              <th>区分</th>
+            </tr>
+          </thead>
+          <tbody id="participantsScreenBody">
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -494,20 +511,65 @@
     }
 
     function showParticipants(dateStr, area, reservations) {
-      document.getElementById('modalDateTitle').textContent = `${dateStr} ${area} 参加者 (${reservations.length}人)`;
-      const list = document.getElementById('participantsList');
-      list.innerHTML = '';
+      document.getElementById('dashboard').classList.add('hidden');
+      document.getElementById('participantsScreen').classList.remove('hidden');
+      document.getElementById('participantsScreenTitle').textContent = `${dateStr} ${area}`;
+
+      const tbody = document.getElementById('participantsScreenBody');
+      tbody.innerHTML = '';
+
       if (reservations.length === 0) {
-        list.innerHTML = '<li>予約はありません</li>';
-      } else {
-        reservations.forEach(r => {
-          const li = document.createElement('li');
-          li.style.padding = '10px 0'; li.style.borderBottom = '1px solid #eee';
-          li.innerHTML = `<span class="student-link" onclick="openStudentRecord('${r['生徒名']}')">${r['生徒名']}</span> <span style="color:#666; font-size:0.8rem;">(${r['時間']})</span>`;
-          list.appendChild(li);
-        });
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem;">予約はありません</td></tr>';
+        return;
       }
-      document.getElementById('participantsModal').classList.remove('hidden');
+
+      // 生徒データを結合
+      const participantData = reservations.map(r => {
+        const studentName = String(r['生徒名'] || '').trim();
+        const studentInfo = adminData.students.find(s => String(s['生徒名'] || '').trim() === studentName) || {};
+        return {
+          name: studentName,
+          furigana: String(studentInfo['ふりがな'] || ''),
+          gender: String(studentInfo['性別'] || '-'),
+          school: String(studentInfo['中学校名'] || '-'),
+          grade: String(studentInfo['現在の学年'] || studentInfo['登録時の学年'] || '-'),
+          category: String(r['区分'] || '')
+        };
+      });
+
+      // 学年の重み付け関数（数字が大きいほど学年が上で先に表示）
+      const getGradeWeight = (g) => {
+        const grades = ["高3", "高2", "高1", "中3", "中2", "中1", "小6", "小5", "小4", "小3", "小2", "小1"];
+        const idx = grades.indexOf(g);
+        return idx !== -1 ? grades.length - idx : 0;
+      };
+
+      // ソート: 学年の高い順 -> あいうえお順
+      participantData.sort((a, b) => {
+        const gwA = getGradeWeight(a.grade);
+        const gwB = getGradeWeight(b.grade);
+        if (gwA !== gwB) return gwB - gwA;
+        return a.furigana.localeCompare(b.furigana, 'ja');
+      });
+
+      participantData.forEach(p => {
+        const tr = document.createElement('tr');
+        const displayCategory = p.category === '2時間利用' ? '' : p.category;
+        
+        tr.innerHTML = `
+          <td><span class="student-link" onclick="openStudentRecord('${p.name}')">${p.name}</span></td>
+          <td>${p.gender}</td>
+          <td>${p.school}</td>
+          <td>${p.grade}</td>
+          <td>${displayCategory}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function closeParticipantsScreen() {
+      document.getElementById('participantsScreen').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
     }
 
     function renderStudents() {
