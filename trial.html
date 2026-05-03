@@ -115,101 +115,134 @@
 
   <script src="index.js"></script>
   <script>
-    let allSchedule = [];
-    const header = document.getElementById('accordion-header');
+    let scheduleData = [];
+    let lineUserId = "";
+    const accordionHeader = document.getElementById('accordion-header');
+    const scheduleList = document.getElementById('schedule-list');
     const content = document.getElementById('accordion-content');
 
-    // 初期化：スケジュール取得[cite: 7, 11]
-    window.onload = async () => {
+    // LIFF init (if available)
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        await liff.init({ liffId: "2009652448-yEc3eycW" }); 
+        if (liff.isLoggedIn()) {
+          const p = await liff.getProfile();
+          lineUserId = p.userId;
+        }
+      } catch (e) { console.log('LIFF init failed', e); }
+
+      // 最初にスケジュールを裏で読み込んでおく
       const res = await apiFetch('getSchedule');
       if (res.status === 'success') {
-        allSchedule = res.data;
+        scheduleData = res.data;
+        const selectedArea = document.querySelector('input[name="area_select"]:checked');
+        if (selectedArea) updateScheduleList(selectedArea.value);
       }
-    };
+    });
 
-    // エリア選択時の挙動
     document.getElementsByName('area_select').forEach(el => {
       el.onchange = () => {
-        header.classList.remove('active');
+        accordionHeader.classList.remove('active');
         content.classList.remove('open');
-        document.getElementById('selected-date-text').textContent = "日程を選択してください";
+        document.getElementById('selected-date-text').textContent = "タップして日程を選択してください";
+        document.getElementById('input-date').value = "";
+        document.getElementById('input-time').value = "";
+        document.getElementById('input-venueDetail').value = "";
+        document.getElementById('input-area').value = el.value;
         updateScheduleList(el.value);
       };
     });
 
-    // スケジュール一覧の描画[cite: 10, 11]
-    function updateScheduleList(selectedArea) {
-      const list = document.getElementById('schedule-list');
-      list.innerHTML = '';
-      
-      const today = new Date();
-      today.setHours(0,0,0,0);
-
-      // エリア列でフィルタリング
-      const filtered = allSchedule.filter(item => {
-        const itemArea = item['エリア'] || "";
-        const d = new Date(item['日付']);
-        return itemArea === selectedArea && !item.isYasumi && d >= today;
-      });
-
-      if (filtered.length === 0) {
-        list.innerHTML = '<p style="padding:1rem; color:#999; text-align:center;">予約可能な日程がありません</p>';
-        return;
-      }
-
-      filtered.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'schedule-item';
-        // 会場名を表示
-        div.innerHTML = `
-          <div>
-            <div style="font-weight:600;">${item['日付']}</div>
-            <div style="font-size:0.8rem; color:var(--text-muted);">${item['会場名'] || ''}</div>
-          </div>
-          <span class="status-badge">${item['時間'] || ''}</span>
-        `;
-        div.onclick = () => {
-          document.getElementById('selected-date-text').textContent = `${item['日付']} (${item['会場名']})`;
-          document.getElementById('input-area').value = selectedArea;
-          document.getElementById('input-venueDetail').value = item['会場名'] || "";
-          document.getElementById('input-date').value = item['日付'];
-          document.getElementById('input-time').value = item['時間'] || "";
-          header.classList.remove('active');
-          content.classList.remove('open');
-        };
-        list.appendChild(div);
-      });
-    }
-
-    // アコーディオン制御
-    header.onclick = () => {
+    accordionHeader.onclick = () => {
       const selectedArea = document.querySelector('input[name="area_select"]:checked');
       if (selectedArea) {
-        header.classList.toggle('active');
+        accordionHeader.classList.toggle('active');
         content.classList.toggle('open');
+      } else {
+        alert('先にエリアを選択してください');
       }
     };
 
-    // 送信処理[cite: 7, 11]
+    function updateScheduleList(selectedArea) {
+      scheduleList.innerHTML = '';
+      const today = new Date(); today.setHours(0,0,0,0);
+      const limit = new Date(); limit.setDate(today.getDate() + 14);
+
+      const filtered = scheduleData.filter(item => {
+        const dateStr = String(item['日付']).split('T')[0].replace(/-/g, '/');
+        const d = new Date(dateStr);
+        return (item['エリア'] === selectedArea) && !isNaN(d) && d >= today && d <= limit;
+      });
+
+      if (filtered.length === 0) { 
+        scheduleList.innerHTML = '<p style="text-align:center;padding:1rem;">予約可能な日程がありません。</p>'; 
+        return; 
+      }
+      
+      filtered.forEach(item => {
+        const isOff = item['休み'] === '休み';
+        const dateStr = String(item['日付']).split('T')[0].replace(/-/g, '/');
+        const d = new Date(dateStr);
+        const day = ["日","月","火","水","木","金","土"][d.getDay()];
+        const displayDate = `${d.getMonth()+1}/${d.getDate()}(${day})`;
+        const submitDate = `${d.getFullYear()}/${('0'+(d.getMonth()+1)).slice(-2)}/${('0'+d.getDate()).slice(-2)}`;
+        
+        const div = document.createElement('div');
+        div.className = `schedule-item ${isOff ? 'disabled' : 'selectable'}`;
+        // obuse.html/suzaka.htmlと同じスタイル適用
+        div.style.padding = "10px"; div.style.borderBottom = "1px solid #eee";
+        div.innerHTML = `<div><b>${displayDate} ${item['時間'] || ''}</b> ${isOff ? '<small style="color:red;">(休み)</small>' : ''}<br><small>場所：${item['会場名']}</small></div>`;
+        
+        if (!isOff) {
+          div.onclick = () => {
+            document.getElementById('input-date').value = submitDate;
+            document.getElementById('input-venueDetail').value = item['会場名'];
+            document.getElementById('input-time').value = item['時間'] || '';
+            document.getElementById('selected-date-text').innerHTML = `<b>${displayDate} ${item['時間'] || ''}</b><br><small>場所：${item['会場名']}</small>`;
+            content.classList.remove('open'); accordionHeader.classList.remove('active');
+          };
+        } else {
+          div.style.opacity = "0.5"; div.style.cursor = "not-allowed";
+        }
+        scheduleList.appendChild(div);
+      });
+    }
+
     document.getElementById('trial-form').onsubmit = async (e) => {
       e.preventDefault();
+      
+      if (!document.getElementById('input-date').value) {
+        alert("日程を選択してください");
+        return;
+      }
+      
       const btn = document.getElementById('submit-btn');
       btn.disabled = true;
-      btn.textContent = "送信中...";
-
-      const formData = new FormData(e.target);
-      const data = Object.fromEntries(formData.entries());
-      data.action = 'trial';
-
-      const res = await apiFetch('trial', data);
+      btn.innerText = "送信中...";
+      
+      const res = await apiFetch('reserve', {
+        area: document.getElementById('input-area').value,
+        venue: document.getElementById('input-venueDetail').value,
+        studentName: document.querySelector('input[name="studentName"]').value,
+        parentName: document.querySelector('input[name="parentName"]').value,
+        phone: document.querySelector('input[name="phone"]').value,
+        email: document.querySelector('input[name="email"]').value,
+        grade: document.querySelector('select[name="grade"]').value,
+        duration: "無料体験",
+        date: document.getElementById('input-date').value,
+        time: document.getElementById('input-time').value,
+        lineUserId: lineUserId,
+        applicationType: "体験"
+      });
+      
       if (res.status === 'success') {
         document.getElementById('form-card').classList.add('hidden');
         document.getElementById('success-card').classList.remove('hidden');
         window.scrollTo(0, 0);
-      } else {
-        alert("送信に失敗しました: " + (res.message || "通信エラー"));
-        btn.disabled = false;
-        btn.textContent = "この内容で申し込む";
+      } else { 
+        alert(res.message || "予約に失敗しました。"); 
+        btn.disabled = false; 
+        btn.innerText = "この内容で申し込む"; 
       }
     };
   </script>
