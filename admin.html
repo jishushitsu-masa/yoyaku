@@ -657,7 +657,6 @@
     function openStudentRecord(studentName) {
       currentStudentName = studentName;
       document.getElementById('recordStudentName').textContent = studentName;
-      document.getElementById('participantsModal').classList.add('hidden'); // 他のモーダルを閉じる
 
       const student = adminData.students.find(s => s['生徒名'] === studentName) || {};
       
