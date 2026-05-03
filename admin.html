@@ -378,8 +378,12 @@
     async function showDashboard() {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('dashboard').classList.remove('hidden');
-      document.getElementById('role-badge').textContent = (authToken === 'master') ? '権限: マスター (編集可)' : '権限: 閲覧専用';
-      if (authToken !== 'master') document.getElementById('saveRecordBtn').style.display = 'none';
+      const badge = document.getElementById('role-badge');
+      if (badge) badge.textContent = (authToken === 'master') ? '権限: マスター (編集可)' : '権限: 閲覧専用';
+      if (authToken !== 'master') {
+        const saveBtn = document.getElementById('saveRecordBtn');
+        if (saveBtn) saveBtn.style.display = 'none';
+      }
 
       document.getElementById('calendarLoader').classList.remove('hidden');
       const res = await apiFetch('getAdminData');
