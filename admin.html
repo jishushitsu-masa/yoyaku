@@ -302,30 +302,41 @@
   </div>
 
   <!-- モーダル: 生徒カルテ -->
-  <div id="studentModal" class="modal-overlay hidden">
-    <div class="modal-content">
+  <div id="studentModal" class="modal-overlay hidden" style="padding: 10px;">
+    <div class="modal-content" style="width:100%; padding:1.5rem 1rem;">
       <button class="modal-close" onclick="closeModal('studentModal')">×</button>
-      <h2 style="margin-bottom: 1rem;">生徒カルテ: <span id="recordStudentName"></span></h2>
+      <h2 style="margin-bottom: 1rem; font-size:1.25rem;">生徒カルテ:<br><span id="recordStudentName" style="color:var(--primary);"></span></h2>
       <form id="studentRecordForm">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group"><label>性別</label><select name="性別"><option value="">選択</option><option value="男">男</option><option value="女">女</option><option value="その他">その他</option></select></div>
-          <div class="form-group"><label>中学校名</label><input type="text" name="中学校名"></div>
-          <div class="form-group"><label>学年</label><input type="text" name="現在の学年"></div>
-          <div class="form-group"><label>部活動・習い事</label><input type="text" name="部活動・習い事"></div>
-          <div class="form-group"><label>志望校</label><input type="text" name="志望校"></div>
-          <div class="form-group"><label>得意科目</label><input type="text" name="得意科目"></div>
-          <div class="form-group"><label>苦手科目</label><input type="text" name="苦手科目"></div>
+        <div style="display:flex; flex-direction:column; gap:0.8rem;">
+          <div class="form-group" style="margin:0;"><label>ふりがな</label><input type="text" name="ふりがな"></div>
+          
+          <div style="display:flex; gap:1rem;">
+            <div class="form-group" style="flex:1; margin:0;"><label>性別</label><select name="性別"><option value="">選択</option><option value="男">男</option><option value="女">女</option><option value="その他">その他</option></select></div>
+            <div class="form-group" style="flex:2; margin:0;"><label>現在の学年</label><input type="text" name="現在の学年"></div>
+          </div>
+          
+          <div class="form-group" style="margin:0;"><label>中学校名</label><input type="text" name="中学校名"></div>
+          <div class="form-group" style="margin:0;"><label>部活動・習い事</label><input type="text" name="部活動・習い事"></div>
+          
+          <div style="display:flex; gap:1rem;">
+            <div class="form-group" style="flex:1; margin:0;"><label>志望校1</label><input type="text" name="志望校1"></div>
+            <div class="form-group" style="flex:1; margin:0;"><label>志望校2</label><input type="text" name="志望校2"></div>
+          </div>
         </div>
         <div id="saveRecordMsg" class="hidden" style="margin-top:1rem;"></div>
         <button type="submit" class="btn btn-primary" id="saveRecordBtn" style="margin-top: 1.5rem;">基本情報を保存する</button>
       </form>
 
       <div style="margin-top: 2rem; border-top: 2px solid var(--border); padding-top: 1rem;">
-        <h3>過去の定期テスト結果</h3>
-        <div class="table-responsive" style="margin-bottom:1rem;">
-          <table style="font-size:0.9rem;">
+        <h3 style="font-size:1.1rem; margin-bottom:0.8rem;">過去の定期テスト結果</h3>
+        <div class="table-responsive" style="margin-bottom:1rem; overflow-x:auto;">
+          <table style="font-size:0.85rem; min-width:350px;">
             <thead>
-              <tr><th>学年</th><th>学期</th><th>種類</th><th>国</th><th>数</th><th>英</th><th>理</th><th>社</th><th>計</th></tr>
+              <tr>
+                <th style="min-width:70px;">テスト</th>
+                <th style="text-align:center;">国</th><th style="text-align:center;">数</th><th style="text-align:center;">英</th><th style="text-align:center;">理</th><th style="text-align:center;">社</th>
+                <th style="color:var(--primary); text-align:center;">計</th>
+              </tr>
             </thead>
             <tbody id="testResultsTableBody">
               <!-- Tests injected here -->
@@ -334,20 +345,20 @@
         </div>
         
         <form id="testRecordForm" style="background:#F9FAFB; padding:1rem; border-radius:8px;">
-          <h4 style="margin-bottom:0.5rem;">新しい結果を追加</h4>
-          <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
-            <div class="form-group" style="flex:1;"><label>学年</label><input type="text" name="学年" required></div>
-            <div class="form-group" style="flex:1;"><label>学期</label><input type="text" name="学期" required></div>
-            <div class="form-group" style="flex:1;"><label>種類</label><input type="text" name="種類" required placeholder="中間等"></div>
+          <h4 style="margin-bottom:0.8rem;">新しい結果を追加</h4>
+          <div style="display:flex; gap:0.5rem; margin-bottom:0.8rem;">
+            <div class="form-group" style="flex:1; margin:0;"><label>学年</label><input type="text" name="学年" required placeholder="例: 中1"></div>
+            <div class="form-group" style="flex:1; margin:0;"><label>学期</label><input type="text" name="学期" required placeholder="例: 1学期"></div>
+            <div class="form-group" style="flex:1; margin:0;"><label>種類</label><input type="text" name="種類" required placeholder="中間等"></div>
           </div>
-          <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
-            <div class="form-group" style="flex:1;"><label>国語</label><input type="number" name="国語" class="test-score"></div>
-            <div class="form-group" style="flex:1;"><label>数学</label><input type="number" name="数学" class="test-score"></div>
-            <div class="form-group" style="flex:1;"><label>英語</label><input type="number" name="英語" class="test-score"></div>
-            <div class="form-group" style="flex:1;"><label>理科</label><input type="number" name="理科" class="test-score"></div>
-            <div class="form-group" style="flex:1;"><label>社会</label><input type="number" name="社会" class="test-score"></div>
+          <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:0.5rem; margin-bottom:1.2rem;">
+            <div class="form-group" style="margin:0;"><label style="text-align:center;">国語</label><input type="number" name="国語" class="test-score" style="text-align:center; padding:0.5rem 0.2rem;"></div>
+            <div class="form-group" style="margin:0;"><label style="text-align:center;">数学</label><input type="number" name="数学" class="test-score" style="text-align:center; padding:0.5rem 0.2rem;"></div>
+            <div class="form-group" style="margin:0;"><label style="text-align:center;">英語</label><input type="number" name="英語" class="test-score" style="text-align:center; padding:0.5rem 0.2rem;"></div>
+            <div class="form-group" style="margin:0;"><label style="text-align:center;">理科</label><input type="number" name="理科" class="test-score" style="text-align:center; padding:0.5rem 0.2rem;"></div>
+            <div class="form-group" style="margin:0;"><label style="text-align:center;">社会</label><input type="number" name="社会" class="test-score" style="text-align:center; padding:0.5rem 0.2rem;"></div>
           </div>
-          <button type="submit" class="btn btn-secondary" id="addTestBtn" style="width:100%;">テスト結果を追加する</button>
+          <button type="submit" class="btn btn-secondary" id="addTestBtn" style="width:100%; padding:0.8rem;">テスト結果を追加する</button>
         </form>
       </div>
     </div>
@@ -654,7 +665,7 @@
       form.reset();
       
       // Populate fields
-      ['性別', '中学校名', '現在の学年', '部活動・習い事', '志望校', '得意科目', '苦手科目'].forEach(k => {
+      ['ふりがな', '性別', '現在の学年', '中学校名', '部活動・習い事', '志望校1', '志望校2'].forEach(k => {
         const el = form.elements[k];
         if (el) {
           el.value = student[k] || '';
@@ -685,11 +696,15 @@
       }
       studentTests.forEach(t => {
         const tr = document.createElement('tr');
+        const testName = `${t['学年']||''}${t['学期']||''}<br>${t['種類']||''}`;
         tr.innerHTML = `
-          <td>${t['学年'] || ''}</td><td>${t['学期'] || ''}</td><td>${t['種類'] || ''}</td>
-          <td>${t['国語'] || ''}</td><td>${t['数学'] || ''}</td><td>${t['英語'] || ''}</td>
-          <td>${t['理科'] || ''}</td><td>${t['社会'] || ''}</td>
-          <td style="font-weight:bold; color:var(--primary);">${t['合計点'] || ''}</td>
+          <td style="font-size:0.75rem; line-height:1.3; color:var(--text-muted);">${testName}</td>
+          <td style="text-align:center;">${t['国語'] || ''}</td>
+          <td style="text-align:center;">${t['数学'] || ''}</td>
+          <td style="text-align:center;">${t['英語'] || ''}</td>
+          <td style="text-align:center;">${t['理科'] || ''}</td>
+          <td style="text-align:center;">${t['社会'] || ''}</td>
+          <td style="font-weight:bold; color:var(--primary); text-align:center;">${t['合計点'] || ''}</td>
         `;
         tbody.appendChild(tr);
       });
