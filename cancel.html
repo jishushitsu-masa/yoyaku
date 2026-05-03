@@ -67,11 +67,25 @@
     };
 
     document.getElementById('cancelBtn').onclick = async () => {
-      const res = await apiFetch('cancel', { cancelId: cancelId });
-      if (res.status === 'success') {
-        document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>キャンセルが完了しました</h2></div>';
-      }
-    };
+  const btn = document.getElementById('cancelBtn');
+  
+  // 1. ローディング状態にする
+  btn.innerText = 'キャンセル処理中...';
+  btn.disabled = true; // 二度押し防止
+  btn.style.backgroundColor = '#94a3b8'; // 色をグレーにして押せない感じにする
+
+  const res = await apiFetch('cancel', { cancelId: cancelId });
+  
+  if (res.status === 'success') {
+    document.body.innerHTML = '<div class="container" style="text-align:center; padding-top:2rem;"><h2>キャンセルが完了しました</h2><p>ご利用ありがとうございました。</p></div>';
+  } else {
+    // エラー時の処理
+    alert('エラーが発生しました: ' + res.message);
+    btn.innerText = 'この予約をキャンセルする';
+    btn.disabled = false;
+    btn.style.backgroundColor = 'var(--primary)'; // 元の色に戻す
+  }
+};
   </script>
 </body>
 </html>
