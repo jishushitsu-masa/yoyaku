@@ -279,7 +279,8 @@
     let currentStudentName = "";
 
     document.addEventListener('DOMContentLoaded', () => {
-      if (authToken) showDashboard();
+      // 常にログイン画面から開始するため、自動ログインを無効化
+      // if (authToken) showDashboard();
 
       document.querySelectorAll('.nav-tab').forEach(tab => {
         tab.addEventListener('click', () => {
