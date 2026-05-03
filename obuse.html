@@ -121,13 +121,16 @@
       const days = ['日', '月', '火', '水', '木', '金', '土'];
       
       const filtered = scheduleData.filter(item => {
-        const itemDate = new Date(item['日付']);
-        return item['エリア'] === AREA_NAME && itemDate >= today && itemDate <= limitDate;
+        const dateStr = String(item['日付']).split('T')[0].replace(/-/g, '/');
+        const itemDate = new Date(dateStr);
+        itemDate.setHours(0, 0, 0, 0);
+        return item['エリア'] === AREA_NAME && !isNaN(itemDate) && itemDate >= today && itemDate <= limitDate;
       });
 
       filtered.forEach(item => {
         const isOff = item['休み'] === '休み';
-        const d = new Date(item['日付']);
+        const dateStr = String(item['日付']).split('T')[0].replace(/-/g, '/');
+        const d = new Date(dateStr);
         
         // 曜日を取得して「(曜)」の形式にする
         const dayStr = days[d.getDay()];
@@ -140,7 +143,8 @@
         
         if (!isOff) {
           div.onclick = () => {
-            document.getElementById('selectedDate').value = item['日付'];
+            const submitDate = `${d.getFullYear()}/${('0'+(d.getMonth()+1)).slice(-2)}/${('0'+d.getDate()).slice(-2)}`;
+            document.getElementById('selectedDate').value = submitDate;
             document.getElementById('selectedTime').value = item['時間'];
             document.getElementById('selectedVenue').value = item['会場名'];
             document.getElementById('selectedDateText').innerHTML = `<b>${displayDate} ${item['時間']}</b><br><small>場所：${item['会場名']}</small>`;
