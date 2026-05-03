@@ -6,6 +6,47 @@
   <title>管理画面 | 元塾講師マサちゃんの自習室</title>
   <link rel="stylesheet" href="index.css">
   <style>
+    /* Navy Blue Theme Overrides */
+    :root {
+      --primary: #3B82F6; /* Blue */
+      --secondary: #1E3A8A; /* Deep Navy */
+      --background: #0F172A; /* Very Dark Slate */
+      --surface: #1E293B; /* Dark Slate for Cards */
+      --text-main: #F8FAFC; /* Off-White */
+      --text-muted: #94A3B8; /* Light Gray */
+      --border: #334155; /* Slate Border */
+      --danger: #EF4444; /* Red for Sunday */
+    }
+
+    body {
+      background: linear-gradient(135deg, #0F172A, #1E3A8A);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      color: var(--text-main);
+    }
+
+    .container, .container-large {
+      padding-top: 2rem;
+    }
+
+    /* Form Elements */
+    input, select, textarea {
+      background: #0F172A;
+      color: #F8FAFC;
+      border: 1px solid var(--border);
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    }
+
     /* Admin specific styles */
     .calendar {
       display: grid;
@@ -13,9 +54,11 @@
       gap: 1px;
       background-color: var(--border);
       border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
     }
     .calendar-header {
-      background-color: #F9FAFB;
+      background-color: #0F172A;
       font-weight: bold;
       text-align: center;
       padding: 10px;
@@ -23,13 +66,13 @@
     .calendar-header.sun { color: var(--danger); }
     .calendar-header.sat { color: var(--primary); }
     .calendar-day {
-      background-color: #fff;
+      background-color: var(--surface);
       min-height: 100px;
       padding: 10px;
       position: relative;
     }
-    .calendar-day.other-month { background-color: #F9FAFB; color: var(--text-muted); }
-    .calendar-date { font-weight: bold; margin-bottom: 5px; }
+    .calendar-day.other-month { background-color: #0B1120; color: var(--border); }
+    .calendar-date { font-weight: bold; margin-bottom: 5px; color: var(--text-muted); }
     
     .event-badge {
       font-size: 0.75rem;
@@ -38,33 +81,59 @@
       margin-bottom: 4px;
       color: #fff;
       cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.2);
     }
-    .event-obuse { background-color: var(--primary); }
-    .event-suzaka { background-color: var(--secondary); }
+    .event-obuse { background-color: #4F46E5; } /* Indigo */
+    .event-suzaka { background-color: #0EA5E9; } /* Light Blue */
     
     /* Login Screen */
     #loginScreen {
       max-width: 400px;
       margin: 10vh auto;
     }
+    #loginScreen .card {
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(10px);
+    }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: #0F172A; color: var(--text-muted); font-weight: 600; }
+    tr:hover td { background: rgba(255,255,255,0.05); }
+
+    /* Nav Tabs */
+    .nav-tabs { display: flex; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
+    .nav-tab { padding: 0.5rem 1rem; cursor: pointer; color: var(--text-muted); font-weight: bold; }
+    .nav-tab.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
+    .nav-tab:hover { color: var(--text-main); }
 
     /* Modal styles */
     .modal-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(5px);
       display: flex; justify-content: center; align-items: center;
       z-index: 1000;
     }
     .modal-content {
-      background: white; padding: 2rem; border-radius: var(--radius);
-      width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;
+      background: var(--surface); padding: 2rem; border-radius: var(--radius);
+      width: 90%; max-width: 650px; max-height: 90vh; overflow-y: auto;
+      border: 1px solid var(--border);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
     .modal-close {
-      float: right; font-size: 1.5rem; cursor: pointer; border: none; background: none;
+      float: right; font-size: 1.5rem; cursor: pointer; border: none; background: none; color: var(--text-muted);
     }
+    .modal-close:hover { color: var(--text-main); }
     .student-link {
-      color: var(--primary); cursor: pointer; text-decoration: underline;
+      color: var(--primary); cursor: pointer; font-weight: bold;
     }
+    .student-link:hover { text-decoration: underline; color: #60A5FA; }
+
+    /* Headings inside modal */
+    .modal-content h3, .modal-content h4 { color: var(--text-main); }
+    #testRecordForm { background: #0F172A !important; border: 1px solid var(--border); }
   </style>
 </head>
 <body>
@@ -165,19 +234,40 @@
           <div class="form-group"><label>得意科目</label><input type="text" name="得意科目"></div>
           <div class="form-group"><label>苦手科目</label><input type="text" name="苦手科目"></div>
         </div>
-        
-        <h3 style="margin-top:1.5rem; margin-bottom:0.5rem; border-bottom:1px solid #ccc;">過去の定期テスト結果</h3>
-        <div style="display:flex; gap: 0.5rem;">
-          <div class="form-group" style="flex:1;"><label>国語</label><input type="number" name="国語"></div>
-          <div class="form-group" style="flex:1;"><label>数学</label><input type="number" name="数学"></div>
-          <div class="form-group" style="flex:1;"><label>英語</label><input type="number" name="英語"></div>
-          <div class="form-group" style="flex:1;"><label>理科</label><input type="number" name="理科"></div>
-          <div class="form-group" style="flex:1;"><label>社会</label><input type="number" name="社会"></div>
-        </div>
-
         <div id="saveRecordMsg" class="hidden" style="margin-top:1rem;"></div>
-        <button type="submit" class="btn btn-primary" id="saveRecordBtn" style="margin-top: 1.5rem;">保存する</button>
+        <button type="submit" class="btn btn-primary" id="saveRecordBtn" style="margin-top: 1.5rem;">基本情報を保存する</button>
       </form>
+
+      <div style="margin-top: 2rem; border-top: 2px solid var(--border); padding-top: 1rem;">
+        <h3>過去の定期テスト結果</h3>
+        <div class="table-responsive" style="margin-bottom:1rem;">
+          <table style="font-size:0.9rem;">
+            <thead>
+              <tr><th>学年</th><th>学期</th><th>種類</th><th>国</th><th>数</th><th>英</th><th>理</th><th>社</th><th>計</th></tr>
+            </thead>
+            <tbody id="testResultsTableBody">
+              <!-- Tests injected here -->
+            </tbody>
+          </table>
+        </div>
+        
+        <form id="testRecordForm" style="background:#F9FAFB; padding:1rem; border-radius:8px;">
+          <h4 style="margin-bottom:0.5rem;">新しい結果を追加</h4>
+          <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+            <div class="form-group" style="flex:1;"><label>学年</label><input type="text" name="学年" required></div>
+            <div class="form-group" style="flex:1;"><label>学期</label><input type="text" name="学期" required></div>
+            <div class="form-group" style="flex:1;"><label>種類</label><input type="text" name="種類" required placeholder="中間等"></div>
+          </div>
+          <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+            <div class="form-group" style="flex:1;"><label>国語</label><input type="number" name="国語" class="test-score"></div>
+            <div class="form-group" style="flex:1;"><label>数学</label><input type="number" name="数学" class="test-score"></div>
+            <div class="form-group" style="flex:1;"><label>英語</label><input type="number" name="英語" class="test-score"></div>
+            <div class="form-group" style="flex:1;"><label>理科</label><input type="number" name="理科" class="test-score"></div>
+            <div class="form-group" style="flex:1;"><label>社会</label><input type="number" name="社会" class="test-score"></div>
+          </div>
+          <button type="submit" class="btn btn-secondary" id="addTestBtn" style="width:100%;">テスト結果を追加する</button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -185,7 +275,7 @@
   <script>
     let currentDate = new Date();
     let authToken = sessionStorage.getItem('adminToken');
-    let adminData = { schedule: [], reservations: [], students: [] };
+    let adminData = { schedule: [], reservations: [], students: [], tests: [] };
     let currentStudentName = "";
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -342,7 +432,7 @@
       form.reset();
       
       // Populate fields
-      ['性別', '中学校名', '現在の学年', '部活動・習い事', '志望校', '得意科目', '苦手科目', '国語', '数学', '英語', '理科', '社会'].forEach(k => {
+      ['性別', '中学校名', '現在の学年', '部活動・習い事', '志望校', '得意科目', '苦手科目'].forEach(k => {
         const el = form.elements[k];
         if (el) {
           el.value = student[k] || '';
@@ -350,8 +440,37 @@
         }
       });
 
+      renderTestResults(studentName);
+
+      const testForm = document.getElementById('testRecordForm');
+      testForm.reset();
+      if (authToken !== 'master') {
+        Array.from(testForm.elements).forEach(el => el.disabled = true);
+        document.getElementById('addTestBtn').style.display = 'none';
+      }
+
       document.getElementById('saveRecordMsg').classList.add('hidden');
       document.getElementById('studentModal').classList.remove('hidden');
+    }
+
+    function renderTestResults(studentName) {
+      const tbody = document.getElementById('testResultsTableBody');
+      tbody.innerHTML = '';
+      const studentTests = adminData.tests.filter(t => t['生徒名'] === studentName);
+      if (studentTests.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">テスト結果はありません</td></tr>';
+        return;
+      }
+      studentTests.forEach(t => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${t['学年'] || ''}</td><td>${t['学期'] || ''}</td><td>${t['種類'] || ''}</td>
+          <td>${t['国語'] || ''}</td><td>${t['数学'] || ''}</td><td>${t['英語'] || ''}</td>
+          <td>${t['理科'] || ''}</td><td>${t['社会'] || ''}</td>
+          <td style="font-weight:bold; color:var(--primary);">${t['合計点'] || ''}</td>
+        `;
+        tbody.appendChild(tr);
+      });
     }
 
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
@@ -387,7 +506,39 @@
       } else {
         alert(res.message || '保存に失敗しました');
       }
-      btn.disabled = false; btn.textContent = '保存する';
+      btn.disabled = false; btn.textContent = '基本情報を保存する';
+    });
+
+    document.getElementById('testRecordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (authToken !== 'master') return;
+
+      const btn = document.getElementById('addTestBtn');
+      btn.disabled = true; btn.textContent = '追加中...';
+      
+      const formData = new FormData(e.target);
+      const testData = Object.fromEntries(formData.entries());
+      
+      testData['生徒名'] = currentStudentName;
+      let total = 0;
+      ['国語', '数学', '英語', '理科', '社会'].forEach(subj => {
+        if (testData[subj]) total += Number(testData[subj]);
+      });
+      testData['合計点'] = total;
+
+      const res = await apiFetch('addTestResult', {
+        token: authToken,
+        testData: testData
+      });
+
+      if (res.status === 'success') {
+        adminData.tests.push(res.newRowData);
+        renderTestResults(currentStudentName);
+        document.getElementById('testRecordForm').reset();
+      } else {
+        alert(res.message || '追加に失敗しました');
+      }
+      btn.disabled = false; btn.textContent = 'テスト結果を追加する';
     });
   </script>
 </body>
