@@ -289,25 +289,14 @@
   <div id="participantsScreen" class="hidden">
     <header class="app-header" style="background:#1E3A8A; color:white; padding:1rem; display:flex; justify-content:space-between; align-items:center;">
       <button style="background:transparent; border:none; color:white; font-size:1rem; cursor:pointer;" onclick="closeParticipantsScreen()">◀ 戻る</button>
-      <h1 style="margin:0; font-size:1.1rem; color:white;" id="participantsScreenTitle"></h1>
+      <h1 style="margin:0; text-align:center;" id="participantsScreenTitle">
+        <div id="psDate" style="font-size:0.85rem; font-weight:normal; margin-bottom:4px; color:rgba(255,255,255,0.8);"></div>
+        <div id="psVenue" style="font-size:1.1rem; color:white;"></div>
+      </h1>
       <div style="width:50px;"></div> <!-- 右側のスペーサー（中央揃え用） -->
     </header>
-    <div class="container-large" style="padding:1rem 10px;">
-      <div class="table-responsive card">
-        <table style="font-size:0.9rem;">
-          <thead>
-            <tr>
-              <th>生徒名</th>
-              <th>性別</th>
-              <th>中学校名</th>
-              <th>学年</th>
-              <th>区分</th>
-            </tr>
-          </thead>
-          <tbody id="participantsScreenBody">
-          </tbody>
-        </table>
-      </div>
+    <div class="container-large" style="padding:1rem 10px;" id="participantsScreenBody">
+      <!-- カード形式で生徒一覧が入ります -->
     </div>
   </div>
 
@@ -513,13 +502,17 @@
     function showParticipants(dateStr, area, reservations) {
       document.getElementById('dashboard').classList.add('hidden');
       document.getElementById('participantsScreen').classList.remove('hidden');
-      document.getElementById('participantsScreenTitle').textContent = `${dateStr} ${area}`;
+      
+      const venueName = reservations.length > 0 ? (reservations[0]['会場名'] || '') : '';
+      
+      document.getElementById('psDate').textContent = dateStr;
+      document.getElementById('psVenue').textContent = `${area} ${venueName}`;
 
-      const tbody = document.getElementById('participantsScreenBody');
-      tbody.innerHTML = '';
+      const container = document.getElementById('participantsScreenBody');
+      container.innerHTML = '';
 
       if (reservations.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem;">予約はありません</td></tr>';
+        container.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-muted);">予約はありません</div>';
         return;
       }
 
@@ -530,8 +523,6 @@
         return {
           name: studentName,
           furigana: String(studentInfo['ふりがな'] || ''),
-          gender: String(studentInfo['性別'] || '-'),
-          school: String(studentInfo['中学校名'] || '-'),
           grade: String(studentInfo['現在の学年'] || studentInfo['登録時の学年'] || '-'),
           category: String(r['区分'] || '')
         };
@@ -553,17 +544,25 @@
       });
 
       participantData.forEach(p => {
-        const tr = document.createElement('tr');
+        const card = document.createElement('div');
         const displayCategory = p.category === '2時間利用' ? '' : p.category;
         
-        tr.innerHTML = `
-          <td><span class="student-link" onclick="openStudentRecord('${p.name}')">${p.name}</span></td>
-          <td>${p.gender}</td>
-          <td>${p.school}</td>
-          <td>${p.grade}</td>
-          <td>${displayCategory}</td>
+        card.style.cssText = "background:white; border:1px solid var(--border); border-radius:8px; padding:1rem; margin-bottom:0.8rem; box-shadow:0 2px 4px rgba(0,0,0,0.05);";
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">${p.furigana}</div>
+              <div style="font-size:1.1rem; font-weight:bold;">
+                <span class="student-link" onclick="openStudentRecord('${p.name}')">${p.name}</span>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <span style="display:inline-block; background:#F1F5F9; color:var(--secondary); padding:4px 8px; border-radius:4px; font-size:0.85rem; font-weight:bold; margin-bottom:4px;">${p.grade}</span>
+              ${displayCategory ? `<br><span style="display:inline-block; background:#FEF3C7; color:#D97706; padding:4px 8px; border-radius:4px; font-size:0.85rem; font-weight:bold;">${displayCategory}</span>` : ''}
+            </div>
+          </div>
         `;
-        tbody.appendChild(tr);
+        container.appendChild(card);
       });
     }
 
