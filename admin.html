@@ -295,7 +295,7 @@
         <!-- 1行目: 日程と時間 -->
         <div style="display:flex; justify-content:center; align-items:center; gap:6px; flex-wrap:wrap;">
           <div id="psDate" style="font-size:0.85rem; font-weight:normal; color:rgba(255,255,255,0.9);"></div>
-          <div id="psTime" style="font-size:0.8rem; color:white; background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:12px; font-weight:normal; display:inline-block; white-space:nowrap;"></div>
+          <div id="psTime" style="font-size:0.85rem; font-weight:normal; color:rgba(255,255,255,0.9); white-space:nowrap;"></div>
         </div>
         <!-- 2行目: エリア＋会場名 -->
         <div id="psVenue" style="font-size:1.1rem; color:white; font-weight:bold; letter-spacing:0.05em; line-height:1.3;"></div>
@@ -520,7 +520,7 @@
       
       const psTimeEl = document.getElementById('psTime');
       if (times) {
-        psTimeEl.textContent = `🕒 ${times}`;
+        psTimeEl.textContent = times;
         psTimeEl.style.display = 'inline-block';
       } else {
         psTimeEl.style.display = 'none';
@@ -574,7 +574,6 @@
               <div style="font-size:1.1rem; font-weight:bold; margin-bottom:4px;">
                 <span class="student-link" onclick="openStudentRecord('${p.name}')">${p.name}</span>
               </div>
-              ${p.time ? `<div style="font-size:0.8rem; color:var(--text-muted);">🕒 ${p.time}</div>` : ''}
             </div>
             <div style="text-align:right;">
               <span style="display:inline-block; background:#F1F5F9; color:var(--secondary); padding:4px 8px; border-radius:4px; font-size:0.85rem; font-weight:bold; margin-bottom:4px;">${p.grade}</span>
