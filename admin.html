@@ -6,20 +6,20 @@
   <title>管理画面 | 元塾講師マサちゃんの自習室</title>
   <link rel="stylesheet" href="index.css">
   <style>
-    /* Navy Blue Theme Overrides */
+    /* Clean White with Navy Blue Accents Theme */
     :root {
-      --primary: #3B82F6; /* Blue */
+      --primary: #3B82F6; /* Bright Blue */
       --secondary: #1E3A8A; /* Deep Navy */
-      --background: #0F172A; /* Very Dark Slate */
-      --surface: #1E293B; /* Dark Slate for Cards */
-      --text-main: #F8FAFC; /* Off-White */
-      --text-muted: #94A3B8; /* Light Gray */
-      --border: #334155; /* Slate Border */
+      --background: #FFFFFF; /* Pure White Background */
+      --surface: #FFFFFF; /* White Cards */
+      --text-main: #1E293B; /* Dark Slate for readability */
+      --text-muted: #64748B; /* Medium Gray */
+      --border: #E2E8F0; /* Light Gray Border */
       --danger: #EF4444; /* Red for Sunday */
     }
 
     body {
-      background: linear-gradient(135deg, #0F172A, #1E3A8A);
+      background: var(--background);
       color: var(--text-main);
       min-height: 100vh;
     }
@@ -27,8 +27,9 @@
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
       color: var(--text-main);
+      border-radius: 8px;
     }
 
     .container, .container-large {
@@ -37,14 +38,16 @@
 
     /* Form Elements */
     input, select, textarea {
-      background: #0F172A;
-      color: #F8FAFC;
-      border: 1px solid var(--border);
+      background: #FFFFFF;
+      color: var(--text-main);
+      border: 1px solid #CBD5E1;
+      border-radius: 4px;
+      padding: 0.5rem;
     }
     input:focus, select:focus, textarea:focus {
-      border-color: var(--primary);
+      border-color: var(--secondary);
       outline: none;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+      box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2);
     }
 
     /* Admin specific styles */
@@ -58,20 +61,21 @@
       overflow: hidden;
     }
     .calendar-header {
-      background-color: #0F172A;
+      background-color: var(--secondary); /* Navy */
+      color: #FFFFFF;
       font-weight: bold;
       text-align: center;
       padding: 10px;
     }
-    .calendar-header.sun { color: var(--danger); }
-    .calendar-header.sat { color: var(--primary); }
+    .calendar-header.sun { color: #FECACA; } /* Light red for contrast */
+    .calendar-header.sat { color: #BAE6FD; } /* Light blue for contrast */
     .calendar-day {
       background-color: var(--surface);
       min-height: 100px;
       padding: 10px;
       position: relative;
     }
-    .calendar-day.other-month { background-color: #0B1120; color: var(--border); }
+    .calendar-day.other-month { background-color: #F8FAFC; color: var(--text-muted); }
     .calendar-date { font-weight: bold; margin-bottom: 5px; color: var(--text-muted); }
     
     .event-badge {
@@ -81,58 +85,84 @@
       margin-bottom: 4px;
       color: #fff;
       cursor: pointer;
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid rgba(0,0,0,0.1);
     }
     .event-obuse { background-color: #4F46E5; } /* Indigo */
     .event-suzaka { background-color: #0EA5E9; } /* Light Blue */
     
-    /* Login Screen */
-    #loginScreen {
-      max-width: 400px;
-      margin: 10vh auto;
-    }
     #loginScreen .card {
-      background: rgba(30, 41, 59, 0.8);
-      backdrop-filter: blur(10px);
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      padding: 2.5rem 2rem;
+      box-shadow: 0 10px 25px -5px rgba(30, 58, 138, 0.1);
     }
+    #loginScreen h2 {
+      font-size: 1.5rem;
+      margin-bottom: 2rem;
+      color: var(--secondary);
+    }
+    #password {
+      font-size: 1.5rem;
+      text-align: center;
+      letter-spacing: 0.5rem;
+      padding: 1rem;
+      border: 2px solid #CBD5E1;
+      border-radius: 8px;
+      width: 100%;
+      box-sizing: border-box;
+      transition: all 0.2s;
+    }
+    #password:focus {
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.15);
+    }
+    .btn-login {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1.1rem;
+      margin-top: 1.5rem;
+      border-radius: 8px;
+    }
+
+    /* Style headers to match navy theme */
+    h1, h2, h3, h4 { color: var(--secondary); }
 
     /* Tables */
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
-    th { background: #0F172A; color: var(--text-muted); font-weight: 600; }
-    tr:hover td { background: rgba(255,255,255,0.05); }
+    th { background: var(--secondary); color: #FFFFFF; font-weight: 600; }
+    tr:hover td { background: #F1F5F9; }
 
     /* Nav Tabs */
     .nav-tabs { display: flex; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
     .nav-tab { padding: 0.5rem 1rem; cursor: pointer; color: var(--text-muted); font-weight: bold; }
-    .nav-tab.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
+    .nav-tab.active { color: var(--secondary); border-bottom: 3px solid var(--secondary); }
     .nav-tab:hover { color: var(--text-main); }
 
     /* Modal styles */
     .modal-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(5px);
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(2px);
       display: flex; justify-content: center; align-items: center;
       z-index: 1000;
     }
     .modal-content {
-      background: var(--surface); padding: 2rem; border-radius: var(--radius);
+      background: var(--surface); padding: 2rem; border-radius: 8px;
       width: 90%; max-width: 650px; max-height: 90vh; overflow-y: auto;
       border: 1px solid var(--border);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     }
     .modal-close {
       float: right; font-size: 1.5rem; cursor: pointer; border: none; background: none; color: var(--text-muted);
     }
-    .modal-close:hover { color: var(--text-main); }
+    .modal-close:hover { color: var(--danger); }
     .student-link {
-      color: var(--primary); cursor: pointer; font-weight: bold;
+      color: var(--secondary); cursor: pointer; font-weight: bold;
     }
-    .student-link:hover { text-decoration: underline; color: #60A5FA; }
+    .student-link:hover { text-decoration: underline; color: var(--primary); }
 
-    .modal-content h3, .modal-content h4 { color: var(--text-main); }
-    #testRecordForm { background: #0F172A !important; border: 1px solid var(--border); }
+    #testRecordForm { background: #F8FAFC !important; border: 1px solid var(--border); }
     
     .hidden { display: none !important; }
   </style>
@@ -142,13 +172,12 @@
   <!-- ログイン画面 -->
   <div id="loginScreen" class="container">
     <div class="card">
-      <h2 style="text-align: center; margin-bottom: 1.5rem;">管理者ログイン</h2>
-      <div class="form-group">
-        <label for="password">パスワード</label>
-        <input type="password" id="password" placeholder="パスワードを入力">
+      <h2 style="text-align: center;">管理者ログイン</h2>
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <input type="password" id="password" inputmode="numeric" pattern="[0-9]*" placeholder="数字4桁">
       </div>
-      <div id="loginMessage" class="hidden"></div>
-      <button id="loginBtn" class="btn btn-primary" style="margin-top: 1rem;">ログイン</button>
+      <div id="loginMessage" class="hidden" style="color:var(--danger); text-align:center; font-weight:bold; margin-bottom:1rem;"></div>
+      <button id="loginBtn" class="btn btn-primary btn-login">ログイン</button>
     </div>
   </div>
 
