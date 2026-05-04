@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>無料体験申込 | まさちゃんの自習室</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;600;700&display=swap');
     :root {
@@ -238,7 +239,7 @@
       });
       
       if (res.status === 'success') {
-        if (liff.isInClient()) {
+        if (typeof liff !== 'undefined' && liff.isInClient()) {
           liff.sendMessages([{ type: "text", text: "📅 予約登録" }])
             .then(() => liff.closeWindow())
             .catch(e => {
