@@ -274,7 +274,7 @@
       <div style="width:60px; text-align:left;">
         <button style="background:transparent; border:none; color:white; font-size:1rem; cursor:pointer; padding:0; white-space:nowrap;" onclick="closeStudentsScreen()">◀ 戻る</button>
       </div>
-      <h1 style="margin:0; text-align:center; flex:1; font-size:1.15rem; font-weight:bold;">👥 生徒名簿</h1>
+      <h1 style="margin:0; text-align:center; flex:1; font-size:1.15rem; font-weight:bold;">生徒名簿</h1>
       <div style="width:60px;"></div>
     </header>
     <div class="container-large" style="padding:1rem 10px;" id="studentsScreenBody">
@@ -578,22 +578,18 @@
       participantData.forEach(p => {
         const card = document.createElement('div');
         const displayCategory = p.category === '2時間利用' ? '' : p.category;
-        const phoneLink = p.phone ? `<a href="tel:${p.phone}" style="display:inline-flex; align-items:center; gap:4px; color:var(--primary); font-size:0.85rem; text-decoration:none; margin-top:8px; background:#EFF6FF; padding:6px 10px; border-radius:6px; border:1px solid #BFDBFE; font-weight:bold;"><span style="font-size:1.1rem;">📞</span>${p.phone}</a>` : '';
+        const phoneLink = p.phone ? `<a href="tel:${p.phone}" style="display:inline-flex; align-items:center; gap:4px; color:var(--primary); font-size:0.85rem; text-decoration:none; background:#EFF6FF; padding:6px 10px; border-radius:6px; border:1px solid #BFDBFE; font-weight:bold;"><span style="font-size:1.1rem;">📞</span>${p.phone}</a>` : '';
         
         card.style.cssText = "background:white; border:1px solid var(--border); border-radius:8px; padding:1rem; margin-bottom:0.8rem; box-shadow:0 2px 4px rgba(0,0,0,0.05);";
         card.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-            <div>
-              <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">${p.furigana}</div>
-              <div style="font-size:1.1rem; font-weight:bold; margin-bottom:4px;">
-                <span class="student-link" onclick="openStudentRecord('${p.name}')">${p.name}</span>
-              </div>
-              ${phoneLink}
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="font-size: 1.15rem; font-weight: bold; color: var(--text-main);">
+              <span class="student-link" onclick="openStudentRecord('${p.name}')">${p.name}</span>
             </div>
-            <div style="text-align:right;">
-              <span style="display:inline-block; background:#F1F5F9; color:var(--secondary); padding:4px 8px; border-radius:4px; font-size:0.85rem; font-weight:bold; margin-bottom:4px;">${p.grade}</span>
-              ${displayCategory ? `<br><span style="display:inline-block; background:#FEF3C7; color:#D97706; padding:4px 8px; border-radius:4px; font-size:0.85rem; font-weight:bold;">${displayCategory}</span>` : ''}
-            </div>
+            ${displayCategory ? `<div><span style="display:inline-block; background:#FEF3C7; color:#D97706; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">${displayCategory}</span></div>` : ''}
+            <div><span style="display:inline-block; background:#F1F5F9; color:var(--secondary); padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">${p.grade}</span></div>
+            ${phoneLink ? `<div>${phoneLink}</div>` : ''}
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${p.furigana}</div>
           </div>
         `;
         container.appendChild(card);
@@ -651,7 +647,7 @@
                 ${name} ${genderBadge}
               </div>
               <div style="font-size:0.85rem; color:var(--text-muted);">
-                🏫 ${school}
+                ${school}
               </div>
             </div>
             <div style="text-align:right; margin-left:10px;">
