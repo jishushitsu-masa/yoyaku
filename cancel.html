@@ -78,7 +78,7 @@
   
   if (res.status === 'success') {
     if (liff.isInClient()) {
-      liff.sendMessages([{ type: "text", text: "❌ 予約をキャンセルしました" }])
+      liff.sendMessages([{ type: "text", text: "❌ 予約キャンセル" }])
         .then(() => liff.closeWindow())
         .catch(e => {
           console.error(e);
