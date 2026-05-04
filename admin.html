@@ -315,12 +315,7 @@
           <div style="display:flex; gap:0.5rem;">
             <div class="form-group" style="flex:1; margin:0;"><label>性別</label><select name="性別" style="width:100%; box-sizing:border-box; height:38px;"><option value="">選択</option><option value="男">男</option><option value="女">女</option><option value="その他">その他</option></select></div>
             <div class="form-group" style="flex:1; margin:0;"><label>中学校名</label><input type="text" name="中学校名" style="width:100%; box-sizing:border-box; height:38px;"></div>
-            <div class="form-group" style="flex:1; margin:0;"><label>現在の学年</label><input type="text" name="現在の学年" style="width:100%; box-sizing:border-box; height:38px; background:#f3f4f6; color:#6b7280;" readonly title="自動計算されるため編集不可です"></div>
-          </div>
-          
-          <div style="display:flex; gap:0.5rem;">
-            <div class="form-group" style="flex:1; margin:0;"><label>登録年度</label><input type="number" name="登録年度" style="width:100%; box-sizing:border-box; height:38px;" placeholder="例: 2024"></div>
-            <div class="form-group" style="flex:1; margin:0;"><label>登録時の学年</label><select name="登録時の学年" style="width:100%; box-sizing:border-box; height:38px;"><option value="">選択</option><option value="中1">中1</option><option value="中2">中2</option><option value="中3">中3</option></select></div>
+            <div class="form-group" style="flex:1; margin:0;"><label>学年</label><input type="text" name="現在の学年" style="width:100%; box-sizing:border-box; height:38px; background:#f3f4f6; color:#6b7280;" readonly title="自動計算されるため編集不可です"></div>
           </div>
           
           <div class="form-group" style="margin:0;"><label>部活動・習い事</label><input type="text" name="部活動・習い事"></div>
@@ -673,7 +668,7 @@
       form.reset();
       
       // Populate fields
-      ['性別', '現在の学年', '登録年度', '登録時の学年', '中学校名', '部活動・習い事', '志望校1', '志望校2'].forEach(k => {
+      ['性別', '現在の学年', '中学校名', '部活動・習い事', '志望校1', '志望校2'].forEach(k => {
         const el = form.elements[k];
         if (el) {
           // 「現在の学年」がない場合は「学年」を使用（フォールバック）
