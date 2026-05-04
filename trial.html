@@ -238,9 +238,20 @@
       });
       
       if (res.status === 'success') {
-        document.getElementById('form-card').classList.add('hidden');
-        document.getElementById('success-card').classList.remove('hidden');
-        window.scrollTo(0, 0);
+        if (liff.isInClient()) {
+          liff.sendMessages([{ type: "text", text: "📅 予約を登録しました" }])
+            .then(() => liff.closeWindow())
+            .catch(e => {
+              console.error(e);
+              document.getElementById('form-card').classList.add('hidden');
+              document.getElementById('success-card').classList.remove('hidden');
+              window.scrollTo(0, 0);
+            });
+        } else {
+          document.getElementById('form-card').classList.add('hidden');
+          document.getElementById('success-card').classList.remove('hidden');
+          window.scrollTo(0, 0);
+        }
       } else { 
         alert(res.message || "予約に失敗しました。"); 
         btn.disabled = false; 
