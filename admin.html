@@ -313,9 +313,9 @@
       <form id="studentRecordForm">
         <div style="display:flex; flex-direction:column; gap:0.8rem;">
           <div style="display:flex; gap:0.5rem;">
-            <div class="form-group" style="flex:1; margin:0;"><label>性別</label><select name="性別"><option value="">選択</option><option value="男">男</option><option value="女">女</option><option value="その他">その他</option></select></div>
-            <div class="form-group" style="flex:2; margin:0;"><label>中学校名</label><input type="text" name="中学校名"></div>
-            <div class="form-group" style="flex:1; margin:0;"><label>学年</label><input type="text" name="現在の学年"></div>
+            <div class="form-group" style="flex:1; margin:0;"><label>性別</label><select name="性別" style="width:100%; box-sizing:border-box; height:38px;"><option value="">選択</option><option value="男">男</option><option value="女">女</option><option value="その他">その他</option></select></div>
+            <div class="form-group" style="flex:1; margin:0;"><label>中学校名</label><input type="text" name="中学校名" style="width:100%; box-sizing:border-box; height:38px;"></div>
+            <div class="form-group" style="flex:1; margin:0;"><label>学年</label><input type="text" name="現在の学年" style="width:100%; box-sizing:border-box; height:38px;"></div>
           </div>
           
           <div class="form-group" style="margin:0;"><label>部活動・習い事</label><input type="text" name="部活動・習い事"></div>
@@ -697,16 +697,56 @@
     function renderTestResults(studentName) {
       const tbody = document.getElementById('testResultsTableBody');
       tbody.innerHTML = '';
-      const studentTests = adminData.tests.filter(t => t['生徒名'] === studentName);
+      let studentTests = adminData.tests.filter(t => t['生徒名'] === studentName);
       if (studentTests.length === 0) {
         tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">テスト結果はありません</td></tr>';
         return;
       }
+      
+      const getGradeWeight = (g) => {
+        const s = String(g || '');
+        if (s.includes('3')) return 3;
+        if (s.includes('2')) return 2;
+        if (s.includes('1')) return 1;
+        return 0;
+      };
+      const getTermWeight = (term) => {
+        const s = String(term || '');
+        if (s.includes('3')) return 3;
+        if (s.includes('2') || s.includes('後')) return 2;
+        if (s.includes('1') || s.includes('前')) return 1;
+        return 0;
+      };
+      const getTypeWeight = (type) => {
+        const s = String(type || '');
+        if (s.includes('期末')) return 2;
+        if (s.includes('中間')) return 1;
+        return 0;
+      };
+
+      studentTests.sort((a, b) => {
+        const gwA = getGradeWeight(a['学年']);
+        const gwB = getGradeWeight(b['学年']);
+        if (gwA !== gwB) return gwB - gwA; // 降順
+
+        const twA = getTermWeight(a['学期']);
+        const twB = getTermWeight(b['学期']);
+        if (twA !== twB) return twB - twA; // 降順
+
+        const typeA = getTypeWeight(a['種類']);
+        const typeB = getTypeWeight(b['種類']);
+        return typeB - typeA; // 降順
+      });
+
       studentTests.forEach(t => {
         const tr = document.createElement('tr');
-        const testName = `${t['学年']||''}${t['学期']||''}<br>${t['種類']||''}`;
+        const g = t['学年'] || '';
+        const term = t['学期'] || '';
+        const type = t['種類'] || '';
+        const testName = `<div style="font-weight:bold; color:var(--text-main); margin-bottom:2px;">${g} ${term}</div><div style="font-size:0.7rem;">${type}</div>`;
+        
         tr.innerHTML = `
-          <td style="font-size:0.75rem; line-height:1.3; color:var(--text-muted);">${testName}</td>
+          <td style="font-size:0.75rem; line-height:1.2; padding:8px 4px;">${testName}</td>
           <td style="text-align:center;">${t['国語'] || ''}</td>
           <td style="text-align:center;">${t['数学'] || ''}</td>
           <td style="text-align:center;">${t['英語'] || ''}</td>
