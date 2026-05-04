@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ワンクリックテストツール</title>
+  <link rel="stylesheet" href="index.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; padding: 2rem; }
+    .card { background: white; max-width: 500px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 2rem; }
+    h2 { text-align: center; color: #1e3a8a; margin-bottom: 1rem; }
+    p { color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.5; }
+    .btn { background-color: #ef4444; color: white; border: none; padding: 1rem; width: 100%; border-radius: 8px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: background 0.2s; }
+    .btn:hover { background-color: #dc2626; }
+    .btn:disabled { background-color: #94a3b8; cursor: not-allowed; }
+    #logBox { margin-top: 1.5rem; background: #1e293b; color: #10b981; padding: 1rem; border-radius: 8px; height: 200px; overflow-y: auto; font-family: monospace; white-space: pre-wrap; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>自動テスト予約ツール</h2>
+    <p>
+      このボタンを押すと、架空の生徒名で予約を1件作成し、GASへ送信します。<br>
+      <b>※本番同様に管理者へメールが飛ぶため、1日20件程度の利用に留めてください。</b>
+    </p>
+    <button class="btn" id="testBtn">テスト予約を1件送信する</button>
+    
+    <div id="logBox">待機中...</div>
+  </div>
+
+  <script src="index.js"></script>
+  <script>
+    const btn = document.getElementById('testBtn');
+    const logBox = document.getElementById('logBox');
+
+    function log(message) {
+      const time = new Date().toLocaleTimeString();
+      logBox.textContent = `[${time}] ${message}\n` + logBox.textContent;
+    }
+
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.textContent = "送信中...";
+
+      // ランダムなテストデータを作成
+      const randomNum = Math.floor(Math.random() * 10000);
+      const studentName = "自動テスト生徒_" + randomNum;
+      
+      const payload = {
+        area: "おぶせ",
+        venue: "おぶせテスト会場",
+        studentName: studentName,
+        parentName: "自動テスト保護者_" + randomNum,
+        phone: "0900000" + String(randomNum).padStart(4, '0'),
+        email: `test${randomNum}@example.com`,
+        duration: "2時間",
+        date: "2026/07/01", // 適当な未来の日付
+        time: "17:00",
+        applicationType: "デバッグ"
+      };
+
+      log(`▶ 送信開始: ${studentName}`);
+
+      try {
+        const res = await apiFetch('reserve', payload);
+        if (res.status === 'success') {
+          log(`✅ 成功: 予約とメール連携が完了しました！`);
+        } else {
+          log(`❌ 失敗: ${res.message}`);
+        }
+      } catch(e) {
+        log(`🚨 エラー: ${e.toString()}`);
+      }
+
+      btn.disabled = false;
+      btn.textContent = "テスト予約を1件送信する";
+    });
+  </script>
+</body>
+</html>
