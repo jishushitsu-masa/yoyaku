@@ -121,7 +121,16 @@
         lineUserId: lineUserId
       });
       if (res.status === 'success') {
-        document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2><p>LINE通知をご確認ください。</p></div>';
+        if (liff.isInClient()) {
+          liff.sendMessages([{ type: "text", text: "📅 予約を登録しました" }])
+            .then(() => liff.closeWindow())
+            .catch((err) => {
+              console.error("sendMessages failed", err);
+              document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2><p>右上の×ボタンで画面を閉じてください。</p></div>';
+            });
+        } else {
+          document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2><p>LINE通知をご確認ください。</p></div>';
+        }
       } else { alert(res.message || "予約に失敗しました。"); btn.disabled = false; btn.innerText = "予約を確定する"; }
     };
     function saveUserInfo() {
