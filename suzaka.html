@@ -122,7 +122,7 @@
       });
       if (res.status === 'success') {
         if (liff.isInClient()) {
-          liff.sendMessages([{ type: "text", text: "📅 予約を登録しました" }])
+          liff.sendMessages([{ type: "text", text: "📅 予約登録" }])
             .then(() => liff.closeWindow())
             .catch((err) => {
               console.error("sendMessages failed", err);
