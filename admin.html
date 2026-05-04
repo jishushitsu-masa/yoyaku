@@ -305,17 +305,19 @@
   <div id="studentModal" class="modal-overlay hidden" style="padding: 10px;">
     <div class="modal-content" style="width:100%; padding:1.5rem 1rem;">
       <button class="modal-close" onclick="closeModal('studentModal')">×</button>
-      <h2 style="margin-bottom: 1rem; font-size:1.25rem;">生徒カルテ:<br><span id="recordStudentName" style="color:var(--primary);"></span></h2>
+      <h2 style="margin-bottom: 1rem; font-size:1.25rem;">
+        生徒カルテ:<br>
+        <span id="recordStudentName" style="color:var(--primary);"></span>
+        <span id="recordStudentFurigana" style="font-size:0.85rem; color:var(--text-muted); font-weight:normal; margin-left:8px;"></span>
+      </h2>
       <form id="studentRecordForm">
         <div style="display:flex; flex-direction:column; gap:0.8rem;">
-          <div class="form-group" style="margin:0;"><label>ふりがな</label><input type="text" name="ふりがな"></div>
-          
-          <div style="display:flex; gap:1rem;">
+          <div style="display:flex; gap:0.5rem;">
             <div class="form-group" style="flex:1; margin:0;"><label>性別</label><select name="性別"><option value="">選択</option><option value="男">男</option><option value="女">女</option><option value="その他">その他</option></select></div>
-            <div class="form-group" style="flex:2; margin:0;"><label>現在の学年</label><input type="text" name="現在の学年"></div>
+            <div class="form-group" style="flex:2; margin:0;"><label>中学校名</label><input type="text" name="中学校名"></div>
+            <div class="form-group" style="flex:1; margin:0;"><label>学年</label><input type="text" name="現在の学年"></div>
           </div>
           
-          <div class="form-group" style="margin:0;"><label>中学校名</label><input type="text" name="中学校名"></div>
           <div class="form-group" style="margin:0;"><label>部活動・習い事</label><input type="text" name="部活動・習い事"></div>
           
           <div style="display:flex; gap:1rem;">
@@ -344,21 +346,22 @@
           </table>
         </div>
         
-        <form id="testRecordForm" style="background:#F9FAFB; padding:1rem; border-radius:8px;">
-          <h4 style="margin-bottom:0.8rem;">新しい結果を追加</h4>
+        <button type="button" id="toggleTestFormBtn" style="background:#F1F5F9; color:var(--secondary); border:1px solid #CBD5E1; width:100%; padding:0.8rem; border-radius:8px; font-weight:bold; margin-bottom:1rem; cursor:pointer;" onclick="document.getElementById('testRecordForm').classList.toggle('hidden')">＋ 新しいテスト結果を追加</button>
+        
+        <form id="testRecordForm" class="hidden" style="background:#F9FAFB; padding:1rem; border-radius:8px; border:1px solid var(--border);">
           <div style="display:flex; gap:0.5rem; margin-bottom:0.8rem;">
-            <div class="form-group" style="flex:1; margin:0;"><label>学年</label><input type="text" name="学年" required placeholder="例: 中1"></div>
-            <div class="form-group" style="flex:1; margin:0;"><label>学期</label><input type="text" name="学期" required placeholder="例: 1学期"></div>
-            <div class="form-group" style="flex:1; margin:0;"><label>種類</label><input type="text" name="種類" required placeholder="中間等"></div>
+            <div class="form-group" style="flex:1; margin:0;"><label>学年</label><select name="学年" required style="padding:0.5rem 0.2rem;"><option value="">選択</option><option value="中1">中1</option><option value="中2">中2</option><option value="中3">中3</option></select></div>
+            <div class="form-group" style="flex:1; margin:0;"><label>学期</label><select name="学期" required style="padding:0.5rem 0.2rem;"><option value="">選択</option><option value="1学期">1学期</option><option value="2学期">2学期</option><option value="3学期">3学期</option></select></div>
+            <div class="form-group" style="flex:1; margin:0;"><label>種類</label><select name="種類" required style="padding:0.5rem 0.2rem;"><option value="">選択</option><option value="中間">中間</option><option value="期末">期末</option></select></div>
           </div>
-          <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:0.5rem; margin-bottom:1.2rem;">
-            <div class="form-group" style="margin:0;"><label style="text-align:center;">国語</label><input type="number" name="国語" class="test-score" style="text-align:center; padding:0.5rem 0.2rem;"></div>
-            <div class="form-group" style="margin:0;"><label style="text-align:center;">数学</label><input type="number" name="数学" class="test-score" style="text-align:center; padding:0.5rem 0.2rem;"></div>
-            <div class="form-group" style="margin:0;"><label style="text-align:center;">英語</label><input type="number" name="英語" class="test-score" style="text-align:center; padding:0.5rem 0.2rem;"></div>
-            <div class="form-group" style="margin:0;"><label style="text-align:center;">理科</label><input type="number" name="理科" class="test-score" style="text-align:center; padding:0.5rem 0.2rem;"></div>
-            <div class="form-group" style="margin:0;"><label style="text-align:center;">社会</label><input type="number" name="社会" class="test-score" style="text-align:center; padding:0.5rem 0.2rem;"></div>
+          <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:0.2rem; margin-bottom:1.2rem;">
+            <div class="form-group" style="margin:0;"><label style="text-align:center; font-size:0.8rem;">国</label><input type="number" name="国語" class="test-score" style="text-align:center; padding:0.4rem 0.1rem; width:100%; box-sizing:border-box; min-width:0;"></div>
+            <div class="form-group" style="margin:0;"><label style="text-align:center; font-size:0.8rem;">数</label><input type="number" name="数学" class="test-score" style="text-align:center; padding:0.4rem 0.1rem; width:100%; box-sizing:border-box; min-width:0;"></div>
+            <div class="form-group" style="margin:0;"><label style="text-align:center; font-size:0.8rem;">英</label><input type="number" name="英語" class="test-score" style="text-align:center; padding:0.4rem 0.1rem; width:100%; box-sizing:border-box; min-width:0;"></div>
+            <div class="form-group" style="margin:0;"><label style="text-align:center; font-size:0.8rem;">理</label><input type="number" name="理科" class="test-score" style="text-align:center; padding:0.4rem 0.1rem; width:100%; box-sizing:border-box; min-width:0;"></div>
+            <div class="form-group" style="margin:0;"><label style="text-align:center; font-size:0.8rem;">社</label><input type="number" name="社会" class="test-score" style="text-align:center; padding:0.4rem 0.1rem; width:100%; box-sizing:border-box; min-width:0;"></div>
           </div>
-          <button type="submit" class="btn btn-secondary" id="addTestBtn" style="width:100%; padding:0.8rem;">テスト結果を追加する</button>
+          <button type="submit" class="btn btn-secondary" id="addTestBtn" style="width:100%; padding:0.8rem;">保存する</button>
         </form>
       </div>
     </div>
@@ -656,15 +659,16 @@
 
     function openStudentRecord(studentName) {
       currentStudentName = studentName;
-      document.getElementById('recordStudentName').textContent = studentName;
-
       const student = adminData.students.find(s => s['生徒名'] === studentName) || {};
       
+      document.getElementById('recordStudentName').textContent = studentName;
+      document.getElementById('recordStudentFurigana').textContent = student['ふりがな'] || '';
+
       const form = document.getElementById('studentRecordForm');
       form.reset();
       
       // Populate fields
-      ['ふりがな', '性別', '現在の学年', '中学校名', '部活動・習い事', '志望校1', '志望校2'].forEach(k => {
+      ['性別', '現在の学年', '中学校名', '部活動・習い事', '志望校1', '志望校2'].forEach(k => {
         const el = form.elements[k];
         if (el) {
           el.value = student[k] || '';
@@ -676,9 +680,14 @@
 
       const testForm = document.getElementById('testRecordForm');
       testForm.reset();
+      testForm.classList.add('hidden'); // モーダルを開いた時は非表示
+
       if (authToken !== 'master') {
         Array.from(testForm.elements).forEach(el => el.disabled = true);
+        document.getElementById('toggleTestFormBtn').style.display = 'none';
         document.getElementById('addTestBtn').style.display = 'none';
+      } else {
+        document.getElementById('toggleTestFormBtn').style.display = 'block';
       }
 
       document.getElementById('saveRecordMsg').classList.add('hidden');
