@@ -74,6 +74,7 @@
             <span id="selected-date-text">先にエリアを選択してください</span>
             <span>▼</span>
           </div>
+          <div id="scheduleLoader"></div>
           <div class="accordion-content" id="accordion-content">
             <div id="schedule-list"></div>
           </div>
@@ -134,7 +135,9 @@
       } catch (e) { console.log('LIFF init failed', e); }
 
       // 最初にスケジュールを裏で読み込んでおく
+      showLoader('scheduleLoader');
       const res = await apiFetch('getSchedule');
+      hideLoader('scheduleLoader');
       if (res.status === 'success') {
         scheduleData = res.data;
         const selectedArea = document.querySelector('input[name="area_select"]:checked');
@@ -181,6 +184,7 @@
         return; 
       }
       
+      const fragment = document.createDocumentFragment();
       filtered.forEach(item => {
         const isOff = item['休み'] === '休み';
         const dateStr = String(item['日付']).split('T')[0].replace(/-/g, '/');
@@ -206,8 +210,9 @@
         } else {
           div.style.opacity = "0.5"; div.style.cursor = "not-allowed";
         }
-        scheduleList.appendChild(div);
+        fragment.appendChild(div);
       });
+      scheduleList.appendChild(fragment);
     }
 
     document.getElementById('trial-form').onsubmit = async (e) => {
