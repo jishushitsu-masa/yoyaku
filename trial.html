@@ -126,7 +126,7 @@
     // LIFF init (if available)
     document.addEventListener('DOMContentLoaded', async () => {
       try {
-        await liff.init({ liffId: "2009652448-yEc3eycW" }); 
+        await liff.init({ liffId: "2009652448-pMhdj3ZC" }); // 体験申込フォーム用のLIFF IDに変更
         if (liff.isLoggedIn()) {
           const p = await liff.getProfile();
           lineUserId = p.userId;
@@ -239,16 +239,23 @@
       });
       
       if (res.status === 'success') {
-        if (typeof liff !== 'undefined' && liff.isInClient()) {
-          liff.sendMessages([{ type: "text", text: "📅 予約登録" }])
-            .then(() => liff.closeWindow())
-            .catch(e => {
-              console.error(e);
-              document.getElementById('form-card').classList.add('hidden');
-              document.getElementById('success-card').classList.remove('hidden');
-              window.scrollTo(0, 0);
-            });
-        } else {
+        try {
+          if (typeof liff !== 'undefined' && liff.isInClient()) {
+            liff.sendMessages([{ type: "text", text: "📅 予約登録" }])
+              .then(() => liff.closeWindow())
+              .catch(e => {
+                console.error("sendMessages Promise Error:", e);
+                document.getElementById('form-card').classList.add('hidden');
+                document.getElementById('success-card').classList.remove('hidden');
+                window.scrollTo(0, 0);
+              });
+          } else {
+            document.getElementById('form-card').classList.add('hidden');
+            document.getElementById('success-card').classList.remove('hidden');
+            window.scrollTo(0, 0);
+          }
+        } catch (err) {
+          console.error("LIFF Sync Error:", err);
           document.getElementById('form-card').classList.add('hidden');
           document.getElementById('success-card').classList.remove('hidden');
           window.scrollTo(0, 0);
