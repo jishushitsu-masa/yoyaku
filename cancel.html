@@ -36,33 +36,49 @@
 
   <script src="index.js"></script>
   <script>
-    const LIFF_ID = "2003593452-9b257Myn";
+    const LIFF_ID = "2009652448-DTbJgRRj";
     const params = new URLSearchParams(window.location.search);
     const cancelId = params.get('id');
 
     window.onload = async () => {
-      await liff.init({ liffId: LIFF_ID });
-      const res = await apiFetch('getReservationDetail', { cancelId: cancelId });
-      if (res.status === 'success') {
-        document.getElementById('resStudent').innerText = res.data.studentName + " さん";
-        document.getElementById('resVenue').innerText = `${res.data.area} ${res.data.venue}`;
+      try {
+        await liff.init({ liffId: LIFF_ID });
         
-        // 曜日付き日付の整形処理
-        const dateObj = new Date(res.data.date);
-        if (!isNaN(dateObj.getTime())) {
-          const days = ["日","月","火","水","木","金","土"];
-          const y = dateObj.getFullYear();
-          const m = ('0'+(dateObj.getMonth()+1)).slice(-2);
-          const d = ('0'+dateObj.getDate()).slice(-2);
-          const day = days[dateObj.getDay()];
-          document.getElementById('resDate').innerText = `${y}/${m}/${d}(${day})`;
-        } else {
-          document.getElementById('resDate').innerText = res.data.date;
+        if (!cancelId) {
+          document.getElementById('loader').innerText = '予約IDが指定されていません。';
+          return;
         }
+
+        const res = await apiFetch('getReservationDetail', { cancelId: cancelId });
         
-        document.getElementById('resTime').innerText = res.data.time;
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('content').style.display = 'block';
+        if (res.status === 'success') {
+          document.getElementById('resStudent').innerText = res.data.studentName + " さん";
+          document.getElementById('resVenue').innerText = `${res.data.area} ${res.data.venue}`;
+          
+          // 曜日付き日付の整形処理
+          const dateObj = new Date(res.data.date);
+          if (!isNaN(dateObj.getTime())) {
+            const days = ["日","月","火","水","木","金","土"];
+            const y = dateObj.getFullYear();
+            const m = ('0'+(dateObj.getMonth()+1)).slice(-2);
+            const d = ('0'+dateObj.getDate()).slice(-2);
+            const day = days[dateObj.getDay()];
+            document.getElementById('resDate').innerText = `${y}/${m}/${d}(${day})`;
+          } else {
+            document.getElementById('resDate').innerText = res.data.date;
+          }
+          
+          document.getElementById('resTime').innerText = res.data.time;
+          document.getElementById('loader').style.display = 'none';
+          document.getElementById('content').style.display = 'block';
+        } else {
+          // APIからエラーが返ってきた場合
+          document.getElementById('loader').innerHTML = `<span style="color: red;">エラー: ${res.message}</span>`;
+        }
+      } catch (err) {
+        // LIFFの初期化エラーなど、予期せぬエラーが発生した場合
+        document.getElementById('loader').innerHTML = `<span style="color: red;">システムエラーが発生しました。LIFF IDやURLの設定を確認してください。<br><br>${err.message}</span>`;
+        console.error("Initialization Error:", err);
       }
     };
 
