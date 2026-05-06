@@ -62,10 +62,26 @@
         if (liff.isLoggedIn()) { liff.getProfile().then(p => { lineUserId = p.userId; }); }
         else { liff.login(); }
       });
-      showLoader('scheduleLoader');
+      // ローカルキャッシュからスケジュールを読み込む
+      const cachedSchedule = localStorage.getItem('scheduleCache');
+      if (cachedSchedule) {
+        try {
+          scheduleData = JSON.parse(cachedSchedule);
+          renderSchedule();
+        } catch(e) {}
+      }
+
+      if (scheduleData.length === 0) {
+        showLoader('scheduleLoader');
+      }
+
       const res = await apiFetch('getSchedule');
       hideLoader('scheduleLoader');
-      if (res.status === 'success') { scheduleData = res.data; renderSchedule(); }
+      if (res.status === 'success') { 
+        scheduleData = res.data; 
+        localStorage.setItem('scheduleCache', JSON.stringify(scheduleData));
+        renderSchedule(); 
+      }
     });
 
     function renderSchedule() {
