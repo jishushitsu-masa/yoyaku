@@ -134,12 +134,29 @@
         }
       } catch (e) { console.log('LIFF init failed', e); }
 
-      // 最初にスケジュールを裏で読み込んでおく
-      showLoader('scheduleLoader');
+      // 最初にローカルキャッシュからスケジュールを読み込む（即時表示用）
+      const cachedSchedule = localStorage.getItem('trialScheduleCache');
+      if (cachedSchedule) {
+        try {
+          scheduleData = JSON.parse(cachedSchedule);
+          const selectedArea = document.querySelector('input[name="area_select"]:checked');
+          if (selectedArea) updateScheduleList(selectedArea.value);
+        } catch (e) {
+          console.error("Cache parse error", e);
+        }
+      }
+
+      // キャッシュがない場合のみローダーを表示
+      if (scheduleData.length === 0) {
+        showLoader('scheduleLoader');
+      }
+      
+      // 最新のスケジュールを裏で読み込んで更新
       const res = await apiFetch('getSchedule');
       hideLoader('scheduleLoader');
       if (res.status === 'success') {
         scheduleData = res.data;
+        localStorage.setItem('trialScheduleCache', JSON.stringify(scheduleData));
         const selectedArea = document.querySelector('input[name="area_select"]:checked');
         if (selectedArea) updateScheduleList(selectedArea.value);
       }
@@ -147,14 +164,16 @@
 
     document.getElementsByName('area_select').forEach(el => {
       el.onchange = () => {
-        accordionHeader.classList.remove('active');
-        content.classList.remove('open');
         document.getElementById('selected-date-text').textContent = "タップして日程を選択してください";
         document.getElementById('input-date').value = "";
         document.getElementById('input-time').value = "";
         document.getElementById('input-venueDetail').value = "";
         document.getElementById('input-area').value = el.value;
         updateScheduleList(el.value);
+        
+        // エリア選択時にアコーディオンを自動で開く
+        accordionHeader.classList.add('active');
+        content.classList.add('open');
       };
     });
 
