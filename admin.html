@@ -375,6 +375,10 @@
     let adminData = { schedule: [], reservations: [], students: [], tests: [] };
     let currentStudentName = "";
 
+    function normalizeName(name) {
+      return String(name || '').replace(/[\s　]/g, '');
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       // 常にログイン画面から開始するため、自動ログインを無効化
       // if (authToken) showDashboard();
@@ -547,9 +551,10 @@
       // 生徒データを結合
       const participantData = reservations.map(r => {
         const studentName = String(r['生徒名'] || '').trim();
-        const studentInfo = adminData.students.find(s => String(s['生徒名'] || '').trim() === studentName) || {};
+        const normName = normalizeName(studentName);
+        const studentInfo = adminData.students.find(s => normalizeName(s['生徒名']) === normName) || {};
         return {
-          name: studentName,
+          name: studentInfo['生徒名'] || studentName,
           furigana: String(studentInfo['ふりがな'] || ''),
           grade: String(studentInfo['現在の学年'] || studentInfo['登録時の学年'] || '-'),
           category: String(r['区分'] || ''),
@@ -670,7 +675,7 @@
 
     function openStudentRecord(studentName) {
       currentStudentName = studentName;
-      const student = adminData.students.find(s => s['生徒名'] === studentName) || {};
+      const student = adminData.students.find(s => normalizeName(s['生徒名']) === normalizeName(studentName)) || {};
       
       document.getElementById('recordStudentName').textContent = studentName;
       document.getElementById('recordStudentFurigana').textContent = student['ふりがな'] || '';
@@ -713,7 +718,7 @@
     function renderTestResults(studentName) {
       const tbody = document.getElementById('testResultsTableBody');
       tbody.innerHTML = '';
-      let studentTests = adminData.tests.filter(t => t['生徒名'] === studentName);
+      let studentTests = adminData.tests.filter(t => normalizeName(t['生徒名']) === normalizeName(studentName));
       if (studentTests.length === 0) {
         tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">テスト結果はありません</td></tr>';
         return;
@@ -805,7 +810,7 @@
         msg.classList.remove('hidden');
         
         // Update local cache
-        const idx = adminData.students.findIndex(s => s['生徒名'] === currentStudentName);
+        const idx = adminData.students.findIndex(s => normalizeName(s['生徒名']) === normalizeName(currentStudentName));
         if (idx !== -1) {
           adminData.students[idx] = { ...adminData.students[idx], ...studentData };
           if (!document.getElementById('studentsScreen').classList.contains('hidden')) renderStudents();
