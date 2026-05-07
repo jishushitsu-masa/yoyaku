@@ -559,7 +559,8 @@
           grade: String(studentInfo['現在の学年'] || studentInfo['登録時の学年'] || '-'),
           category: String(r['区分'] || ''),
           time: String(r['時間'] || ''),
-          phone: String(r['電話番号'] || studentInfo['電話番号'] || studentInfo['保護者電話番号'] || '')
+          phone: String(r['電話番号'] || studentInfo['電話番号'] || studentInfo['保護者電話番号'] || ''),
+          gender: String(studentInfo['性別'] || '')
         };
       });
 
@@ -583,13 +584,17 @@
         const displayCategory = p.category === '2時間利用' ? '' : p.category;
         const phoneLink = p.phone ? `<a href="tel:${p.phone}" style="display:inline-flex; align-items:center; gap:6px; color:var(--secondary); font-size:0.9rem; text-decoration:none; background:#EFF6FF; padding:6px 12px; border-radius:6px; border:1px solid #BFDBFE; font-weight:bold;"><span style="font-size:1.1rem;">📞</span>${p.phone}</a>` : '';
         
+        let nameColor = 'var(--secondary)'; // デフォルト
+        if (p.gender === '男' || p.gender === '男子') nameColor = '#2563EB'; // 薄い青系
+        else if (p.gender === '女' || p.gender === '女子') nameColor = '#DB2777'; // 薄い赤系
+        
         card.style.cssText = "background:white; border:1px solid var(--border); border-radius:8px; padding:1.2rem; margin-bottom:0.8rem; box-shadow:0 2px 4px rgba(0,0,0,0.05);";
         card.innerHTML = `
           <div style="display: flex; flex-direction: column; gap: 12px;">
             <!-- 上段 -->
             <div style="display: flex; justify-content: space-between; align-items: flex-end;">
               <div style="display: flex; align-items: baseline; gap: 8px;">
-                <span class="student-link" onclick="openStudentRecord('${p.name}')" style="font-size: 1.3rem; font-weight: bold; color: var(--secondary); line-height: 1;">${p.name}</span>
+                <span class="student-link" onclick="openStudentRecord('${p.name}')" style="font-size: 1.3rem; font-weight: bold; color: ${nameColor}; line-height: 1;">${p.name}</span>
                 <span style="font-size: 0.75rem; color: var(--text-muted);">${p.furigana}</span>
               </div>
               <span style="display:inline-block; background:#F8FAFC; color:var(--secondary); padding:4px 12px; border-radius:6px; font-size:0.9rem; font-weight:bold; border: 1px solid #E2E8F0;">${p.grade}</span>
@@ -638,14 +643,9 @@
         const gender = s['性別'] || '';
         const school = s['中学校名'] || '中学校未登録';
 
-        let genderBadge = '';
-        if (gender === '男' || gender === '男子') {
-          genderBadge = '<span style="display:inline-block; font-size:0.7rem; color:#2563EB; background:#DBEAFE; padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle;">男子</span>';
-        } else if (gender === '女' || gender === '女子') {
-          genderBadge = '<span style="display:inline-block; font-size:0.7rem; color:#DB2777; background:#FCE7F3; padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle;">女子</span>';
-        } else if (gender) {
-          genderBadge = `<span style="display:inline-block; font-size:0.7rem; color:#4B5563; background:#F3F4F6; padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle;">${gender}</span>`;
-        }
+        let nameColor = 'var(--text-main)'; // デフォルト
+        if (gender === '男' || gender === '男子') nameColor = '#2563EB'; // 薄い青系
+        else if (gender === '女' || gender === '女子') nameColor = '#DB2777'; // 薄い赤系
 
         const card = document.createElement('div');
         card.style.cssText = "background:white; border:1px solid var(--border); border-radius:8px; padding:1rem; margin-bottom:0.8rem; box-shadow:0 2px 4px rgba(0,0,0,0.05); cursor:pointer; transition:background 0.2s;";
@@ -657,8 +657,8 @@
           <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             <div style="flex:1;">
               <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">${furigana}</div>
-              <div style="font-size:1.15rem; font-weight:bold; margin-bottom:6px; color:var(--text-main); display:flex; align-items:center;">
-                ${name} ${genderBadge}
+              <div style="font-size:1.15rem; font-weight:bold; margin-bottom:6px; color:${nameColor}; display:flex; align-items:center;">
+                ${name}
               </div>
               <div style="font-size:0.85rem; color:var(--text-muted);">
                 ${school}
