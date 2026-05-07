@@ -585,8 +585,8 @@
         const phoneLink = p.phone ? `<a href="tel:${p.phone}" style="display:inline-flex; align-items:center; gap:6px; color:var(--secondary); font-size:0.9rem; text-decoration:none; background:#EFF6FF; padding:6px 12px; border-radius:6px; border:1px solid #BFDBFE; font-weight:bold;"><span style="font-size:1.1rem;">📞</span>${p.phone}</a>` : '';
         
         let nameColor = 'var(--secondary)'; // デフォルト
-        if (p.gender === '男' || p.gender === '男子') nameColor = '#60A5FA'; // 薄い青系
-        else if (p.gender === '女' || p.gender === '女子') nameColor = '#F472B6'; // 薄い赤系
+        if (p.gender === '男' || p.gender === '男子') nameColor = '#2563EB'; // 薄い青系
+        else if (p.gender === '女' || p.gender === '女子') nameColor = '#DB2777'; // 薄い赤系
         
         card.style.cssText = "background:white; border:1px solid var(--border); border-radius:8px; padding:1.2rem; margin-bottom:0.8rem; box-shadow:0 2px 4px rgba(0,0,0,0.05);";
         card.innerHTML = `
@@ -644,8 +644,8 @@
         const school = s['中学校名'] || '中学校未登録';
 
         let nameColor = 'var(--text-main)'; // デフォルト
-        if (gender === '男' || gender === '男子') nameColor = '#60A5FA'; // 薄い青系
-        else if (gender === '女' || gender === '女子') nameColor = '#F472B6'; // 薄い赤系
+        if (gender === '男' || gender === '男子') nameColor = '#2563EB'; // 薄い青系
+        else if (gender === '女' || gender === '女子') nameColor = '#DB2777'; // 薄い赤系
 
         const card = document.createElement('div');
         card.style.cssText = "background:white; border:1px solid var(--border); border-radius:8px; padding:1rem; margin-bottom:0.8rem; box-shadow:0 2px 4px rgba(0,0,0,0.05); cursor:pointer; transition:background 0.2s;";
@@ -679,8 +679,8 @@
       
       let nameColor = 'var(--primary)';
       const gender = student['性別'] || '';
-      if (gender === '男' || gender === '男子') nameColor = '#60A5FA';
-      else if (gender === '女' || gender === '女子') nameColor = '#F472B6';
+      if (gender === '男' || gender === '男子') nameColor = '#2563EB';
+      else if (gender === '女' || gender === '女子') nameColor = '#DB2777';
 
       const recordNameEl = document.getElementById('recordStudentName');
       recordNameEl.textContent = studentName;
