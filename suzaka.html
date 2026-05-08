@@ -99,12 +99,20 @@
         const displayDate = `${d.getMonth()+1}/${d.getDate()}(${day})`;
         const submitDate = `${d.getFullYear()}/${('0'+(d.getMonth()+1)).slice(-2)}/${('0'+d.getDate()).slice(-2)}`;
         
+        const isToday = d.getTime() === today.getTime();
+        const isDisabled = isOff || isToday;
+
         const div = document.createElement('div');
-        div.className = `schedule-item ${isOff ? 'disabled' : 'selectable'}`;
+        div.className = `schedule-item ${isDisabled ? 'disabled' : 'selectable'}`;
         div.style.padding = "10px"; div.style.borderBottom = "1px solid #eee";
-        div.innerHTML = `<div><b>${displayDate} ${item['時間'] || ''}</b> ${isOff ? '<small style="color:red;">(休み)</small>' : ''}<br><small>場所：${item['会場名']}</small></div>`;
         
-        if (!isOff) {
+        let extraText = '';
+        if (isOff) extraText = '<small style="color:red;">(休み)</small>';
+        else if (isToday) extraText = '<br><small style="color:orange;">(当日予約不可・直接ご連絡ください)</small>';
+
+        div.innerHTML = `<div><b>${displayDate} ${item['時間'] || ''}</b> ${extraText}<br><small>場所：${item['会場名']}</small></div>`;
+        
+        if (!isDisabled) {
           div.onclick = () => {
             document.getElementById('selectedDate').value = submitDate;
             document.getElementById('selectedVenue').value = item['会場名'];
