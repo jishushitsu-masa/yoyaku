@@ -368,6 +368,44 @@
     </div>
   </div>
 
+  <!-- モーダル: 当日飛び込み追加 -->
+  <div id="walkInModal" class="modal-overlay hidden" style="padding: 10px;">
+    <div class="modal-content" style="width:100%; max-width:400px; padding:1.5rem 1rem;">
+      <button class="modal-close" onclick="closeModal('walkInModal')">×</button>
+      <h2 style="margin-bottom: 1rem; font-size:1.25rem; color:var(--primary);">当日追加</h2>
+      <form id="walkInForm">
+        <div class="form-group"><label>生徒名</label><input type="text" name="studentName" required style="width:100%; box-sizing:border-box;"></div>
+        <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+          <div class="form-group" style="flex:1; margin:0;">
+            <label>性別</label>
+            <select name="gender" required style="width:100%; box-sizing:border-box; padding:0.5rem; border:1px solid #CBD5E1; border-radius:4px;">
+              <option value="">選択</option><option value="男">男</option><option value="女">女</option><option value="その他">その他</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1; margin:0;">
+            <label>学年</label>
+            <select name="grade" required style="width:100%; box-sizing:border-box; padding:0.5rem; border:1px solid #CBD5E1; border-radius:4px;">
+              <option value="">選択</option>
+              <option value="小1">小1</option><option value="小2">小2</option><option value="小3">小3</option>
+              <option value="小4">小4</option><option value="小5">小5</option><option value="小6">小6</option>
+              <option value="中1">中1</option><option value="中2">中2</option><option value="中3">中3</option>
+              <option value="高1">高1</option><option value="高2">高2</option><option value="高3">高3</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:1.5rem;">
+          <label>区分</label>
+          <select name="duration" required style="width:100%; box-sizing:border-box; padding:0.5rem; border:1px solid #CBD5E1; border-radius:4px;">
+            <option value="2時間利用">2時間利用</option>
+            <option value="1時間利用">1時間利用</option>
+            <option value="体験">体験</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" id="walkInSubmitBtn" style="width:100%; padding:0.8rem; background:#10B981; border:none; border-radius:8px;">追加する</button>
+      </form>
+    </div>
+  </div>
+
   <script src="index.js"></script>
   <script>
     let currentDate = new Date();
@@ -475,7 +513,7 @@
           
           const eventContainer = document.createElement('div');
           eventContainer.className = 'event-badge-container';
-          eventContainer.onclick = () => showParticipants(dateStr, area, reservations);
+          eventContainer.onclick = () => showParticipants(dateStr, area, sch['会場名'] || '', sch['時間'] || '', reservations);
 
           const areaName = document.createElement('div');
           areaName.className = `area-name ${area === 'おぶせ' ? 'obuse' : 'suzaka'}`;
@@ -520,17 +558,17 @@
       document.getElementById('dashboard').classList.remove('hidden');
     }
 
-    function showParticipants(dateStr, area, reservations) {
+    function showParticipants(dateStr, area, venueName, timeStr, reservations) {
       document.getElementById('dashboard').classList.add('hidden');
       document.getElementById('participantsScreen').classList.remove('hidden');
       
-      const venueName = reservations.length > 0 ? (reservations[0]['会場名'] || '') : '';
-      
-      // 予約に含まれる時間帯を抽出してユニークにする
-      const times = [...new Set(reservations.map(r => r['時間'] || '').filter(t => t))].join(' / ');
+      window.currentWalkInContext = { date: dateStr, area: area, venue: venueName, time: timeStr };
+
+      const displayVenue = venueName || (reservations.length > 0 ? (reservations[0]['会場名'] || '') : '');
+      const times = timeStr || [...new Set(reservations.map(r => r['時間'] || '').filter(t => t))].join(' / ');
       
       document.getElementById('psDate').textContent = dateStr;
-      document.getElementById('psVenue').textContent = `${area} ${venueName}`;
+      document.getElementById('psVenue').textContent = `${area} ${displayVenue}`;
       
       const psTimeEl = document.getElementById('psTime');
       if (times) {
@@ -585,8 +623,8 @@
         const phoneLink = p.phone ? `<a href="tel:${p.phone}" style="display:inline-flex; align-items:center; gap:6px; color:var(--secondary); font-size:0.9rem; text-decoration:none; background:#EFF6FF; padding:6px 12px; border-radius:6px; border:1px solid #BFDBFE; font-weight:bold;"><span style="font-size:1.1rem;">📞</span>${p.phone}</a>` : '';
         
         let nameColor = 'var(--secondary)'; // デフォルト
-        if (p.gender === '男' || p.gender === '男子') nameColor = '#2563EB'; // 薄い青系
-        else if (p.gender === '女' || p.gender === '女子') nameColor = '#DB2777'; // 薄い赤系
+        if (p.gender === '男' || p.gender === '男子') nameColor = '#60A5FA'; // 薄い青系
+        else if (p.gender === '女' || p.gender === '女子') nameColor = '#F472B6'; // 薄い赤系
         
         card.style.cssText = "background:white; border:1px solid var(--border); border-radius:8px; padding:1.2rem; margin-bottom:0.8rem; box-shadow:0 2px 4px rgba(0,0,0,0.05);";
         card.innerHTML = `
@@ -613,6 +651,13 @@
         `;
         container.appendChild(card);
       });
+
+      // 当日追加ボタン
+      const walkInBtnContainer = document.createElement('div');
+      walkInBtnContainer.style.marginTop = '2rem';
+      walkInBtnContainer.style.marginBottom = '2rem';
+      walkInBtnContainer.innerHTML = `<button onclick="document.getElementById('walkInModal').classList.remove('hidden')" style="width:100%; padding:1rem; background:#10B981; color:white; border:none; border-radius:8px; font-weight:bold; font-size:1.1rem; cursor:pointer; box-shadow:0 4px 6px rgba(16,185,129,0.2);">＋ 当日追加（飛び込み予約）</button>`;
+      container.appendChild(walkInBtnContainer);
     }
 
     function closeParticipantsScreen() {
@@ -644,8 +689,8 @@
         const school = s['中学校名'] || '中学校未登録';
 
         let nameColor = 'var(--text-main)'; // デフォルト
-        if (gender === '男' || gender === '男子') nameColor = '#2563EB'; // 薄い青系
-        else if (gender === '女' || gender === '女子') nameColor = '#DB2777'; // 薄い赤系
+        if (gender === '男' || gender === '男子') nameColor = '#60A5FA'; // 薄い青系
+        else if (gender === '女' || gender === '女子') nameColor = '#F472B6'; // 薄い赤系
 
         const card = document.createElement('div');
         card.style.cssText = "background:white; border:1px solid var(--border); border-radius:8px; padding:1rem; margin-bottom:0.8rem; box-shadow:0 2px 4px rgba(0,0,0,0.05); cursor:pointer; transition:background 0.2s;";
@@ -679,8 +724,8 @@
       
       let nameColor = 'var(--primary)';
       const gender = student['性別'] || '';
-      if (gender === '男' || gender === '男子') nameColor = '#2563EB';
-      else if (gender === '女' || gender === '女子') nameColor = '#DB2777';
+      if (gender === '男' || gender === '男子') nameColor = '#60A5FA';
+      else if (gender === '女' || gender === '女子') nameColor = '#F472B6';
 
       const recordNameEl = document.getElementById('recordStudentName');
       recordNameEl.textContent = studentName;
@@ -858,6 +903,44 @@
         alert(res.message || '追加に失敗しました');
       }
       btn.disabled = false; btn.textContent = 'テスト結果を追加する';
+    });
+
+    document.getElementById('walkInForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (authToken !== 'master') {
+        alert("閲覧専用権限では追加できません。");
+        return;
+      }
+      
+      const btn = document.getElementById('walkInSubmitBtn');
+      btn.disabled = true;
+      btn.textContent = "追加中...";
+
+      const form = e.target;
+      const payload = {
+        date: window.currentWalkInContext.date,
+        area: window.currentWalkInContext.area,
+        venue: window.currentWalkInContext.venue,
+        time: window.currentWalkInContext.time,
+        studentName: form.elements['studentName'].value,
+        gender: form.elements['gender'].value,
+        grade: form.elements['grade'].value,
+        duration: form.elements['duration'].value
+      };
+
+      const res = await apiFetch('addWalkIn', payload);
+      
+      btn.disabled = false;
+      btn.textContent = "追加する";
+
+      if (res.status === 'success') {
+        closeModal('walkInModal');
+        form.reset();
+        await refreshData();
+        closeParticipantsScreen();
+      } else {
+        alert("エラー: " + (res.message || "追加に失敗しました"));
+      }
     });
   </script>
 </body>
