@@ -386,10 +386,7 @@
             <label>学年</label>
             <select name="grade" required style="width:100%; box-sizing:border-box; padding:0.5rem; border:1px solid #CBD5E1; border-radius:4px;">
               <option value="">選択</option>
-              <option value="小1">小1</option><option value="小2">小2</option><option value="小3">小3</option>
-              <option value="小4">小4</option><option value="小5">小5</option><option value="小6">小6</option>
               <option value="中1">中1</option><option value="中2">中2</option><option value="中3">中3</option>
-              <option value="高1">高1</option><option value="高2">高2</option><option value="高3">高3</option>
             </select>
           </div>
         </div>
@@ -401,7 +398,7 @@
             <option value="体験">体験</option>
           </select>
         </div>
-        <button type="submit" class="btn btn-primary" id="walkInSubmitBtn" style="width:100%; padding:0.8rem; background:#10B981; border:none; border-radius:8px;">追加する</button>
+        <button type="submit" class="btn btn-primary" id="walkInSubmitBtn" style="width:100%; padding:0.8rem; background:#3B5998; border:none; border-radius:8px; color:white;">追加する</button>
       </form>
     </div>
   </div>
@@ -656,7 +653,7 @@
       const walkInBtnContainer = document.createElement('div');
       walkInBtnContainer.style.marginTop = '2rem';
       walkInBtnContainer.style.marginBottom = '2rem';
-      walkInBtnContainer.innerHTML = `<button onclick="document.getElementById('walkInModal').classList.remove('hidden')" style="width:100%; padding:1rem; background:#10B981; color:white; border:none; border-radius:8px; font-weight:bold; font-size:1.1rem; cursor:pointer; box-shadow:0 4px 6px rgba(16,185,129,0.2);">＋ 当日追加（飛び込み予約）</button>`;
+      walkInBtnContainer.innerHTML = `<button onclick="document.getElementById('walkInModal').classList.remove('hidden')" style="width:100%; padding:1rem; background:#3B5998; color:white; border:none; border-radius:8px; font-weight:bold; font-size:1.1rem; cursor:pointer; box-shadow:0 4px 6px rgba(59,89,152,0.2);">＋ 当日追加</button>`;
       container.appendChild(walkInBtnContainer);
     }
 
