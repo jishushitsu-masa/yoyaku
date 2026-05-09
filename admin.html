@@ -617,6 +617,7 @@
       participantData.forEach(p => {
         const card = document.createElement('div');
         const displayCategory = p.category === '2時間利用' ? '' : p.category;
+        const coinBtn = `<button onclick="togglePayment(this)" data-paid="false" style="display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; background:#FEF3C7; border-radius:50%; border:1px solid #FCD34D; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05); padding:0; transition:all 0.2s;"><span style="font-size:1.4rem;">🪙</span></button>`;
         const phoneLink = p.phone ? `<a href="tel:${p.phone}" style="display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; text-decoration:none; background:#EFF6FF; border-radius:50%; border:1px solid #BFDBFE; box-shadow:0 1px 2px rgba(0,0,0,0.05);"><span style="font-size:1.2rem;">📞</span></a>` : '';
         
         let nameColor = 'var(--secondary)'; // デフォルト
@@ -640,7 +641,8 @@
               <div>
                 ${displayCategory ? `<span style="display:inline-block; background:#FEF3C7; color:#D97706; padding:6px 12px; border-radius:6px; font-size:0.85rem; font-weight:bold;">${displayCategory}</span>` : ''}
               </div>
-              <div>
+              <div style="display: flex; gap: 8px;">
+                ${coinBtn}
                 ${phoneLink}
               </div>
             </div>
@@ -939,6 +941,20 @@
         alert("エラー: " + (res.message || "追加に失敗しました"));
       }
     });
+
+    function togglePayment(btn) {
+      if (btn.dataset.paid === 'true') {
+        btn.dataset.paid = 'false';
+        btn.innerHTML = '<span style="font-size:1.4rem;">🪙</span>';
+        btn.style.background = '#FEF3C7';
+        btn.style.borderColor = '#FCD34D';
+      } else {
+        btn.dataset.paid = 'true';
+        btn.innerHTML = '<span style="font-size:0.9rem; font-weight:bold; color:#059669;">済</span>';
+        btn.style.background = '#D1FAE5';
+        btn.style.borderColor = '#34D399';
+      }
+    }
   </script>
 </body>
 </html>
