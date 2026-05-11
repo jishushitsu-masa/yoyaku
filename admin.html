@@ -403,7 +403,14 @@
       <button class="modal-close" onclick="closeModal('walkInModal')">×</button>
       <h2 style="margin-bottom: 1rem; font-size:1.25rem; color:var(--primary);">当日追加</h2>
       <form id="walkInForm">
-        <div class="form-group"><label>生徒名</label><input type="text" name="studentName" required style="width:100%; box-sizing:border-box;"></div>
+        <div class="form-group">
+          <label>生徒名</label>
+          <div style="display:flex; gap:0.5rem;">
+            <input type="text" name="studentName" required style="flex:1; box-sizing:border-box;">
+            <button type="button" onclick="openRosterSearchModal()" style="background:#E2E8F0; color:#1E293B; border:none; padding:0 0.8rem; border-radius:4px; font-size:0.85rem; font-weight:bold; cursor:pointer;">名簿検索</button>
+          </div>
+          <input type="hidden" name="lineUserId" id="walkInLineUserId" value="">
+        </div>
         <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
           <div class="form-group" style="flex:1; margin:0;">
             <label>性別</label>
@@ -429,6 +436,18 @@
         </div>
         <button type="submit" class="btn btn-primary" id="walkInSubmitBtn" style="width:100%; padding:0.8rem; background:#3B5998; border:none; border-radius:8px; color:white;">追加する</button>
       </form>
+    </div>
+  </div>
+
+  <!-- モーダル: 生徒名簿検索 -->
+  <div id="rosterSearchModal" class="modal-overlay hidden" style="padding: 10px; z-index: 1010;">
+    <div class="modal-content" style="width:100%; max-width:400px; padding:1.5rem 1rem;">
+      <button class="modal-close" onclick="closeModal('rosterSearchModal')">×</button>
+      <h2 style="margin-bottom: 1rem; font-size:1.25rem; color:var(--primary);">生徒名簿検索</h2>
+      <input type="text" id="rosterSearchInput" placeholder="生徒名・ふりがなで検索..." style="width:100%; box-sizing:border-box; margin-bottom:1rem; padding:0.8rem;" oninput="filterRosterSearch()">
+      <div id="rosterSearchResults" style="max-height:300px; overflow-y:auto; border:1px solid #E2E8F0; border-radius:4px;">
+        <!-- Results injected here -->
+      </div>
     </div>
   </div>
 
@@ -874,6 +893,58 @@
 
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
+    function openRosterSearchModal() {
+      document.getElementById('rosterSearchInput').value = '';
+      filterRosterSearch();
+      document.getElementById('rosterSearchModal').classList.remove('hidden');
+    }
+
+    function filterRosterSearch() {
+      const q = normalizeName(document.getElementById('rosterSearchInput').value.toLowerCase());
+      const container = document.getElementById('rosterSearchResults');
+      container.innerHTML = '';
+      
+      const sorted = [...adminData.students].sort((a, b) => {
+        const fA = a['ふりがな'] || a['生徒名'] || "";
+        const fB = b['ふりがな'] || b['生徒名'] || "";
+        return fA.localeCompare(fB, 'ja');
+      });
+
+      const filtered = sorted.filter(s => {
+        const name = normalizeName(s['生徒名'] || '').toLowerCase();
+        const furi = normalizeName(s['ふりがな'] || '').toLowerCase();
+        return name.includes(q) || furi.includes(q);
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="padding:1rem; text-align:center; color:#64748B;">該当する生徒がいません</div>';
+        return;
+      }
+
+      filtered.forEach(s => {
+        const div = document.createElement('div');
+        div.style.cssText = "padding:0.8rem; border-bottom:1px solid #E2E8F0; cursor:pointer; transition:background 0.2s;";
+        div.onmouseover = () => div.style.background = '#F8FAFC';
+        div.onmouseout = () => div.style.background = 'transparent';
+        
+        const name = s['生徒名'] || '';
+        const grade = s['現在の学年'] || s['学年'] || s['登録時の学年'] || '';
+        const gender = s['性別'] || '';
+        const lineId = s['LINEユーザーID'] || s['LINEユーザID'] || '';
+        
+        div.innerHTML = `<div style="font-weight:bold;">${name} <span style="font-size:0.8rem; color:#64748B; font-weight:normal; margin-left:8px;">${grade}</span></div>`;
+        div.onclick = () => {
+          const form = document.getElementById('walkInForm');
+          form.elements['studentName'].value = name;
+          if (gender) form.elements['gender'].value = gender;
+          if (grade) form.elements['grade'].value = grade;
+          if (form.elements['lineUserId']) form.elements['lineUserId'].value = lineId;
+          closeModal('rosterSearchModal');
+        };
+        container.appendChild(div);
+      });
+    }
+
     document.getElementById('studentRecordForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       if (authToken !== 'master') return;
@@ -960,7 +1031,8 @@
         studentName: form.elements['studentName'].value,
         gender: form.elements['gender'].value,
         grade: form.elements['grade'].value,
-        duration: form.elements['duration'].value
+        duration: form.elements['duration'].value,
+        lineUserId: form.elements['lineUserId'] ? form.elements['lineUserId'].value : ''
       };
 
       const res = await apiFetch('addWalkIn', payload);
