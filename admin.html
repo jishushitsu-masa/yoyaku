@@ -672,7 +672,7 @@
         const coinIcon = p.isPaid ? '<span style="font-size:0.9rem; font-weight:bold; color:#059669;">済</span>' : '<span style="font-size:1.4rem;">🪙</span>';
         const bgStyle = p.isPaid ? 'background:#D1FAE5; border-color:#34D399;' : 'background:#FEF3C7; border-color:#FCD34D;';
         
-        const coinBtn = authToken === 'master' ? `<button onclick="togglePayment(this, '${p.cancelId}')" data-paid="${isPaidStr}" style="display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; border:1px solid; ${bgStyle} cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05); padding:0; transition:all 0.2s;">${coinIcon}</button>` : '';
+        const coinBtn = (authToken === 'master' && p.category !== '無料体験' && p.category !== '体験') ? `<button onclick="togglePayment(this, '${p.cancelId}')" data-paid="${isPaidStr}" style="display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; border:1px solid; ${bgStyle} cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05); padding:0; transition:all 0.2s;">${coinIcon}</button>` : '';
         const phoneLink = p.phone ? `<a href="tel:${p.phone}" style="display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; text-decoration:none; background:#EFF6FF; border-radius:50%; border:1px solid #BFDBFE; box-shadow:0 1px 2px rgba(0,0,0,0.05);"><span style="font-size:1.2rem;">📞</span></a>` : '';
         
         let nameColor = 'var(--secondary)'; // デフォルト
