@@ -1206,6 +1206,173 @@
         }
       }
     }
+    let currentSalesDate = new Date();
+
+    function showSalesScreen() {
+      document.getElementById('dashboard').classList.add('hidden');
+      document.getElementById('salesScreen').classList.remove('hidden');
+      currentSalesDate = new Date(currentDate.getTime());
+      renderSalesCalendar();
+      window.scrollTo(0, 0);
+    }
+
+    function closeSalesScreen() {
+      document.getElementById('salesScreen').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+    }
+
+    function prevSalesMonth() { currentSalesDate.setMonth(currentSalesDate.getMonth() - 1); renderSalesCalendar(); }
+    function nextSalesMonth() { currentSalesDate.setMonth(currentSalesDate.getMonth() + 1); renderSalesCalendar(); }
+
+    function getSalesDataForDate(dateStr) {
+      // 1. 自動集計
+      const daysReservations = adminData.reservations.filter(r => {
+        if (!r['日付']) return false;
+        const rDate = String(r['日付']).split('T')[0].replace(/-/g, '/');
+        return rDate === dateStr && r['入金状態'] === '済' && String(r['キャンセル日時'] || '').trim() === "";
+      });
+
+      let autoData = {
+        '2時間人数': 0, '1時間人数': 0, '無料体験人数': 0,
+        '2時間売上': 0, '1時間売上': 0, 'スタッフ給料': 0
+      };
+
+      daysReservations.forEach(r => {
+        const cat = r['区分'] || '';
+        if (cat === '2時間利用') autoData['2時間人数']++;
+        else if (cat === '1時間利用') autoData['1時間人数']++;
+        else if (cat === '無料体験' || cat === '体験') autoData['無料体験人数']++;
+      });
+      autoData['2時間売上'] = autoData['2時間人数'] * 1000;
+      autoData['1時間売上'] = autoData['1時間人数'] * 500;
+
+      // 2. 売上管理シートからの上書き
+      if (!adminData.sales) adminData.sales = [];
+      const manualData = adminData.sales.find(s => {
+        if (!s['日付']) return false;
+        const sDate = String(s['日付']).split('T')[0].replace(/-/g, '/');
+        return sDate === dateStr;
+      });
+
+      if (manualData) {
+        return {
+          '2時間人数': (manualData['2時間人数'] !== '' && manualData['2時間人数'] !== undefined) ? Number(manualData['2時間人数']) : autoData['2時間人数'],
+          '2時間売上': (manualData['2時間売上'] !== '' && manualData['2時間売上'] !== undefined) ? Number(manualData['2時間売上']) : autoData['2時間売上'],
+          '1時間人数': (manualData['1時間人数'] !== '' && manualData['1時間人数'] !== undefined) ? Number(manualData['1時間人数']) : autoData['1時間人数'],
+          '1時間売上': (manualData['1時間売上'] !== '' && manualData['1時間売上'] !== undefined) ? Number(manualData['1時間売上']) : autoData['1時間売上'],
+          '無料体験人数': (manualData['無料体験人数'] !== '' && manualData['無料体験人数'] !== undefined) ? Number(manualData['無料体験人数']) : autoData['無料体験人数'],
+          'スタッフ給料': (manualData['スタッフ給料'] !== '' && manualData['スタッフ給料'] !== undefined) ? Number(manualData['スタッフ給料']) : autoData['スタッフ給料']
+        };
+      }
+
+      return autoData;
+    }
+
+    function renderSalesCalendar() {
+      const year = currentSalesDate.getFullYear();
+      const month = currentSalesDate.getMonth();
+      document.getElementById('currentSalesMonthYear').textContent = `${year}年 ${month + 1}月`;
+      const grid = document.getElementById('salesCalendarGrid');
+      while (grid.children.length > 7) grid.removeChild(grid.lastChild);
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      
+      for (let i = 0; i < firstDay; i++) {
+        const div = document.createElement('div');
+        div.className = 'calendar-day other-month';
+        grid.appendChild(div);
+      }
+
+      for (let i = 1; i <= daysInMonth; i++) {
+        const div = document.createElement('div');
+        div.className = 'calendar-day';
+        div.style.cursor = 'pointer';
+        div.innerHTML = `<div class="calendar-date">${i}</div>`;
+        
+        const dateStr = `${year}/${('0'+(month+1)).slice(-2)}/${('0'+i).slice(-2)}`;
+        const salesData = getSalesDataForDate(dateStr);
+        
+        const totalSales = salesData['2時間売上'] + salesData['1時間売上'];
+        const profit = totalSales - salesData['スタッフ給料'];
+        
+        if (totalSales > 0 || salesData['スタッフ給料'] > 0 || salesData['無料体験人数'] > 0) {
+          const profitColor = profit >= 0 ? '#059669' : '#DC2626'; // Green or Red
+          const profitEl = document.createElement('div');
+          profitEl.style.cssText = `text-align:center; font-weight:bold; font-size:0.9rem; color:${profitColor}; margin-top:8px;`;
+          profitEl.textContent = `¥${profit.toLocaleString()}`;
+          div.appendChild(profitEl);
+        }
+
+        div.onclick = () => openSalesDetail(dateStr, salesData);
+        grid.appendChild(div);
+      }
+    }
+
+    function openSalesDetail(dateStr, salesData) {
+      document.getElementById('salesDetailModal').classList.remove('hidden');
+      document.getElementById('salesDetailDate').textContent = dateStr;
+      document.getElementById('salesDateInput').value = dateStr;
+      
+      document.getElementById('sales2hCount').value = salesData['2時間人数'];
+      document.getElementById('sales2hAmount').value = salesData['2時間売上'];
+      document.getElementById('sales1hCount').value = salesData['1時間人数'];
+      document.getElementById('sales1hAmount').value = salesData['1時間売上'];
+      document.getElementById('salesFreeCount').value = salesData['無料体験人数'];
+      document.getElementById('staffSalary').value = salesData['スタッフ給料'];
+      
+      updateSalesTotal();
+    }
+
+    function updateSalesTotal() {
+      const sales2h = Number(document.getElementById('sales2hAmount').value) || 0;
+      const sales1h = Number(document.getElementById('sales1hAmount').value) || 0;
+      const totalSales = sales2h + sales1h;
+      
+      const salary = Number(document.getElementById('staffSalary').value) || 0;
+      const profit = totalSales - salary;
+      
+      document.getElementById('salesTotalAmountDisplay').textContent = `${totalSales.toLocaleString()} 円`;
+      
+      const profitEl = document.getElementById('salesProfitDisplay');
+      profitEl.textContent = `${profit.toLocaleString()} 円`;
+      profitEl.style.color = profit >= 0 ? 'var(--primary)' : '#DC2626';
+    }
+
+    document.getElementById('salesDetailForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('saveSalesBtn');
+      btn.textContent = '保存中...'; btn.disabled = true;
+
+      const salesData = {
+        '日付': document.getElementById('salesDateInput').value,
+        '2時間人数': document.getElementById('sales2hCount').value,
+        '2時間売上': document.getElementById('sales2hAmount').value,
+        '1時間人数': document.getElementById('sales1hCount').value,
+        '1時間売上': document.getElementById('sales1hAmount').value,
+        '無料体験人数': document.getElementById('salesFreeCount').value,
+        'スタッフ給料': document.getElementById('staffSalary').value
+      };
+
+      const res = await apiFetch('saveSalesData', { token: authToken, salesData: salesData });
+      
+      btn.textContent = '保存する'; btn.disabled = false;
+      
+      if (res.status === 'success') {
+        closeModal('salesDetailModal');
+        // Update local data
+        if (!adminData.sales) adminData.sales = [];
+        const idx = adminData.sales.findIndex(s => s['日付'] === salesData['日付'] || (String(s['日付']).split('T')[0].replace(/-/g, '/') === salesData['日付']));
+        if (idx !== -1) {
+          adminData.sales[idx] = salesData;
+        } else {
+          adminData.sales.push(salesData);
+        }
+        renderSalesCalendar();
+      } else {
+        alert(res.message);
+      }
+    });
   </script>
 </body>
 </html>
