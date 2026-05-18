@@ -291,9 +291,42 @@
         <!-- Days will be generated here -->
       </div>
 
+      <button id="toggleSalesBtn" style="display:none; justify-content:center; align-items:center; gap:0.5rem; width:calc(100% - 20px); margin:0 10px 1rem 10px; background:var(--primary); color:white; border:none; border-radius:8px; padding:1rem; font-size:1.1rem; font-weight:bold; cursor:pointer; box-sizing:border-box; box-shadow:0 4px 6px rgba(59,89,152,0.2);" onclick="showSalesScreen()">
+        💰 売上確認・管理
+      </button>
+
       <button id="toggleStudentsBtn" style="display:flex; justify-content:center; align-items:center; gap:0.5rem; width:calc(100% - 20px); margin:0 10px 2rem 10px; background:white; color:#1E3A8A; border:2px solid #1E3A8A; border-radius:8px; padding:1rem; font-size:1.1rem; font-weight:bold; cursor:pointer; box-sizing:border-box;" onclick="showStudentsScreen()">
         👥 生徒名簿を表示・管理
       </button>
+    </div>
+  </div>
+
+  <!-- 売上カレンダー画面 -->
+  <div id="salesScreen" class="hidden">
+    <header class="app-header" style="background:#1E3A8A; color:white; padding:1rem 0.5rem; display:flex; justify-content:space-between; align-items:center;">
+      <div style="width:60px; text-align:left;">
+        <button style="background:transparent; border:none; color:white; font-size:1rem; cursor:pointer; padding:0; white-space:nowrap;" onclick="closeSalesScreen()">◀ 戻る</button>
+      </div>
+      <h1 style="margin:0; text-align:center; flex:1; font-size:1.15rem; font-weight:bold;">売上確認</h1>
+      <div style="width:60px;"></div>
+    </header>
+    <div class="container-large" style="padding:1rem 0;">
+      <div class="calendar-nav" style="display:flex; justify-content:space-between; align-items:center; margin:0.5rem 1rem 1.5rem 1rem;">
+        <button style="background:#F1F5F9; border:none; width:40px; height:40px; border-radius:50%; font-size:1.2rem; color:#1E293B; cursor:pointer; display:flex; align-items:center; justify-content:center;" onclick="prevSalesMonth()">&lt;</button>
+        <h2 id="currentSalesMonthYear" style="margin:0; font-size:1.3rem;"></h2>
+        <button style="background:#F1F5F9; border:none; width:40px; height:40px; border-radius:50%; font-size:1.2rem; color:#1E293B; cursor:pointer; display:flex; align-items:center; justify-content:center;" onclick="nextSalesMonth()">&gt;</button>
+      </div>
+
+      <div class="calendar" id="salesCalendarGrid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:5px; padding:0 10px; margin-bottom:2rem; background:transparent; border:none;">
+        <div class="calendar-header sun" style="color:#EF4444; font-weight:bold; text-align:center; font-size:0.9rem;">日</div>
+        <div class="calendar-header" style="font-weight:bold; text-align:center; font-size:0.9rem;">月</div>
+        <div class="calendar-header" style="font-weight:bold; text-align:center; font-size:0.9rem;">火</div>
+        <div class="calendar-header" style="font-weight:bold; text-align:center; font-size:0.9rem;">水</div>
+        <div class="calendar-header" style="font-weight:bold; text-align:center; font-size:0.9rem;">木</div>
+        <div class="calendar-header" style="font-weight:bold; text-align:center; font-size:0.9rem;">金</div>
+        <div class="calendar-header sat" style="color:#3B82F6; font-weight:bold; text-align:center; font-size:0.9rem;">土</div>
+        <!-- Days will be generated here -->
+      </div>
     </div>
   </div>
 
@@ -439,6 +472,67 @@
     </div>
   </div>
 
+  <!-- モーダル: 売上詳細 -->
+  <div id="salesDetailModal" class="modal-overlay hidden" style="padding: 10px;">
+    <div class="modal-content" style="width:100%; max-width:500px; padding:1.5rem 1rem;">
+      <button class="modal-close" onclick="closeModal('salesDetailModal')">×</button>
+      <h2 style="margin-bottom: 1rem; font-size:1.25rem; color:var(--primary); text-align:center;" id="salesDetailDate"></h2>
+      
+      <form id="salesDetailForm">
+        <input type="hidden" id="salesDateInput" name="日付">
+        
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:1rem; margin-bottom:1rem;">
+          <h3 style="margin-top:0; margin-bottom:1rem; font-size:1rem; color:var(--secondary); border-bottom:1px solid #CBD5E1; padding-bottom:0.5rem;">売上詳細（手動修正可）</h3>
+          
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+            <div style="width:100px; font-weight:bold; font-size:0.9rem;">2時間利用</div>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <input type="number" name="2時間人数" id="sales2hCount" style="width:60px; text-align:right;" onchange="updateSalesTotal()"> 名
+              <input type="number" name="2時間売上" id="sales2hAmount" style="width:90px; text-align:right;" onchange="updateSalesTotal()"> 円
+            </div>
+          </div>
+          
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+            <div style="width:100px; font-weight:bold; font-size:0.9rem;">1時間利用</div>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <input type="number" name="1時間人数" id="sales1hCount" style="width:60px; text-align:right;" onchange="updateSalesTotal()"> 名
+              <input type="number" name="1時間売上" id="sales1hAmount" style="width:90px; text-align:right;" onchange="updateSalesTotal()"> 円
+            </div>
+          </div>
+          
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <div style="width:100px; font-weight:bold; font-size:0.9rem;">無料体験</div>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <input type="number" name="無料体験人数" id="salesFreeCount" style="width:60px; text-align:right;"> 名
+              <span style="width:90px; text-align:right; display:inline-block; color:var(--text-muted);">0 円</span>
+            </div>
+          </div>
+          
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed #CBD5E1; padding-top:0.8rem; margin-bottom:0.5rem;">
+            <div style="font-weight:bold; color:#059669;">総売上</div>
+            <div style="font-weight:bold; font-size:1.1rem; color:#059669;" id="salesTotalAmountDisplay">0 円</div>
+          </div>
+        </div>
+
+        <div style="background:#FEF2F2; border:1px solid #FECACA; border-radius:8px; padding:1rem; margin-bottom:1.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-weight:bold; color:#DC2626; font-size:0.9rem;">スタッフ給料</div>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <input type="number" name="スタッフ給料" id="staffSalary" style="width:90px; text-align:right;" onchange="updateSalesTotal()"> 円
+            </div>
+          </div>
+        </div>
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:1rem; margin-bottom:1.5rem;">
+          <div style="font-weight:bold; color:var(--primary); font-size:1.1rem;">利益</div>
+          <div style="font-weight:bold; font-size:1.3rem; color:var(--primary);" id="salesProfitDisplay">0 円</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="saveSalesBtn" style="width:100%; padding:0.8rem; background:var(--primary); border:none; border-radius:8px; color:white; font-size:1.1rem; font-weight:bold;">保存する</button>
+      </form>
+    </div>
+  </div>
+
   <!-- モーダル: 生徒名簿検索 -->
   <div id="rosterSearchModal" class="modal-overlay hidden" style="padding: 10px; z-index: 1010;">
     <div class="modal-content" style="width:100%; max-width:400px; padding:1.5rem 1rem;">
@@ -455,7 +549,7 @@
   <script>
     let currentDate = new Date();
     let authToken = sessionStorage.getItem('adminToken');
-    let adminData = { schedule: [], reservations: [], students: [], tests: [] };
+    let adminData = { schedule: [], reservations: [], students: [], tests: [], sales: [] };
     let currentStudentName = "";
 
     function normalizeName(name) {
@@ -492,6 +586,11 @@
       if (authToken !== 'master') {
         const saveBtn = document.getElementById('saveRecordBtn');
         if (saveBtn) saveBtn.style.display = 'none';
+        const toggleSalesBtn = document.getElementById('toggleSalesBtn');
+        if (toggleSalesBtn) toggleSalesBtn.style.display = 'none';
+      } else {
+        const toggleSalesBtn = document.getElementById('toggleSalesBtn');
+        if (toggleSalesBtn) toggleSalesBtn.style.display = 'flex';
       }
 
       document.getElementById('fullScreenLoader').classList.remove('hidden');
@@ -741,7 +840,6 @@
         const grade = s['現在の学年'] || s['登録時の学年'] || '-';
         const gender = s['性別'] || '';
         const school = s['中学校名'] || '中学校未登録';
-
         let nameColor = 'var(--text-main)'; // デフォルト
         if (gender === '男' || gender === '男子') nameColor = '#60A5FA'; // 薄い青系
         else if (gender === '女' || gender === '女子') nameColor = '#F472B6'; // 薄い赤系
