@@ -313,7 +313,10 @@
     <div class="container-large" style="padding:1rem 0;">
       <div class="calendar-nav" style="display:flex; justify-content:space-between; align-items:center; margin:0.5rem 1rem 1.5rem 1rem;">
         <button style="background:#F1F5F9; border:none; width:40px; height:40px; border-radius:50%; font-size:1.2rem; color:#1E293B; cursor:pointer; display:flex; align-items:center; justify-content:center;" onclick="prevSalesMonth()">&lt;</button>
-        <h2 id="currentSalesMonthYear" style="margin:0; font-size:1.3rem;"></h2>
+        <div style="text-align:center;">
+          <h2 id="currentSalesMonthYear" style="margin:0; font-size:1.3rem;"></h2>
+          <div id="monthlyTotalProfit" style="margin-top:4px; font-weight:bold; font-size:1rem; color:#059669;"></div>
+        </div>
         <button style="background:#F1F5F9; border:none; width:40px; height:40px; border-radius:50%; font-size:1.2rem; color:#1E293B; cursor:pointer; display:flex; align-items:center; justify-content:center;" onclick="nextSalesMonth()">&gt;</button>
       </div>
 
@@ -1229,7 +1232,10 @@
       const daysReservations = adminData.reservations.filter(r => {
         if (!r['日付']) return false;
         const rDate = String(r['日付']).split('T')[0].replace(/-/g, '/');
-        return rDate === dateStr && r['入金状態'] === '済' && String(r['キャンセル日時'] || '').trim() === "";
+        const isNotCancelled = String(r['キャンセル日時'] || '').trim() === "";
+        const isPaid = r['入金状態'] === '済';
+        const isFreeTrial = r['区分'] === '無料体験' || r['区分'] === '体験';
+        return rDate === dateStr && isNotCancelled && (isPaid || isFreeTrial);
       });
 
       let autoData = {
@@ -1278,6 +1284,8 @@
       const firstDay = new Date(year, month, 1).getDay();
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       
+      let monthlyProfit = 0;
+      
       for (let i = 0; i < firstDay; i++) {
         const div = document.createElement('div');
         div.className = 'calendar-day other-month';
@@ -1296,6 +1304,8 @@
         const totalSales = salesData['2時間売上'] + salesData['1時間売上'];
         const profit = totalSales - salesData['スタッフ給料'];
         
+        monthlyProfit += profit;
+        
         if (totalSales > 0 || salesData['スタッフ給料'] > 0 || salesData['無料体験人数'] > 0) {
           const profitColor = profit >= 0 ? '#059669' : '#DC2626'; // Green or Red
           const profitEl = document.createElement('div');
@@ -1307,6 +1317,10 @@
         div.onclick = () => openSalesDetail(dateStr, salesData);
         grid.appendChild(div);
       }
+      
+      const monthlyProfitColor = monthlyProfit >= 0 ? '#059669' : '#DC2626';
+      document.getElementById('monthlyTotalProfit').textContent = `月間総利益: ¥${monthlyProfit.toLocaleString()}`;
+      document.getElementById('monthlyTotalProfit').style.color = monthlyProfitColor;
     }
 
     function openSalesDetail(dateStr, salesData) {
