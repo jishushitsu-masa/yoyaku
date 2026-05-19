@@ -513,16 +513,16 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
             <div style="width:100px; font-weight:bold; font-size:0.9rem;">2時間利用</div>
             <div style="display:flex; align-items:center; gap:0.5rem;">
-              <input type="number" name="2時間人数" id="sales2hCount" style="width:60px; text-align:right;" onchange="updateSalesTotal(true)"> 名
-              <input type="number" name="2時間売上" id="sales2hAmount" style="width:90px; text-align:right;" onchange="updateSalesTotal(true)"> 円
+              <input type="number" name="2時間人数" id="sales2hCount" style="width:60px; text-align:right;" oninput="document.getElementById('sales2hAmount').value = this.value * 1000; updateSalesTotal(true)"> 名
+              <input type="number" name="2時間売上" id="sales2hAmount" style="width:90px; text-align:right;" oninput="updateSalesTotal(true)"> 円
             </div>
           </div>
           
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
             <div style="width:100px; font-weight:bold; font-size:0.9rem;">1時間利用</div>
             <div style="display:flex; align-items:center; gap:0.5rem;">
-              <input type="number" name="1時間人数" id="sales1hCount" style="width:60px; text-align:right;" onchange="updateSalesTotal(true)"> 名
-              <input type="number" name="1時間売上" id="sales1hAmount" style="width:90px; text-align:right;" onchange="updateSalesTotal(true)"> 円
+              <input type="number" name="1時間人数" id="sales1hCount" style="width:60px; text-align:right;" oninput="document.getElementById('sales1hAmount').value = this.value * 500; updateSalesTotal(true)"> 名
+              <input type="number" name="1時間売上" id="sales1hAmount" style="width:90px; text-align:right;" oninput="updateSalesTotal(true)"> 円
             </div>
           </div>
           
@@ -544,7 +544,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <div style="font-weight:bold; color:#DC2626; font-size:0.9rem;">スタッフ給料</div>
             <div style="display:flex; align-items:center; gap:0.5rem;">
-              <input type="number" name="スタッフ給料" id="staffSalary" style="width:90px; text-align:right;" onchange="updateSalesTotal()"> 円
+              <input type="number" name="スタッフ給料" id="staffSalary" style="width:90px; text-align:right;" oninput="updateSalesTotal(false)"> 円
             </div>
           </div>
         </div>
@@ -1382,7 +1382,16 @@
       document.getElementById('sales1hCount').value = salesData['1時間人数'];
       document.getElementById('sales1hAmount').value = salesData['1時間売上'];
       document.getElementById('salesFreeCount').value = salesData['無料体験人数'];
-      document.getElementById('staffSalary').value = salesData['スタッフ給料'];
+      
+      let staffSalary = salesData['スタッフ給料'];
+      const totalSales = (Number(salesData['2時間売上']) || 0) + (Number(salesData['1時間売上']) || 0);
+      
+      // If staff salary is 0 or empty and there's sales, apply the new calculation rule automatically
+      if ((!staffSalary || staffSalary === 0) && totalSales > 1500) {
+        staffSalary = calculateStaffSalary(totalSales);
+      }
+      
+      document.getElementById('staffSalary').value = staffSalary;
       
       updateSalesTotal();
     }
