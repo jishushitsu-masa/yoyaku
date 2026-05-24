@@ -1,1 +1,444 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>運営時間に関するアンケート | まさちゃんの自習室</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+    
+    :root {
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --primary-light: #EEF2FF;
+      --secondary: #10B981;
+      --background: #F8FAFC;
+      --surface: #FFFFFF;
+      --text-main: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: var(--background);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .logo-container {
+      display: inline-block;
+      background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+    }
+
+    header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #0F172A;
+      letter-spacing: -0.025em;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 1.75rem;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #6366F1, #10B981);
+    }
+
+    .intro-text {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      background: #F1F5F9;
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      border-left: 4px solid var(--primary);
+    }
+
+    .intro-text p {
+      margin-bottom: 0.5rem;
+    }
+    .intro-text p:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label.group-title {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+      color: #0F172A;
+    }
+
+    /* ラジオボタンカードのカスタムデザイン */
+    .radio-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .radio-card {
+      position: relative;
+    }
+
+    .radio-card input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .radio-card label {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      background: var(--surface);
+      transition: var(--transition);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .radio-card label:hover {
+      border-color: #CBD5E1;
+      background-color: #FAFAFA;
+    }
+
+    /* ラジオボタンのカスタムインジケータ */
+    .radio-indicator {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      margin-right: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+
+    .radio-indicator::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      background-color: var(--primary);
+      border-radius: 50%;
+      transform: scale(0);
+      transition: var(--transition);
+    }
+
+    .radio-card input[type="radio"]:checked + label {
+      border-color: var(--primary);
+      background-color: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .radio-card input[type="radio"]:checked + label .radio-indicator {
+      border-color: var(--primary);
+    }
+
+    .radio-card input[type="radio"]:checked + label .radio-indicator::after {
+      transform: scale(1);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+      color: white;
+      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+      transition: var(--transition);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary:disabled {
+      background: #94A3B8;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ローダーアニメーション */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .success-card {
+      text-align: center;
+      padding: 2.5rem 1.5rem;
+    }
+
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      background: #DCFCE7;
+      color: var(--secondary);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+    }
+
+    .success-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0F172A;
+      margin-bottom: 0.75rem;
+    }
+
+    .success-message {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* デバッグ用アラート */
+    .alert-debug {
+      background-color: #FEF3C7;
+      border: 1px solid #F59E0B;
+      color: #D97706;
+      padding: 0.75rem;
+      border-radius: var(--radius-md);
+      font-size: 0.8rem;
+      margin-bottom: 1rem;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-container">まさちゃんの自習室</div>
+      <h1>運営時間調査アンケート</h1>
+    </header>
+
+    <div class="card" id="form-card">
+      <div class="intro-text">
+        <p>自習室の運営時間について変更の検討を行っております。</p>
+        <p>「自習室に参加したいが部活や習い事の時間と重なる」「送迎が忙しく、開始時間に間に合わない」といったご意見を複数いただいております。</p>
+        <p>つきましては、皆様のご都合を伺いたく、アンケートへのご協力をお願いいたします。</p>
+      </div>
+
+      <div id="debug-info" class="alert-debug hidden">
+        ⚠️ <strong>テスト環境（LINEアプリ外）:</strong> LINEユーザーIDが取得できませんでした。テスト用のダミーIDで送信されます。
+      </div>
+
+      <form id="survey-form">
+        <div class="form-group">
+          <label class="group-title">ご希望の運営時間について、最もあてはまるものを1つお選びください。</label>
+          <div class="radio-stack">
+            <div class="radio-card">
+              <input type="radio" name="time_preference" value="① 現状のままがよい（19:00～21:00）" id="opt-current" required>
+              <label for="opt-current">
+                <span class="radio-indicator"></span>
+                ① 現状のままがよい（19:00～21:00）
+              </label>
+            </div>
+            <div class="radio-card">
+              <input type="radio" name="time_preference" value="② 19:30～21:30がよい" id="opt-change">
+              <label for="opt-change">
+                <span class="radio-indicator"></span>
+                ② 19:30～21:30がよい
+              </label>
+            </div>
+            <div class="radio-card">
+              <input type="radio" name="time_preference" value="③ どちらでもよい" id="opt-either">
+              <label for="opt-either">
+                <span class="radio-indicator"></span>
+                ③ どちらでもよい
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="submit-btn">
+          <span class="spinner" id="btn-spinner"></span>
+          <span id="btn-text">回答を送信する</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- 完了カード -->
+    <div class="card success-card hidden" id="success-card">
+      <div class="success-icon">✓</div>
+      <h2 class="success-title">回答完了</h2>
+      <p class="success-message">アンケートへのご協力ありがとうございました。<br>いただいたご意見を参考に、今後の運営について検討させていただきます。</p>
+      <button class="btn-primary" id="close-btn" style="background: #F1F5F9; color: var(--text-main); box-shadow: none; border: 1px solid var(--border);">
+        閉じる
+      </button>
+    </div>
+  </div>
+
+  <script src="index.js"></script>
+  <script>
+    let lineUserId = "";
+    const LIFF_ID = "2003593452-CBnMTwZd"; // 【重要】アンケート用のLIFF IDを取得後にここに設定してください
+
+    // LIFFの初期化
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!LIFF_ID || LIFF_ID.includes("xxxxx")) {
+        console.warn("LIFF ID が設定されていません。LINEログイン連携を使用する場合は正しいIDを設定してください。");
+        document.getElementById('debug-info').classList.remove('hidden');
+        document.getElementById('debug-info').innerHTML = "⚠️ <strong>警告:</strong> LIFF ID が未設定です。回答送信はデバッグ用のダミーIDで行われます。";
+      }
+
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (liff.isLoggedIn()) {
+          const profile = await liff.getProfile();
+          lineUserId = profile.userId;
+        } else {
+          // LINE内ブラウザ等で自動ログインが完了しない場合、外部ブラウザならログインを促すかダミーを使用
+          if (!liff.isInClient()) {
+            console.log("LINE外部のブラウザです。");
+            document.getElementById('debug-info').classList.remove('hidden');
+          }
+        }
+      } catch (e) {
+        console.log('LIFFの初期化に失敗しました。', e);
+        document.getElementById('debug-info').classList.remove('hidden');
+      }
+    });
+
+    // フォーム送信処理
+    document.getElementById('survey-form').onsubmit = async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = document.getElementById('submit-btn');
+      const btnSpinner = document.getElementById('btn-spinner');
+      const btnText = document.getElementById('btn-text');
+      
+      // 送信中表示
+      submitBtn.disabled = true;
+      btnSpinner.style.display = "block";
+      btnText.textContent = "送信中...";
+
+      const selectedAnswer = document.querySelector('input[name="time_preference"]:checked').value;
+      
+      // デバッグ時用のダミーID付与
+      const submitUserId = lineUserId || "dummy_user_" + Math.random().toString(36).substr(2, 9);
+
+      // GASへの送信
+      const res = await apiFetch('submitSurvey', {
+        lineUserId: submitUserId,
+        answer: selectedAnswer
+      });
+
+      if (res.status === 'success') {
+        document.getElementById('form-card').classList.add('hidden');
+        document.getElementById('success-card').classList.remove('hidden');
+        window.scrollTo(0, 0);
+      } else {
+        alert(res.message || "送信中にエラーが発生しました。時間をおいて再度お試しください。");
+        submitBtn.disabled = false;
+        btnSpinner.style.display = "none";
+        btnText.textContent = "回答を送信する";
+      }
+    };
+
+    // 閉じるボタンの動作
+    document.getElementById('close-btn').onclick = () => {
+      try {
+        if (typeof liff !== 'undefined' && liff.isInClient()) {
+          liff.closeWindow();
+        } else {
+          // ブラウザの場合はウィンドウを閉じる（閉じられない場合もあるのでメッセージを表示）
+          window.close();
+          alert("ブラウザのタブを閉じてください。");
+        }
+      } catch (err) {
+        console.error("ウィンドウクローズエラー", err);
+      }
+    };
+  </script>
+</body>
+</html>
