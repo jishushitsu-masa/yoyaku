@@ -420,9 +420,35 @@
       });
 
       if (res.status === 'success') {
-        document.getElementById('form-card').classList.add('hidden');
-        document.getElementById('success-card').classList.remove('hidden');
-        window.scrollTo(0, 0);
+        try {
+          if (typeof liff !== 'undefined' && liff.isInClient()) {
+            // LINEアプリ内の場合、回答内容を自動でメッセージ送信させてチャット履歴を作る
+            liff.sendMessages([{
+              type: "text",
+              text: "📝 運営時間アンケートに回答しました\n【回答】" + selectedAnswer
+            }])
+            .then(() => {
+              liff.closeWindow();
+            })
+            .catch(e => {
+              console.error("sendMessages Error:", e);
+              // エラー時のフォールバックとして完了画面を表示
+              document.getElementById('form-card').classList.add('hidden');
+              document.getElementById('success-card').classList.remove('hidden');
+              window.scrollTo(0, 0);
+            });
+          } else {
+            // 外部ブラウザ等の場合は完了画面を表示
+            document.getElementById('form-card').classList.add('hidden');
+            document.getElementById('success-card').classList.remove('hidden');
+            window.scrollTo(0, 0);
+          }
+        } catch (err) {
+          console.error("LIFF Sync Error:", err);
+          document.getElementById('form-card').classList.add('hidden');
+          document.getElementById('success-card').classList.remove('hidden');
+          window.scrollTo(0, 0);
+        }
       } else {
         alert(res.message || "送信中にエラーが発生しました。時間をおいて再度お試しください。");
         submitBtn.disabled = false;
