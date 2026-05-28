@@ -1384,12 +1384,6 @@
       document.getElementById('salesFreeCount').value = salesData['無料体験人数'];
       
       let staffSalary = salesData['スタッフ給料'];
-      const totalSales = (Number(salesData['2時間売上']) || 0) + (Number(salesData['1時間売上']) || 0);
-      
-      // If staff salary is 0 or empty and there's sales, apply the new calculation rule automatically
-      if ((!staffSalary || staffSalary === 0) && totalSales > 1500) {
-        staffSalary = calculateStaffSalary(totalSales);
-      }
       
       document.getElementById('staffSalary').value = staffSalary;
       
