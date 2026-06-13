@@ -337,8 +337,9 @@
         <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
           <thead>
             <tr>
-              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; width:25%;">2時間</th>
-              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; width:25%;">1時間</th>
+              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; width:20%;">2時間</th>
+              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; width:20%;">1.5時間</th>
+              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; width:20%;">1時間</th>
               <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; width:25%;">体験</th>
               <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; color: #DC2626; width:25%;">給料総額</th>
             </tr>
@@ -346,6 +347,7 @@
           <tbody>
             <tr>
               <td id="monthly2hCount" style="border: 1px solid #E2E8F0; padding: 6px; text-align: center;">0 名</td>
+              <td id="monthly1_5hCount" style="border: 1px solid #E2E8F0; padding: 6px; text-align: center;">0 名</td>
               <td id="monthly1hCount" style="border: 1px solid #E2E8F0; padding: 6px; text-align: center;">0 名</td>
               <td id="monthlyFreeCount" style="border: 1px solid #E2E8F0; padding: 6px; text-align: center;">0 名</td>
               <td id="monthlyStaffSalary" style="border: 1px solid #E2E8F0; padding: 6px; text-align: center; color: #DC2626; font-weight: bold;">¥0</td>
@@ -489,6 +491,7 @@
           <label>区分</label>
           <select name="duration" required style="width:100%; box-sizing:border-box; padding:0.5rem; border:1px solid #CBD5E1; border-radius:4px;">
             <option value="2時間利用">2時間利用</option>
+            <option value="1時間30分利用">1時間30分利用</option>
             <option value="1時間利用">1時間利用</option>
             <option value="無料体験">無料体験</option>
           </select>
@@ -515,6 +518,14 @@
             <div style="display:flex; align-items:center; gap:0.5rem;">
               <input type="number" name="2時間人数" id="sales2hCount" style="width:60px; text-align:right;" oninput="document.getElementById('sales2hAmount').value = this.value * 1000; updateSalesTotal(true)"> 名
               <input type="number" name="2時間売上" id="sales2hAmount" style="width:90px; text-align:right;" oninput="updateSalesTotal(true)"> 円
+            </div>
+          </div>
+          
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+            <div style="width:100px; font-weight:bold; font-size:0.9rem;">1時間30分利用</div>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <input type="number" name="1時間30分人数" id="sales1_5hCount" style="width:60px; text-align:right;" oninput="document.getElementById('sales1_5hAmount').value = this.value * 750; updateSalesTotal(true)"> 名
+              <input type="number" name="1時間30分売上" id="sales1_5hAmount" style="width:90px; text-align:right;" oninput="updateSalesTotal(true)"> 円
             </div>
           </div>
           
@@ -1271,20 +1282,22 @@
       });
 
       let autoData = {
-        '2時間人数': 0, '1時間人数': 0, '無料体験人数': 0,
-        '2時間売上': 0, '1時間売上': 0, 'スタッフ給料': 0
+        '2時間人数': 0, '1時間30分人数': 0, '1時間人数': 0, '無料体験人数': 0,
+        '2時間売上': 0, '1時間30分売上': 0, '1時間売上': 0, 'スタッフ給料': 0
       };
 
       daysReservations.forEach(r => {
         const cat = String(r['区分'] || '').trim();
         if (cat === '2時間利用') autoData['2時間人数']++;
+        else if (cat === '1時間30分利用') autoData['1時間30分人数']++;
         else if (cat === '1時間利用') autoData['1時間人数']++;
         else if (cat === '無料体験' || cat === '体験') autoData['無料体験人数']++;
       });
       autoData['2時間売上'] = autoData['2時間人数'] * 1000;
+      autoData['1時間30分売上'] = autoData['1時間30分人数'] * 750;
       autoData['1時間売上'] = autoData['1時間人数'] * 500;
 
-      const autoTotalSales = autoData['2時間売上'] + autoData['1時間売上'];
+      const autoTotalSales = autoData['2時間売上'] + autoData['1時間30分売上'] + autoData['1時間売上'];
       autoData['スタッフ給料'] = calculateStaffSalary(autoTotalSales);
 
       // 2. 売上管理シートからの上書き
@@ -1299,6 +1312,8 @@
         return {
           '2時間人数': (manualData['2時間人数'] !== '' && manualData['2時間人数'] !== undefined) ? Number(manualData['2時間人数']) : autoData['2時間人数'],
           '2時間売上': (manualData['2時間売上'] !== '' && manualData['2時間売上'] !== undefined) ? Number(manualData['2時間売上']) : autoData['2時間売上'],
+          '1時間30分人数': (manualData['1時間30分人数'] !== '' && manualData['1時間30分人数'] !== undefined) ? Number(manualData['1時間30分人数']) : autoData['1時間30分人数'],
+          '1時間30分売上': (manualData['1時間30分売上'] !== '' && manualData['1時間30分売上'] !== undefined) ? Number(manualData['1時間30分売上']) : autoData['1時間30分売上'],
           '1時間人数': (manualData['1時間人数'] !== '' && manualData['1時間人数'] !== undefined) ? Number(manualData['1時間人数']) : autoData['1時間人数'],
           '1時間売上': (manualData['1時間売上'] !== '' && manualData['1時間売上'] !== undefined) ? Number(manualData['1時間売上']) : autoData['1時間売上'],
           '無料体験人数': (manualData['無料体験人数'] !== '' && manualData['無料体験人数'] !== undefined) ? Number(manualData['無料体験人数']) : autoData['無料体験人数'],
@@ -1321,6 +1336,7 @@
       
       let monthlyProfit = 0;
       let monthly2h = 0;
+      let monthly1_5h = 0;
       let monthly1h = 0;
       let monthlyFree = 0;
       let monthlySalary = 0;
@@ -1340,11 +1356,12 @@
         const dateStr = `${year}/${('0'+(month+1)).slice(-2)}/${('0'+i).slice(-2)}`;
         const salesData = getSalesDataForDate(dateStr);
         
-        const totalSales = salesData['2時間売上'] + salesData['1時間売上'];
+        const totalSales = salesData['2時間売上'] + salesData['1時間30分売上'] + salesData['1時間売上'];
         const profit = totalSales - salesData['スタッフ給料'];
         
         monthlyProfit += profit;
         monthly2h += salesData['2時間人数'] || 0;
+        monthly1_5h += salesData['1時間30分人数'] || 0;
         monthly1h += salesData['1時間人数'] || 0;
         monthlyFree += salesData['無料体験人数'] || 0;
         monthlySalary += salesData['スタッフ給料'] || 0;
@@ -1367,6 +1384,7 @@
       
       // Update monthly summary table
       document.getElementById('monthly2hCount').textContent = `${monthly2h} 名`;
+      document.getElementById('monthly1_5hCount').textContent = `${monthly1_5h} 名`;
       document.getElementById('monthly1hCount').textContent = `${monthly1h} 名`;
       document.getElementById('monthlyFreeCount').textContent = `${monthlyFree} 名`;
       document.getElementById('monthlyStaffSalary').textContent = `¥${monthlySalary.toLocaleString()}`;
@@ -1379,6 +1397,8 @@
       
       document.getElementById('sales2hCount').value = salesData['2時間人数'];
       document.getElementById('sales2hAmount').value = salesData['2時間売上'];
+      document.getElementById('sales1_5hCount').value = salesData['1時間30分人数'];
+      document.getElementById('sales1_5hAmount').value = salesData['1時間30分売上'];
       document.getElementById('sales1hCount').value = salesData['1時間人数'];
       document.getElementById('sales1hAmount').value = salesData['1時間売上'];
       document.getElementById('salesFreeCount').value = salesData['無料体験人数'];
@@ -1392,8 +1412,9 @@
 
     function updateSalesTotal(autoCalcSalary = false) {
       const sales2h = Number(document.getElementById('sales2hAmount').value) || 0;
+      const sales1_5h = Number(document.getElementById('sales1_5hAmount').value) || 0;
       const sales1h = Number(document.getElementById('sales1hAmount').value) || 0;
-      const totalSales = sales2h + sales1h;
+      const totalSales = sales2h + sales1_5h + sales1h;
       
       if (autoCalcSalary) {
         const calculatedSalary = calculateStaffSalary(totalSales);
@@ -1419,6 +1440,8 @@
         '日付': document.getElementById('salesDateInput').value,
         '2時間人数': document.getElementById('sales2hCount').value,
         '2時間売上': document.getElementById('sales2hAmount').value,
+        '1時間30分人数': document.getElementById('sales1_5hCount').value,
+        '1時間30分売上': document.getElementById('sales1_5hAmount').value,
         '1時間人数': document.getElementById('sales1hCount').value,
         '1時間売上': document.getElementById('sales1hAmount').value,
         '無料体験人数': document.getElementById('salesFreeCount').value,
