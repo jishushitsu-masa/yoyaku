@@ -137,6 +137,7 @@
     }
     .area-name.obuse { color: #0D9488; } /* Teal */
     .area-name.suzaka { color: #3B82F6; } /* Blue */
+    .area-name.toyono { color: #9333EA; } /* Purple */
     .count-pill {
       background: #1E3A8A;
       color: white;
@@ -697,7 +698,10 @@
           eventContainer.onclick = () => showParticipants(dateStr, area, sch['会場名'] || '', sch['時間'] || '', reservations);
 
           const areaName = document.createElement('div');
-          areaName.className = `area-name ${area === 'おぶせ' ? 'obuse' : 'suzaka'}`;
+          let areaClass = 'toyono';
+          if (area === 'おぶせ') areaClass = 'obuse';
+          else if (area === 'すざか') areaClass = 'suzaka';
+          areaName.className = `area-name ${areaClass}`;
           areaName.textContent = area;
 
           const countBadge = document.createElement('div');
