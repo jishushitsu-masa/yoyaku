@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>豊野会場 予約フォーム</title>
+  <link rel="stylesheet" href="index.css">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>豊野会場 予約フォーム</h1>
+      <p>元塾講師マサちゃんの自習室</p>
+    </header>
+    <div class="card">
+      <form id="reservationForm">
+        <div class="form-group">
+          <label>予約日を選択</label>
+          <div id="accordionHeader" class="accordion-header">
+            <div id="selectedDateText" style="line-height: 1.4; flex: 1;">タップして日程を選択してください</div>
+            <span class="arrow">▼</span>
+          </div>
+          <div id="scheduleLoader"></div>
+          <div id="scheduleList" class="schedule-list accordion-content"></div>
+        </div>
+        
+        <div class="form-group"><label>生徒名</label><input type="text" id="studentName" required></div>
+        <div class="form-group"><label>保護者名</label><input type="text" id="parentName" required></div>
+        <div class="form-group"><label>電話番号</label><input type="tel" id="phone" required></div>
+        
+        <div class="form-group">
+          <label>利用区分</label>
+          <div class="radio-group" style="display:flex; gap:10px;">
+            <div class="radio-card"><input type="radio" id="d2" name="duration" value="2時間利用" checked><label for="d2">2時間<br>利用</label></div>
+            <div class="radio-card"><input type="radio" id="d1_5" name="duration" value="1時間30分利用"><label for="d1_5">1時間30分<br>利用</label></div>
+            <div class="radio-card"><input type="radio" id="d1" name="duration" value="1時間利用"><label for="d1">1時間<br>利用</label></div>
+          </div>
+        </div>
+
+        <input type="hidden" id="selectedDate">
+        <input type="hidden" id="selectedVenue">
+        <input type="hidden" id="selectedTime">
+        
+        <button type="submit" class="btn btn-primary" id="submitBtn" disabled>予約を確定する</button>
+      </form>
+    </div>
+  </div>
+  <script src="index.js"></script>
+  <script>
+    const LIFF_ID = "2003593452-KqmBiPKf";
+    const AREA_NAME = 'とよの';
+    let lineUserId = "";
+    let scheduleData = [];
+
+    const accordionHeader = document.getElementById('accordionHeader');
+    const scheduleList = document.getElementById('scheduleList');
+    accordionHeader.onclick = () => { scheduleList.classList.toggle('open'); accordionHeader.classList.toggle('active'); };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      loadSavedUserInfo();
+      liff.init({ liffId: LIFF_ID }).then(() => {
+        if (liff.isLoggedIn()) { liff.getProfile().then(p => { lineUserId = p.userId; }); }
+        else { liff.login(); }
+      });
+      // ローカルキャッシュからスケジュールを読み込む
+      const cachedSchedule = localStorage.getItem('scheduleCache');
+      if (cachedSchedule) {
+        try {
+          scheduleData = JSON.parse(cachedSchedule);
+          renderSchedule();
+        } catch(e) {}
+      }
+
+      if (scheduleData.length === 0) {
+        showLoader('scheduleLoader');
+      }
+
+      const res = await apiFetch('getSchedule');
+      hideLoader('scheduleLoader');
+      if (res.status === 'success') { 
+        scheduleData = res.data; 
+        localStorage.setItem('scheduleCache', JSON.stringify(scheduleData));
+        renderSchedule(); 
+      }
+    });
+
+    function renderSchedule() {
+      scheduleList.innerHTML = '';
+      const today = new Date(); today.setHours(0,0,0,0);
+      const limit = new Date(); limit.setDate(today.getDate() + 14);
+
+      const filtered = scheduleData.filter(item => {
+        const dateStr = String(item['日付']).split('T')[0].replace(/-/g, '/');
+        const d = new Date(dateStr);
+        return (item['エリア'] === AREA_NAME) && !isNaN(d) && d >= today && d <= limit;
+      });
+
+      if (filtered.length === 0) { scheduleList.innerHTML = '<p style="text-align:center;padding:1rem;">予約可能な日程がありません。</p>'; return; }
+      
+      filtered.forEach(item => {
+        const isOff = item['休み'] === '休み';
+        const dateStr = String(item['日付']).split('T')[0].replace(/-/g, '/');
+        const d = new Date(dateStr);
+        const day = ["日","月","火","水","木","金","土"][d.getDay()];
+        const displayDate = `${d.getMonth()+1}/${d.getDate()}(${day})`;
+        const submitDate = `${d.getFullYear()}/${('0'+(d.getMonth()+1)).slice(-2)}/${('0'+d.getDate()).slice(-2)}`;
+        
+        const isToday = d.getTime() === today.getTime();
+        const isDisabled = isOff || isToday;
+
+        const div = document.createElement('div');
+        div.className = `schedule-item ${isDisabled ? 'disabled' : 'selectable'}`;
+        div.style.padding = "10px"; div.style.borderBottom = "1px solid #eee";
+        
+        let extraText = '';
+        if (isOff) extraText = '<small style="color:red;">(休み)</small>';
+        else if (isToday) extraText = '<br><small style="color:orange;">(当日予約不可・直接ご連絡ください)</small>';
+
+        div.innerHTML = `<div><b>${displayDate} ${item['時間'] || ''}</b> ${extraText}<br><small>場所：${item['会場名']}</small></div>`;
+        
+        if (!isDisabled) {
+          div.onclick = () => {
+            document.getElementById('selectedDate').value = submitDate;
+            document.getElementById('selectedVenue').value = item['会場名'];
+            document.getElementById('selectedTime').value = item['時間'] || '';
+            document.getElementById('selectedDateText').innerHTML = `<b>${displayDate} ${item['時間'] || ''}</b><br><small>場所：${item['会場名']}</small>`;
+            document.getElementById('submitBtn').disabled = false;
+            scheduleList.classList.remove('open'); accordionHeader.classList.remove('active');
+          };
+        } else {
+          div.style.opacity = "0.5"; div.style.cursor = "not-allowed";
+        }
+        scheduleList.appendChild(div);
+      });
+    }
+
+    document.getElementById('reservationForm').onsubmit = async (e) => {
+      e.preventDefault();
+      saveUserInfo();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true; btn.innerText = "送信中...";
+      const res = await apiFetch('reserve', {
+        area: AREA_NAME,
+        venue: document.getElementById('selectedVenue').value,
+        studentName: document.getElementById('studentName').value,
+        parentName: document.getElementById('parentName').value,
+        phone: document.getElementById('phone').value,
+        duration: document.querySelector('input[name="duration"]:checked').value,
+        date: document.getElementById('selectedDate').value,
+        time: document.getElementById('selectedTime').value,
+        lineUserId: lineUserId
+      });
+      if (res.status === 'success') {
+        if (liff.isInClient()) {
+          liff.sendMessages([{ type: "text", text: "📅 予約登録" }])
+            .then(() => liff.closeWindow())
+            .catch((err) => {
+              console.error("sendMessages failed", err);
+              document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2><p>右上の×ボタンで画面を閉じてください。</p></div>';
+            });
+        } else {
+          document.body.innerHTML = '<div class="container" style="text-align:center;padding-top:100px;"><h2>予約が完了しました</h2><p>LINE通知をご確認ください。</p></div>';
+        }
+      } else { alert(res.message || "予約に失敗しました。"); btn.disabled = false; btn.innerText = "予約を確定する"; }
+    };
+    function saveUserInfo() {
+      localStorage.setItem('studentName', document.getElementById('studentName').value);
+      localStorage.setItem('parentName', document.getElementById('parentName').value);
+      localStorage.setItem('phone', document.getElementById('phone').value);
+    }
+    function loadSavedUserInfo() {
+      if(localStorage.getItem('studentName')) document.getElementById('studentName').value = localStorage.getItem('studentName');
+      if(localStorage.getItem('parentName')) document.getElementById('parentName').value = localStorage.getItem('parentName');
+      if(localStorage.getItem('phone')) document.getElementById('phone').value = localStorage.getItem('phone');
+    }
+  </script>
+</body>
+</html>
