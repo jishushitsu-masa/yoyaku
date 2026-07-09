@@ -199,7 +199,9 @@
       const filtered = scheduleData.filter(item => {
         const dateStr = String(item['日付']).split('T')[0].replace(/-/g, '/');
         const d = new Date(dateStr);
-        return (item['エリア'] === selectedArea) && !isNaN(d) && d >= today && d <= limit;
+        const isSpecial = item['特別補講'] && item['特別補講'] !== '';
+        const dateCondition = isSpecial ? (d >= today) : (d >= today && d <= limit);
+        return (item['エリア'] === selectedArea) && !isNaN(d) && dateCondition;
       });
 
       if (filtered.length === 0) { 
@@ -220,14 +222,25 @@
         div.className = `schedule-item ${isOff ? 'disabled' : 'selectable'}`;
         // obuse.html/suzaka.htmlと同じスタイル適用
         div.style.padding = "10px"; div.style.borderBottom = "1px solid #eee";
-        div.innerHTML = `<div><b>${displayDate} ${item['時間'] || ''}</b> ${isOff ? '<small style="color:red;">(休み)</small>' : ''}<br><small>場所：${item['会場名']}</small></div>`;
+        let courseNameHtml = '';
+        if (item['特別補講']) {
+          const cName = (item['特別補講'] === true || item['特別補講'] === 'TRUE' || item['特別補講'] === '〇' || item['特別補講'] === 'TRUE') ? '特別補講' : item['特別補講'];
+          courseNameHtml = `<br><span style="color: #e65100; font-weight: bold;">【${cName}】</span>`;
+        }
+
+        let descHtml = '';
+        if (item['講座説明']) {
+          descHtml = `<br><small style="color: #007bff;">${item['講座説明']}</small>`;
+        }
+
+        div.innerHTML = `<div><b>${displayDate} ${item['時間'] || ''}</b> ${isOff ? '<small style="color:red;">(休み)</small>' : ''}${courseNameHtml}<br><small>場所：${item['会場名']}</small>${descHtml}</div>`;
         
         if (!isOff) {
           div.onclick = () => {
             document.getElementById('input-date').value = submitDate;
             document.getElementById('input-venueDetail').value = item['会場名'];
             document.getElementById('input-time').value = item['時間'] || '';
-            document.getElementById('selected-date-text').innerHTML = `<b>${displayDate} ${item['時間'] || ''}</b><br><small>場所：${item['会場名']}</small>`;
+            document.getElementById('selected-date-text').innerHTML = `<b>${displayDate} ${item['時間'] || ''}</b>${courseNameHtml}<br><small>場所：${item['会場名']}</small>${descHtml}`;
             content.classList.remove('open'); accordionHeader.classList.remove('active');
           };
         } else {
