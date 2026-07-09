@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>須坂会場 予約フォーム</title>
+  <title>小布施会場 予約フォーム</title>
   <link rel="stylesheet" href="index.css">
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>須坂会場 予約フォーム</h1>
+      <h1>小布施会場 予約フォーム</h1>
       <p>元塾講師マサちゃんの自習室</p>
     </header>
     <div class="card">
@@ -24,26 +24,32 @@
           <div id="scheduleLoader"></div>
           <div id="scheduleList" class="schedule-list accordion-content"></div>
         </div>
+        
         <div class="form-group"><label>生徒名</label><input type="text" id="studentName" required></div>
         <div class="form-group"><label>保護者名</label><input type="text" id="parentName" required></div>
         <div class="form-group"><label>電話番号</label><input type="tel" id="phone" required></div>
+        
         <div class="form-group">
           <label>利用区分</label>
-          <div class="radio-group">
+          <div class="radio-group" style="display:flex; gap:10px;">
             <div class="radio-card"><input type="radio" id="d2" name="duration" value="2時間利用" checked><label for="d2">2時間<br>利用</label></div>
             <div class="radio-card"><input type="radio" id="d1_5" name="duration" value="1時間30分利用"><label for="d1_5">1時間30分<br>利用</label></div>
             <div class="radio-card"><input type="radio" id="d1" name="duration" value="1時間利用"><label for="d1">1時間<br>利用</label></div>
           </div>
         </div>
-        <input type="hidden" id="selectedDate"><input type="hidden" id="selectedVenue"><input type="hidden" id="selectedTime">
+
+        <input type="hidden" id="selectedDate">
+        <input type="hidden" id="selectedVenue">
+        <input type="hidden" id="selectedTime">
+        
         <button type="submit" class="btn btn-primary" id="submitBtn" disabled>予約を確定する</button>
       </form>
     </div>
   </div>
   <script src="index.js"></script>
   <script>
-    const LIFF_ID = "2003593452-jy1nFj5a";
-    const AREA_NAME = 'すざか';
+    const LIFF_ID = "2003593452-KqmBiPKf";
+    const AREA_NAME = 'おぶせ';
     let lineUserId = "";
     let scheduleData = [];
 
@@ -57,7 +63,7 @@
         if (liff.isLoggedIn()) { liff.getProfile().then(p => { lineUserId = p.userId; }); }
         else { liff.login(); }
       });
-      
+      // ローカルキャッシュからスケジュールを読み込む
       const cachedSchedule = localStorage.getItem('scheduleCache');
       if (cachedSchedule) {
         try {
@@ -82,18 +88,18 @@
     function renderSchedule() {
       scheduleList.innerHTML = '';
       const today = new Date(); today.setHours(0,0,0,0);
-      const limit = new Date(); limit.setDate(today.getDate() + 14); // 14日後ルール[cite: 6]
+      const limit = new Date(); limit.setDate(today.getDate() + 14);
 
       const filtered = scheduleData.filter(item => {
         const dateStr = String(item['日付']).split('T')[0].replace(/-/g, '/');
         const d = new Date(dateStr);
         const isSpecial = item['特別補講'] && item['特別補講'] !== '';
-        // 特別補講の場合は14日後ルールを除外
         const dateCondition = isSpecial ? (d >= today) : (d >= today && d <= limit);
         return (item['エリア'] === AREA_NAME) && !isNaN(d) && dateCondition;
       });
 
       if (filtered.length === 0) { scheduleList.innerHTML = '<p style="text-align:center;padding:1rem;">予約可能な日程がありません。</p>'; return; }
+      
       filtered.forEach(item => {
         const isOff = item['休み'] === '休み';
         const dateStr = String(item['日付']).split('T')[0].replace(/-/g, '/');
@@ -182,5 +188,3 @@
       if(localStorage.getItem('phone')) document.getElementById('phone').value = localStorage.getItem('phone');
     }
   </script>
-</body>
-</html>
