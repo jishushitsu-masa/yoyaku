@@ -87,8 +87,10 @@
       const filtered = scheduleData.filter(item => {
         const dateStr = String(item['日付']).split('T')[0].replace(/-/g, '/');
         const d = new Date(dateStr);
-        // 今日以降、14日後以内、エリア一致
-        return (item['エリア'] === AREA_NAME) && !isNaN(d) && d >= today && d <= limit;
+        const isSpecial = item['特別補講'] && item['特別補講'] !== '';
+        // 特別補講の場合は14日後ルールを除外
+        const dateCondition = isSpecial ? (d >= today) : (d >= today && d <= limit);
+        return (item['エリア'] === AREA_NAME) && !isNaN(d) && dateCondition;
       });
 
       if (filtered.length === 0) { scheduleList.innerHTML = '<p style="text-align:center;padding:1rem;">予約可能な日程がありません。</p>'; return; }
@@ -111,14 +113,25 @@
         if (isOff) extraText = '<small style="color:red;">(休み)</small>';
         else if (isToday) extraText = '<br><small style="color:orange;">(当日予約不可・直接ご連絡ください)</small>';
 
-        div.innerHTML = `<div><b>${displayDate} ${item['時間'] || ''}</b> ${extraText}<br><small>場所：${item['会場名']}</small></div>`;
+        let courseNameHtml = '';
+        if (item['特別補講']) {
+          const cName = (item['特別補講'] === true || item['特別補講'] === 'TRUE' || item['特別補講'] === '〇' || item['特別補講'] === 'TRUE') ? '特別補講' : item['特別補講'];
+          courseNameHtml = `<br><span style="color: #e65100; font-weight: bold;">【${cName}】</span>`;
+        }
+
+        let descHtml = '';
+        if (item['講座説明']) {
+          descHtml = `<br><small style="color: #007bff;">${item['講座説明']}</small>`;
+        }
+
+        div.innerHTML = `<div><b>${displayDate} ${item['時間'] || ''}</b> ${extraText}${courseNameHtml}<br><small>場所：${item['会場名']}</small>${descHtml}</div>`;
         
         if (!isDisabled) {
           div.onclick = () => {
             document.getElementById('selectedDate').value = submitDate;
             document.getElementById('selectedVenue').value = item['会場名'];
             document.getElementById('selectedTime').value = item['時間'] || '';
-            document.getElementById('selectedDateText').innerHTML = `<b>${displayDate} ${item['時間'] || ''}</b><br><small>場所：${item['会場名']}</small>`;
+            document.getElementById('selectedDateText').innerHTML = `<b>${displayDate} ${item['時間'] || ''}</b>${courseNameHtml}<br><small>場所：${item['会場名']}</small>${descHtml}`;
             document.getElementById('submitBtn').disabled = false;
             scheduleList.classList.remove('open'); accordionHeader.classList.remove('active');
           };
