@@ -127,17 +127,17 @@
 
         let descHtml = '';
         if (item['講座説明']) {
-          descHtml = `<br><small style="color: #007bff;">${item['講座説明']}</small>`;
+          descHtml = `<br><small style="color: #000000;">${item['講座説明']}</small>`;
         }
 
-        div.innerHTML = `<div><b>${displayDate} ${item['時間'] || ''}</b> ${extraText}${courseNameHtml}<br><small>場所：${item['会場名']}</small>${descHtml}</div>`;
+        div.innerHTML = `<div><b>${displayDate} ${item['時間'] || ''}</b> ${extraText}${courseNameHtml}${descHtml}<br><small>場所：${item['会場名']}</small></div>`;
         
         if (!isDisabled) {
           div.onclick = () => {
             document.getElementById('selectedDate').value = submitDate;
             document.getElementById('selectedVenue').value = item['会場名'];
             document.getElementById('selectedTime').value = item['時間'] || '';
-            document.getElementById('selectedDateText').innerHTML = `<b>${displayDate} ${item['時間'] || ''}</b>${courseNameHtml}<br><small>場所：${item['会場名']}</small>${descHtml}`;
+            document.getElementById('selectedDateText').innerHTML = `<b>${displayDate} ${item['時間'] || ''}</b>${courseNameHtml}${descHtml}<br><small>場所：${item['会場名']}</small>`;
             document.getElementById('submitBtn').disabled = false;
             scheduleList.classList.remove('open'); accordionHeader.classList.remove('active');
           };
