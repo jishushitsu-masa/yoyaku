@@ -89,12 +89,18 @@
       scheduleList.innerHTML = '';
       const today = new Date(); today.setHours(0,0,0,0);
       const limit = new Date(); limit.setDate(today.getDate() + 14);
+      
+      // とよの会場特例: 2026年8月31日になるまでは14日ルールを適用しない
+      const exceptionEndDate = new Date('2026/08/31');
+      exceptionEndDate.setHours(0,0,0,0);
+      const isExceptionPeriod = today < exceptionEndDate;
 
       const filtered = scheduleData.filter(item => {
         const dateStr = String(item['日付']).split('T')[0].replace(/-/g, '/');
         const d = new Date(dateStr);
         const isSpecial = item['特別補講'] && item['特別補講'] !== '';
-        const dateCondition = isSpecial ? (d >= today) : (d >= today && d <= limit);
+        // 特例期間中または特別補講の場合は14日ルールを除外
+        const dateCondition = isSpecial || isExceptionPeriod ? (d >= today) : (d >= today && d <= limit);
         return (item['エリア'] === AREA_NAME) && !isNaN(d) && dateCondition;
       });
 
