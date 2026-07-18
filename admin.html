@@ -334,7 +334,43 @@
       
       <!-- 月間サマリー -->
       <div id="monthlySummary" style="margin: 0 10px 2rem 10px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 1rem;">
-        <h3 style="margin-top: 0; font-size: 1.05rem; color: #1E3A8A; margin-bottom: 0.8rem;">月間サマリー</h3>
+        <h3 style="margin-top: 0; font-size: 1.05rem; color: #1E3A8A; margin-bottom: 0.8rem;">売上サマリー</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align:center; margin-bottom: 1.5rem;">
+          <thead>
+            <tr>
+              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC;">区分</th>
+              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC;">売上</th>
+              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; color: #DC2626;">給与</th>
+              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; color: #DC2626;">会場費</th>
+              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; color: #166534;">総利益</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border: 1px solid #E2E8F0; padding: 6px; background: #F0FDF4; font-weight:bold; color:#166534;">おぶせ</td>
+              <td id="monthlyObuseSales" style="border: 1px solid #E2E8F0; padding: 6px;">¥0</td>
+              <td id="monthlyObuseStaffSalary" style="border: 1px solid #E2E8F0; padding: 6px; color: #DC2626;">¥0</td>
+              <td id="monthlyObuseVenueFee" style="border: 1px solid #E2E8F0; padding: 6px; color: #DC2626;">¥0</td>
+              <td id="monthlyObuseProfit" style="border: 1px solid #E2E8F0; padding: 6px; color: #166534; font-weight: bold;">¥0</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #E2E8F0; padding: 6px; background: #FAF5FF; font-weight:bold; color:#6B21A8;">とよの</td>
+              <td id="monthlyToyonoSales" style="border: 1px solid #E2E8F0; padding: 6px;">¥0</td>
+              <td id="monthlyToyonoStaffSalary" style="border: 1px solid #E2E8F0; padding: 6px; color: #DC2626;">¥0</td>
+              <td id="monthlyToyonoVenueFee" style="border: 1px solid #E2E8F0; padding: 6px; color: #DC2626;">¥0</td>
+              <td id="monthlyToyonoProfit" style="border: 1px solid #E2E8F0; padding: 6px; color: #166534; font-weight: bold;">¥0</td>
+            </tr>
+            <tr style="background: #F1F5F9; font-weight:bold;">
+              <td style="border: 1px solid #E2E8F0; padding: 6px; color:#1E3A8A;">合計</td>
+              <td id="monthlyTotalSales" style="border: 1px solid #E2E8F0; padding: 6px;">¥0</td>
+              <td id="monthlyTotalStaffSalary" style="border: 1px solid #E2E8F0; padding: 6px; color: #DC2626;">¥0</td>
+              <td id="monthlyTotalVenueFee" style="border: 1px solid #E2E8F0; padding: 6px; color: #DC2626;">¥0</td>
+              <td id="monthlyTotalProfit" style="border: 1px solid #E2E8F0; padding: 6px; color: #1E3A8A; font-weight: bold;">¥0</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin-top: 0; font-size: 1.05rem; color: #1E3A8A; margin-bottom: 0.8rem;">人数サマリー</h3>
         <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align:center;">
           <thead>
             <tr>
@@ -343,7 +379,6 @@
               <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC;">1.5時間</th>
               <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC;">1時間</th>
               <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC;">体験</th>
-              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; color: #DC2626;">給与</th>
             </tr>
           </thead>
           <tbody>
@@ -353,7 +388,6 @@
               <td id="monthlyObuse1_5hCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
               <td id="monthlyObuse1hCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
               <td id="monthlyObuseFreeCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
-              <td id="monthlyObuseStaffSalary" style="border: 1px solid #E2E8F0; padding: 6px; color: #DC2626; font-weight: bold;">¥0</td>
             </tr>
             <tr>
               <td style="border: 1px solid #E2E8F0; padding: 6px; background: #FAF5FF; font-weight:bold; color:#6B21A8;">とよの</td>
@@ -361,7 +395,6 @@
               <td id="monthlyToyono1_5hCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
               <td id="monthlyToyono1hCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
               <td id="monthlyToyonoFreeCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
-              <td id="monthlyToyonoStaffSalary" style="border: 1px solid #E2E8F0; padding: 6px; color: #DC2626; font-weight: bold;">¥0</td>
             </tr>
             <tr style="background: #F1F5F9; font-weight:bold;">
               <td style="border: 1px solid #E2E8F0; padding: 6px; color:#1E3A8A;">合計</td>
@@ -369,7 +402,6 @@
               <td id="monthlyTotal1_5hCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
               <td id="monthlyTotal1hCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
               <td id="monthlyTotalFreeCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
-              <td id="monthlyTotalStaffSalary" style="border: 1px solid #E2E8F0; padding: 6px; color: #DC2626;">¥0</td>
             </tr>
           </tbody>
         </table>
@@ -574,10 +606,16 @@
                 <input type="number" id="obuseSalaryA" style="width:70px; text-align:right;" oninput="updateSalesTotal(false)"> 円
               </div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
               <div style="font-weight:bold; color:#DC2626; font-size:0.9rem;">給料(B)</div>
               <div style="display:flex; align-items:center; gap:0.5rem;">
                 <input type="number" id="obuseSalaryB" style="width:70px; text-align:right;" oninput="updateSalesTotal(false)"> 円
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="font-weight:bold; color:#DC2626; font-size:0.9rem;">会場費</div>
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <input type="number" id="obuseVenueFee" style="width:70px; text-align:right;" oninput="updateSalesTotal(false)"> 円
               </div>
             </div>
           </div>
@@ -625,10 +663,16 @@
                 <input type="number" id="toyonoSalaryA" style="width:70px; text-align:right;" oninput="updateSalesTotal(false)"> 円
               </div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
               <div style="font-weight:bold; color:#DC2626; font-size:0.9rem;">給料(B)</div>
               <div style="display:flex; align-items:center; gap:0.5rem;">
                 <input type="number" id="toyonoSalaryB" style="width:70px; text-align:right;" oninput="updateSalesTotal(false)"> 円
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="font-weight:bold; color:#DC2626; font-size:0.9rem;">会場費</div>
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <input type="number" id="toyonoVenueFee" style="width:70px; text-align:right;" oninput="updateSalesTotal(false)"> 円
               </div>
             </div>
           </div>
@@ -1354,7 +1398,7 @@
     function getSalesDataForDate(dateStr) {
       const emptyData = () => ({
         '2時間人数': 0, '1時間30分人数': 0, '1時間人数': 0, '無料体験人数': 0,
-        '2時間売上': 0, '1時間30分売上': 0, '1時間売上': 0, 'スタッフ給料A': 0, 'スタッフ給料B': 0
+        '2時間売上': 0, '1時間30分売上': 0, '1時間売上': 0, 'スタッフ給料A': 0, 'スタッフ給料B': 0, '会場費': 0
       });
 
       let obuseData = emptyData();
@@ -1390,9 +1434,11 @@
         if (isStaffB) {
           data['スタッフ給料A'] = 0;
           data['スタッフ給料B'] = calculateStaffBSalary(totalParticipants);
+          data['会場費'] = 1920;
         } else {
           data['スタッフ給料A'] = calculateStaffASalary(totalSales);
           data['スタッフ給料B'] = 0;
+          data['会場費'] = 0;
         }
         return data;
       };
@@ -1428,7 +1474,8 @@
             '1時間売上': (manualData['1時間売上'] !== '' && manualData['1時間売上'] !== undefined) ? Number(manualData['1時間売上']) : autoData['1時間売上'],
             '無料体験人数': (manualData['無料体験人数'] !== '' && manualData['無料体験人数'] !== undefined) ? Number(manualData['無料体験人数']) : autoData['無料体験人数'],
             'スタッフ給料A': (manualData['スタッフ給料A'] !== '' && manualData['スタッフ給料A'] !== undefined) ? Number(manualData['スタッフ給料A']) : defaultA,
-            'スタッフ給料B': (manualData['スタッフ給料B'] !== '' && manualData['スタッフ給料B'] !== undefined) ? Number(manualData['スタッフ給料B']) : defaultB
+            'スタッフ給料B': (manualData['スタッフ給料B'] !== '' && manualData['スタッフ給料B'] !== undefined) ? Number(manualData['スタッフ給料B']) : defaultB,
+            '会場費': (manualData['会場費'] !== '' && manualData['会場費'] !== undefined) ? Number(manualData['会場費']) : autoData['会場費']
           };
         }
         return { ...autoData, isConfirmed: false };
@@ -1453,9 +1500,9 @@
       let monthlyProfit = 0, obuseMonthlyProfit = 0, toyonoMonthlyProfit = 0;
       
       const summaryTotals = {
-        obuse: { '2h': 0, '1_5h': 0, '1h': 0, free: 0, salary: 0 },
-        toyono: { '2h': 0, '1_5h': 0, '1h': 0, free: 0, salary: 0 },
-        total: { '2h': 0, '1_5h': 0, '1h': 0, free: 0, salary: 0 }
+        obuse: { '2h': 0, '1_5h': 0, '1h': 0, free: 0, sales: 0, salary: 0, venueFee: 0 },
+        toyono: { '2h': 0, '1_5h': 0, '1h': 0, free: 0, sales: 0, salary: 0, venueFee: 0 },
+        total: { '2h': 0, '1_5h': 0, '1h': 0, free: 0, sales: 0, salary: 0, venueFee: 0 }
       };
       
       for (let i = 0; i < firstDay; i++) {
@@ -1498,8 +1545,8 @@
         const toyonoSales = dailyData.toyono;
 
         // 売上確定（保存）されている場合のみ集計・表示を行う
-        const obuseProfit = obuseSales['isConfirmed'] ? (obuseSales['2時間売上'] + obuseSales['1時間30分売上'] + obuseSales['1時間売上'] - (obuseSales['スタッフ給料A'] + obuseSales['スタッフ給料B'])) : 0;
-        const toyonoProfit = toyonoSales['isConfirmed'] ? (toyonoSales['2時間売上'] + toyonoSales['1時間30分売上'] + toyonoSales['1時間売上'] - (toyonoSales['スタッフ給料A'] + toyonoSales['スタッフ給料B'])) : 0;
+        const obuseProfit = obuseSales['isConfirmed'] ? (obuseSales['2時間売上'] + obuseSales['1時間30分売上'] + obuseSales['1時間売上'] - (obuseSales['スタッフ給料A'] + obuseSales['スタッフ給料B'] + obuseSales['会場費'])) : 0;
+        const toyonoProfit = toyonoSales['isConfirmed'] ? (toyonoSales['2時間売上'] + toyonoSales['1時間30分売上'] + toyonoSales['1時間売上'] - (toyonoSales['スタッフ給料A'] + toyonoSales['スタッフ給料B'] + toyonoSales['会場費'])) : 0;
 
         const totalProfit = obuseProfit + toyonoProfit;
 
@@ -1513,13 +1560,18 @@
           summaryTotals[venueKey]['1_5h'] += s['1時間30分人数'] || 0;
           summaryTotals[venueKey]['1h'] += s['1時間人数'] || 0;
           summaryTotals[venueKey].free += s['無料体験人数'] || 0;
+          const sales = (s['2時間売上'] || 0) + (s['1時間30分売上'] || 0) + (s['1時間売上'] || 0);
+          summaryTotals[venueKey].sales += sales;
           summaryTotals[venueKey].salary += ((s['スタッフ給料A'] || 0) + (s['スタッフ給料B'] || 0));
+          summaryTotals[venueKey].venueFee += s['会場費'] || 0;
           
           summaryTotals.total['2h'] += s['2時間人数'] || 0;
           summaryTotals.total['1_5h'] += s['1時間30分人数'] || 0;
           summaryTotals.total['1h'] += s['1時間人数'] || 0;
           summaryTotals.total.free += s['無料体験人数'] || 0;
+          summaryTotals.total.sales += sales;
           summaryTotals.total.salary += ((s['スタッフ給料A'] || 0) + (s['スタッフ給料B'] || 0));
+          summaryTotals.total.venueFee += s['会場費'] || 0;
         };
 
         addStats('obuse', obuseSales);
@@ -1550,11 +1602,17 @@
       
       // Update monthly summary table
       const updateSummaryRow = (venuePrefix, stats) => {
+        const profit = stats.sales - stats.salary - stats.venueFee;
+        
+        document.getElementById(`monthly${venuePrefix}Sales`).textContent = `¥${stats.sales.toLocaleString()}`;
+        document.getElementById(`monthly${venuePrefix}StaffSalary`).textContent = `¥${stats.salary.toLocaleString()}`;
+        document.getElementById(`monthly${venuePrefix}VenueFee`).textContent = `¥${stats.venueFee.toLocaleString()}`;
+        document.getElementById(`monthly${venuePrefix}Profit`).textContent = `¥${profit.toLocaleString()}`;
+        
         document.getElementById(`monthly${venuePrefix}2hCount`).textContent = `${stats['2h']} 名`;
         document.getElementById(`monthly${venuePrefix}1_5hCount`).textContent = `${stats['1_5h']} 名`;
         document.getElementById(`monthly${venuePrefix}1hCount`).textContent = `${stats['1h']} 名`;
         document.getElementById(`monthly${venuePrefix}FreeCount`).textContent = `${stats.free} 名`;
-        document.getElementById(`monthly${venuePrefix}StaffSalary`).textContent = `¥${stats.salary.toLocaleString()}`;
       };
 
       updateSummaryRow('Obuse', summaryTotals.obuse);
@@ -1589,6 +1647,7 @@
       document.getElementById('obuseFreeCount').value = obuse['無料体験人数'];
       document.getElementById('obuseSalaryA').value = obuse['スタッフ給料A'];
       document.getElementById('obuseSalaryB').value = obuse['スタッフ給料B'];
+      document.getElementById('obuseVenueFee').value = obuse['会場費'];
 
       const toyono = dailyData.toyono;
       document.getElementById('toyono2hCount').value = toyono['2時間人数'];
@@ -1600,6 +1659,7 @@
       document.getElementById('toyonoFreeCount').value = toyono['無料体験人数'];
       document.getElementById('toyonoSalaryA').value = toyono['スタッフ給料A'];
       document.getElementById('toyonoSalaryB').value = toyono['スタッフ給料B'];
+      document.getElementById('toyonoVenueFee').value = toyono['会場費'];
       
       updateSalesTotal();
     }
@@ -1618,24 +1678,29 @@
         if (activeVenue === 'おぶせ' || activeVenue === '') {
           document.getElementById('obuseSalaryA').value = calculateStaffASalary(obuseSales);
           document.getElementById('obuseSalaryB').value = 0;
+          document.getElementById('obuseVenueFee').value = 0;
         }
         if (activeVenue === 'とよの' || activeVenue === '') {
           const toyonoParticipants = getVal('toyono2hCount') + getVal('toyono1_5hCount') + getVal('toyono1hCount') + getVal('toyonoFreeCount');
           document.getElementById('toyonoSalaryA').value = 0;
           document.getElementById('toyonoSalaryB').value = calculateStaffBSalary(toyonoParticipants);
+          document.getElementById('toyonoVenueFee').value = 1920;
         }
       }
       
       let obuseSalary = getVal('obuseSalaryA') + getVal('obuseSalaryB');
       let toyonoSalary = getVal('toyonoSalaryA') + getVal('toyonoSalaryB');
       
-      if (activeVenue === 'とよの') obuseSalary = 0;
-      if (activeVenue === 'おぶせ') toyonoSalary = 0;
+      let obuseVenueFee = getVal('obuseVenueFee');
+      let toyonoVenueFee = getVal('toyonoVenueFee');
+      
+      if (activeVenue === 'とよの') { obuseSalary = 0; obuseVenueFee = 0; }
+      if (activeVenue === 'おぶせ') { toyonoSalary = 0; toyonoVenueFee = 0; }
       
       document.getElementById('obuseTotalDisplay').textContent = `${obuseSales.toLocaleString()} 円`;
       document.getElementById('toyonoTotalDisplay').textContent = `${toyonoSales.toLocaleString()} 円`;
       
-      const totalProfit = (obuseSales - obuseSalary) + (toyonoSales - toyonoSalary);
+      const totalProfit = (obuseSales - obuseSalary - obuseVenueFee) + (toyonoSales - toyonoSalary - toyonoVenueFee);
       
       const profitEl = document.getElementById('salesProfitDisplay');
       profitEl.textContent = `${totalProfit.toLocaleString()} 円`;
@@ -1659,7 +1724,8 @@
         '1時間売上': document.getElementById('obuse1hAmount').value,
         '無料体験人数': document.getElementById('obuseFreeCount').value,
         'スタッフ給料A': document.getElementById('obuseSalaryA').value,
-        'スタッフ給料B': document.getElementById('obuseSalaryB').value
+        'スタッフ給料B': document.getElementById('obuseSalaryB').value,
+        '会場費': document.getElementById('obuseVenueFee').value
       };
 
       const toyonoData = {
@@ -1673,7 +1739,8 @@
         '1時間売上': document.getElementById('toyono1hAmount').value,
         '無料体験人数': document.getElementById('toyonoFreeCount').value,
         'スタッフ給料A': document.getElementById('toyonoSalaryA').value,
-        'スタッフ給料B': document.getElementById('toyonoSalaryB').value
+        'スタッフ給料B': document.getElementById('toyonoSalaryB').value,
+        '会場費': document.getElementById('toyonoVenueFee').value
       };
 
       try {
