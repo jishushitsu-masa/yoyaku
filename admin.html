@@ -1496,7 +1496,7 @@
       }
       
       const monthlyProfitColor = monthlyProfit >= 0 ? '#059669' : '#DC2626';
-      document.getElementById('monthlyTotalProfit').textContent = `月間総利益: ¥${monthlyProfit.toLocaleString()} (おぶせ: ¥${obuseMonthlyProfit.toLocaleString()} / とよの: ¥${toyonoMonthlyProfit.toLocaleString()})`;
+      document.getElementById('monthlyTotalProfit').textContent = `月間総利益: ¥${monthlyProfit.toLocaleString()}`;
       document.getElementById('monthlyTotalProfit').style.color = monthlyProfitColor;
       
       // Update monthly summary table
