@@ -1378,6 +1378,7 @@
 
         if (manualData) {
           return {
+            'isConfirmed': true,
             '2時間人数': (manualData['2時間人数'] !== '' && manualData['2時間人数'] !== undefined) ? Number(manualData['2時間人数']) : autoData['2時間人数'],
             '2時間売上': (manualData['2時間売上'] !== '' && manualData['2時間売上'] !== undefined) ? Number(manualData['2時間売上']) : autoData['2時間売上'],
             '1時間30分人数': (manualData['1時間30分人数'] !== '' && manualData['1時間30分人数'] !== undefined) ? Number(manualData['1時間30分人数']) : autoData['1時間30分人数'],
@@ -1388,7 +1389,7 @@
             'スタッフ給料': (manualData['スタッフ給料'] !== '' && manualData['スタッフ給料'] !== undefined) ? Number(manualData['スタッフ給料']) : autoData['スタッフ給料']
           };
         }
-        return autoData;
+        return { ...autoData, isConfirmed: false };
       };
 
       return {
@@ -1419,38 +1420,52 @@
       for (let i = 1; i <= daysInMonth; i++) {
         const div = document.createElement('div');
         div.className = 'calendar-day';
-        div.style.cursor = 'pointer';
         div.innerHTML = `<div class="calendar-date">${i}</div>`;
         
         const dateStr = `${year}/${('0'+(month+1)).slice(-2)}/${('0'+i).slice(-2)}`;
+        
+        // 会場スケジュールに登録されている日付かチェック
+        const isScheduled = adminData.schedule.some(s => {
+          if (!s['日付']) return false;
+          const sDate = String(s['日付']).split('T')[0].replace(/-/g, '/');
+          return sDate === dateStr && s['休日'] !== '休日' && s['休館'] !== '休館' && s['休業'] !== '休業';
+        });
+
+        if (!isScheduled) {
+          div.style.background = '#f9fafb';
+          div.style.cursor = 'default';
+          grid.appendChild(div);
+          continue;
+        }
+
+        div.style.cursor = 'pointer';
         const dailyData = getSalesDataForDate(dateStr);
         
         const obuseSales = dailyData.obuse;
         const toyonoSales = dailyData.toyono;
 
-        const obuseTotalSales = obuseSales['2時間売上'] + obuseSales['1時間30分売上'] + obuseSales['1時間売上'];
-        const obuseProfit = obuseTotalSales - obuseSales['スタッフ給料'];
-        
-        const toyonoTotalSales = toyonoSales['2時間売上'] + toyonoSales['1時間30分売上'] + toyonoSales['1時間売上'];
-        const toyonoProfit = toyonoTotalSales - toyonoSales['スタッフ給料'];
+        // 売上確定（保存）されている場合のみ集計・表示を行う
+        const obuseProfit = obuseSales['isConfirmed'] ? (obuseSales['2時間売上'] + obuseSales['1時間30分売上'] + obuseSales['1時間売上'] - obuseSales['スタッフ給料']) : 0;
+        const toyonoProfit = toyonoSales['isConfirmed'] ? (toyonoSales['2時間売上'] + toyonoSales['1時間30分売上'] + toyonoSales['1時間売上'] - toyonoSales['スタッフ給料']) : 0;
 
         const totalProfit = obuseProfit + toyonoProfit;
 
-        obuseMonthlyProfit += obuseProfit;
-        toyonoMonthlyProfit += toyonoProfit;
-        monthlyProfit += totalProfit;
+        if (obuseSales['isConfirmed']) obuseMonthlyProfit += obuseProfit;
+        if (toyonoSales['isConfirmed']) toyonoMonthlyProfit += toyonoProfit;
+        if (obuseSales['isConfirmed'] || toyonoSales['isConfirmed']) monthlyProfit += totalProfit;
 
         [obuseSales, toyonoSales].forEach(s => {
-          monthly2h += s['2時間人数'] || 0;
-          monthly1_5h += s['1時間30分人数'] || 0;
-          monthly1h += s['1時間人数'] || 0;
-          monthlyFree += s['無料体験人数'] || 0;
-          monthlySalary += s['スタッフ給料'] || 0;
+          if (s['isConfirmed']) {
+            monthly2h += s['2時間人数'] || 0;
+            monthly1_5h += s['1時間30分人数'] || 0;
+            monthly1h += s['1時間人数'] || 0;
+            monthlyFree += s['無料体験人数'] || 0;
+            monthlySalary += s['スタッフ給料'] || 0;
+          }
         });
         
-        const hasData = (s) => (s['2時間人数']+s['1時間30分人数']+s['1時間人数']+s['無料体験人数'] > 0 || s['スタッフ給料'] > 0 || s['2時間売上']+s['1時間30分売上']+s['1時間売上'] > 0);
-        
-        if (hasData(obuseSales) || hasData(toyonoSales)) {
+        div.style.paddingBottom = "5px";
+        if (obuseSales['isConfirmed'] || toyonoSales['isConfirmed']) {
           const makeProfitEl = (label, p, colorOverride) => {
             const el = document.createElement('div');
             const color = p >= 0 ? (colorOverride || '#059669') : '#DC2626';
@@ -1458,10 +1473,15 @@
             el.innerHTML = `<span style="display:inline-block; width:16px;">${label}</span> ¥${p.toLocaleString()}`;
             return el;
           };
-          div.style.paddingBottom = "5px";
-          if (hasData(obuseSales)) div.appendChild(makeProfitEl('お:', obuseProfit, '#0D9488'));
-          if (hasData(toyonoSales)) div.appendChild(makeProfitEl('と:', toyonoProfit, '#9333EA'));
+          if (obuseSales['isConfirmed']) div.appendChild(makeProfitEl('お:', obuseProfit, '#0D9488'));
+          if (toyonoSales['isConfirmed']) div.appendChild(makeProfitEl('と:', toyonoProfit, '#9333EA'));
           div.appendChild(makeProfitEl('計:', totalProfit));
+        } else {
+          // スケジュールはあるが売上未確定の場合
+          const unconfirmedEl = document.createElement('div');
+          unconfirmedEl.style.cssText = `text-align:center; font-size:0.75rem; color:#9CA3AF; margin-top:10px;`;
+          unconfirmedEl.textContent = '未確定';
+          div.appendChild(unconfirmedEl);
         }
 
         div.onclick = () => openSalesDetail(dateStr, dailyData);
