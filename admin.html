@@ -568,10 +568,16 @@
               <div style="font-weight:bold; color:#166534;">小計</div>
               <div style="font-weight:bold; font-size:1.1rem; color:#166534;" id="obuseTotalDisplay">0 円</div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
               <div style="font-weight:bold; color:#DC2626; font-size:0.9rem;">給料(A)</div>
               <div style="display:flex; align-items:center; gap:0.5rem;">
-                <input type="number" id="obuseSalary" style="width:70px; text-align:right;" oninput="updateSalesTotal(false)"> 円
+                <input type="number" id="obuseSalaryA" style="width:70px; text-align:right;" oninput="updateSalesTotal(false)"> 円
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="font-weight:bold; color:#DC2626; font-size:0.9rem;">給料(B)</div>
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <input type="number" id="obuseSalaryB" style="width:70px; text-align:right;" oninput="updateSalesTotal(false)"> 円
               </div>
             </div>
           </div>
@@ -613,10 +619,16 @@
               <div style="font-weight:bold; color:#6B21A8;">小計</div>
               <div style="font-weight:bold; font-size:1.1rem; color:#6B21A8;" id="toyonoTotalDisplay">0 円</div>
             </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+              <div style="font-weight:bold; color:#DC2626; font-size:0.9rem;">給料(A)</div>
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <input type="number" id="toyonoSalaryA" style="width:70px; text-align:right;" oninput="updateSalesTotal(false)"> 円
+              </div>
+            </div>
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <div style="font-weight:bold; color:#DC2626; font-size:0.9rem;">給料(B)</div>
               <div style="display:flex; align-items:center; gap:0.5rem;">
-                <input type="number" id="toyonoSalary" style="width:70px; text-align:right;" oninput="updateSalesTotal(false)"> 円
+                <input type="number" id="toyonoSalaryB" style="width:70px; text-align:right;" oninput="updateSalesTotal(false)"> 円
               </div>
             </div>
           </div>
@@ -1342,7 +1354,7 @@
     function getSalesDataForDate(dateStr) {
       const emptyData = () => ({
         '2時間人数': 0, '1時間30分人数': 0, '1時間人数': 0, '無料体験人数': 0,
-        '2時間売上': 0, '1時間30分売上': 0, '1時間売上': 0, 'スタッフ給料': 0
+        '2時間売上': 0, '1時間30分売上': 0, '1時間売上': 0, 'スタッフ給料A': 0, 'スタッフ給料B': 0
       });
 
       let obuseData = emptyData();
@@ -1376,9 +1388,11 @@
         
         // Staff calculation logic
         if (isStaffB) {
-          data['スタッフ給料'] = calculateStaffBSalary(totalParticipants);
+          data['スタッフ給料A'] = 0;
+          data['スタッフ給料B'] = calculateStaffBSalary(totalParticipants);
         } else {
-          data['スタッフ給料'] = calculateStaffASalary(totalSales);
+          data['スタッフ給料A'] = calculateStaffASalary(totalSales);
+          data['スタッフ給料B'] = 0;
         }
         return data;
       };
@@ -1396,6 +1410,14 @@
         });
 
         if (manualData) {
+          const oldSalary = (manualData['スタッフ給料'] !== '' && manualData['スタッフ給料'] !== undefined) ? Number(manualData['スタッフ給料']) : 0;
+          let defaultA = autoData['スタッフ給料A'];
+          let defaultB = autoData['スタッフ給料B'];
+          if (oldSalary > 0 && !('スタッフ給料A' in manualData) && !('スタッフ給料B' in manualData)) {
+            if (venue === 'おぶせ') defaultA = oldSalary;
+            if (venue === 'とよの') defaultB = oldSalary;
+          }
+
           return {
             'isConfirmed': true,
             '2時間人数': (manualData['2時間人数'] !== '' && manualData['2時間人数'] !== undefined) ? Number(manualData['2時間人数']) : autoData['2時間人数'],
@@ -1405,7 +1427,8 @@
             '1時間人数': (manualData['1時間人数'] !== '' && manualData['1時間人数'] !== undefined) ? Number(manualData['1時間人数']) : autoData['1時間人数'],
             '1時間売上': (manualData['1時間売上'] !== '' && manualData['1時間売上'] !== undefined) ? Number(manualData['1時間売上']) : autoData['1時間売上'],
             '無料体験人数': (manualData['無料体験人数'] !== '' && manualData['無料体験人数'] !== undefined) ? Number(manualData['無料体験人数']) : autoData['無料体験人数'],
-            'スタッフ給料': (manualData['スタッフ給料'] !== '' && manualData['スタッフ給料'] !== undefined) ? Number(manualData['スタッフ給料']) : autoData['スタッフ給料']
+            'スタッフ給料A': (manualData['スタッフ給料A'] !== '' && manualData['スタッフ給料A'] !== undefined) ? Number(manualData['スタッフ給料A']) : defaultA,
+            'スタッフ給料B': (manualData['スタッフ給料B'] !== '' && manualData['スタッフ給料B'] !== undefined) ? Number(manualData['スタッフ給料B']) : defaultB
           };
         }
         return { ...autoData, isConfirmed: false };
@@ -1475,8 +1498,8 @@
         const toyonoSales = dailyData.toyono;
 
         // 売上確定（保存）されている場合のみ集計・表示を行う
-        const obuseProfit = obuseSales['isConfirmed'] ? (obuseSales['2時間売上'] + obuseSales['1時間30分売上'] + obuseSales['1時間売上'] - obuseSales['スタッフ給料']) : 0;
-        const toyonoProfit = toyonoSales['isConfirmed'] ? (toyonoSales['2時間売上'] + toyonoSales['1時間30分売上'] + toyonoSales['1時間売上'] - toyonoSales['スタッフ給料']) : 0;
+        const obuseProfit = obuseSales['isConfirmed'] ? (obuseSales['2時間売上'] + obuseSales['1時間30分売上'] + obuseSales['1時間売上'] - (obuseSales['スタッフ給料A'] + obuseSales['スタッフ給料B'])) : 0;
+        const toyonoProfit = toyonoSales['isConfirmed'] ? (toyonoSales['2時間売上'] + toyonoSales['1時間30分売上'] + toyonoSales['1時間売上'] - (toyonoSales['スタッフ給料A'] + toyonoSales['スタッフ給料B'])) : 0;
 
         const totalProfit = obuseProfit + toyonoProfit;
 
@@ -1490,13 +1513,13 @@
           summaryTotals[venueKey]['1_5h'] += s['1時間30分人数'] || 0;
           summaryTotals[venueKey]['1h'] += s['1時間人数'] || 0;
           summaryTotals[venueKey].free += s['無料体験人数'] || 0;
-          summaryTotals[venueKey].salary += s['スタッフ給料'] || 0;
+          summaryTotals[venueKey].salary += ((s['スタッフ給料A'] || 0) + (s['スタッフ給料B'] || 0));
           
           summaryTotals.total['2h'] += s['2時間人数'] || 0;
           summaryTotals.total['1_5h'] += s['1時間30分人数'] || 0;
           summaryTotals.total['1h'] += s['1時間人数'] || 0;
           summaryTotals.total.free += s['無料体験人数'] || 0;
-          summaryTotals.total.salary += s['スタッフ給料'] || 0;
+          summaryTotals.total.salary += ((s['スタッフ給料A'] || 0) + (s['スタッフ給料B'] || 0));
         };
 
         addStats('obuse', obuseSales);
@@ -1569,7 +1592,8 @@
       document.getElementById('obuse1hCount').value = obuse['1時間人数'];
       document.getElementById('obuse1hAmount').value = obuse['1時間売上'];
       document.getElementById('obuseFreeCount').value = obuse['無料体験人数'];
-      document.getElementById('obuseSalary').value = obuse['スタッフ給料'];
+      document.getElementById('obuseSalaryA').value = obuse['スタッフ給料A'];
+      document.getElementById('obuseSalaryB').value = obuse['スタッフ給料B'];
 
       const toyono = dailyData.toyono;
       document.getElementById('toyono2hCount').value = toyono['2時間人数'];
@@ -1579,7 +1603,8 @@
       document.getElementById('toyono1hCount').value = toyono['1時間人数'];
       document.getElementById('toyono1hAmount').value = toyono['1時間売上'];
       document.getElementById('toyonoFreeCount').value = toyono['無料体験人数'];
-      document.getElementById('toyonoSalary').value = toyono['スタッフ給料'];
+      document.getElementById('toyonoSalaryA').value = toyono['スタッフ給料A'];
+      document.getElementById('toyonoSalaryB').value = toyono['スタッフ給料B'];
       
       updateSalesTotal();
     }
@@ -1591,14 +1616,16 @@
       const toyonoSales = getVal('toyono2hAmount') + getVal('toyono1_5hAmount') + getVal('toyono1hAmount');
       
       if (autoCalcSalary) {
-        document.getElementById('obuseSalary').value = calculateStaffASalary(obuseSales);
+        document.getElementById('obuseSalaryA').value = calculateStaffASalary(obuseSales);
+        document.getElementById('obuseSalaryB').value = 0;
         
         const toyonoParticipants = getVal('toyono2hCount') + getVal('toyono1_5hCount') + getVal('toyono1hCount') + getVal('toyonoFreeCount');
-        document.getElementById('toyonoSalary').value = calculateStaffBSalary(toyonoParticipants);
+        document.getElementById('toyonoSalaryA').value = 0;
+        document.getElementById('toyonoSalaryB').value = calculateStaffBSalary(toyonoParticipants);
       }
       
-      const obuseSalary = getVal('obuseSalary');
-      const toyonoSalary = getVal('toyonoSalary');
+      const obuseSalary = getVal('obuseSalaryA') + getVal('obuseSalaryB');
+      const toyonoSalary = getVal('toyonoSalaryA') + getVal('toyonoSalaryB');
       
       document.getElementById('obuseTotalDisplay').textContent = `${obuseSales.toLocaleString()} 円`;
       document.getElementById('toyonoTotalDisplay').textContent = `${toyonoSales.toLocaleString()} 円`;
@@ -1626,7 +1653,8 @@
         '1時間人数': document.getElementById('obuse1hCount').value,
         '1時間売上': document.getElementById('obuse1hAmount').value,
         '無料体験人数': document.getElementById('obuseFreeCount').value,
-        'スタッフ給料': document.getElementById('obuseSalary').value
+        'スタッフ給料A': document.getElementById('obuseSalaryA').value,
+        'スタッフ給料B': document.getElementById('obuseSalaryB').value
       };
 
       const toyonoData = {
@@ -1639,7 +1667,8 @@
         '1時間人数': document.getElementById('toyono1hCount').value,
         '1時間売上': document.getElementById('toyono1hAmount').value,
         '無料体験人数': document.getElementById('toyonoFreeCount').value,
-        'スタッフ給料': document.getElementById('toyonoSalary').value
+        'スタッフ給料A': document.getElementById('toyonoSalaryA').value,
+        'スタッフ給料B': document.getElementById('toyonoSalaryB').value
       };
 
       try {
