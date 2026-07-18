@@ -510,10 +510,11 @@
       
       <form id="salesDetailForm">
         <input type="hidden" id="salesDateInput" name="日付">
+        <input type="hidden" id="salesActiveVenue">
         
         <div style="display:flex; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
           <!-- おぶせ -->
-          <div style="flex:1; min-width:300px; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:1rem;">
+          <div id="obuseSalesSection" style="flex:1; min-width:300px; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:1rem;">
             <h3 style="margin-top:0; margin-bottom:1rem; font-size:1rem; color:#166534; border-bottom:1px solid #BBF7D0; padding-bottom:0.5rem;">おぶせ (手動修正可)</h3>
             
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
@@ -558,7 +559,7 @@
           </div>
 
           <!-- とよの -->
-          <div style="flex:1; min-width:300px; background:#FAF5FF; border:1px solid #E9D5FF; border-radius:8px; padding:1rem;">
+          <div id="toyonoSalesSection" style="flex:1; min-width:300px; background:#FAF5FF; border:1px solid #E9D5FF; border-radius:8px; padding:1rem;">
             <h3 style="margin-top:0; margin-bottom:1rem; font-size:1rem; color:#6B21A8; border-bottom:1px solid #E9D5FF; padding-bottom:0.5rem;">とよの (手動修正可)</h3>
             
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
@@ -1425,11 +1426,17 @@
         const dateStr = `${year}/${('0'+(month+1)).slice(-2)}/${('0'+i).slice(-2)}`;
         
         // 会場スケジュールに登録されている日付かチェック
-        const isScheduled = adminData.schedule.some(s => {
+        let activeVenue = null;
+        const scheduleItem = adminData.schedule.find(s => {
           if (!s['日付']) return false;
           const sDate = String(s['日付']).split('T')[0].replace(/-/g, '/');
           return sDate === dateStr && s['休日'] !== '休日' && s['休館'] !== '休館' && s['休業'] !== '休業';
         });
+
+        if (scheduleItem) {
+          activeVenue = scheduleItem['エリア'] || scheduleItem['会場'];
+        }
+        const isScheduled = !!scheduleItem;
 
         if (!isScheduled) {
           div.style.background = '#f9fafb';
@@ -1484,7 +1491,7 @@
           div.appendChild(unconfirmedEl);
         }
 
-        div.onclick = () => openSalesDetail(dateStr, dailyData);
+        div.onclick = () => openSalesDetail(dateStr, dailyData, activeVenue);
         grid.appendChild(div);
       }
       
@@ -1500,10 +1507,22 @@
       document.getElementById('monthlyStaffSalary').textContent = `¥${monthlySalary.toLocaleString()}`;
     }
 
-    function openSalesDetail(dateStr, dailyData) {
+    function openSalesDetail(dateStr, dailyData, activeVenue) {
       document.getElementById('salesDetailModal').classList.remove('hidden');
       document.getElementById('salesDetailDate').textContent = dateStr;
       document.getElementById('salesDateInput').value = dateStr;
+      document.getElementById('salesActiveVenue').value = activeVenue || '';
+      
+      if (activeVenue === 'おぶせ') {
+        document.getElementById('obuseSalesSection').style.display = 'block';
+        document.getElementById('toyonoSalesSection').style.display = 'none';
+      } else if (activeVenue === 'とよの') {
+        document.getElementById('obuseSalesSection').style.display = 'none';
+        document.getElementById('toyonoSalesSection').style.display = 'block';
+      } else {
+        document.getElementById('obuseSalesSection').style.display = 'block';
+        document.getElementById('toyonoSalesSection').style.display = 'block';
+      }
       
       const obuse = dailyData.obuse;
       document.getElementById('obuse2hCount').value = obuse['2時間人数'];
@@ -1587,17 +1606,30 @@
       };
 
       try {
-        const res1 = await apiFetch('saveSalesData', { token: authToken, salesData: obuseData });
-        const res2 = await apiFetch('saveSalesData', { token: authToken, salesData: toyonoData });
+        const activeVenue = document.getElementById('salesActiveVenue').value;
+        const resPromises = [];
+        const submittedData = [];
+        
+        if (activeVenue === 'おぶせ' || activeVenue === '') {
+          resPromises.push(apiFetch('saveSalesData', { token: authToken, salesData: obuseData }));
+          submittedData.push(obuseData);
+        }
+        if (activeVenue === 'とよの' || activeVenue === '') {
+          resPromises.push(apiFetch('saveSalesData', { token: authToken, salesData: toyonoData }));
+          submittedData.push(toyonoData);
+        }
+
+        const results = await Promise.all(resPromises);
+        const isSuccess = results.length > 0 && results.every(r => r.status === 'success');
         
         btn.textContent = '保存する'; btn.disabled = false;
         
-        if (res1.status === 'success' && res2.status === 'success') {
+        if (isSuccess) {
           closeModal('salesDetailModal');
           
           if (!adminData.sales) adminData.sales = [];
           
-          [obuseData, toyonoData].forEach(sd => {
+          submittedData.forEach(sd => {
             const idx = adminData.sales.findIndex(s => 
               (s['日付'] === sd['日付'] || (String(s['日付']).split('T')[0].replace(/-/g, '/') === sd['日付'])) 
               && s['会場'] === sd['会場']
