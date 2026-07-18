@@ -1606,21 +1606,31 @@
 
     function updateSalesTotal(autoCalcSalary = false) {
       const getVal = id => Number(document.getElementById(id).value) || 0;
+      const activeVenue = document.getElementById('salesActiveVenue').value;
       
-      const obuseSales = getVal('obuse2hAmount') + getVal('obuse1_5hAmount') + getVal('obuse1hAmount');
-      const toyonoSales = getVal('toyono2hAmount') + getVal('toyono1_5hAmount') + getVal('toyono1hAmount');
+      let obuseSales = getVal('obuse2hAmount') + getVal('obuse1_5hAmount') + getVal('obuse1hAmount');
+      let toyonoSales = getVal('toyono2hAmount') + getVal('toyono1_5hAmount') + getVal('toyono1hAmount');
+      
+      if (activeVenue === 'とよの') obuseSales = 0;
+      if (activeVenue === 'おぶせ') toyonoSales = 0;
       
       if (autoCalcSalary) {
-        document.getElementById('obuseSalaryA').value = calculateStaffASalary(obuseSales);
-        document.getElementById('obuseSalaryB').value = 0;
-        
-        const toyonoParticipants = getVal('toyono2hCount') + getVal('toyono1_5hCount') + getVal('toyono1hCount') + getVal('toyonoFreeCount');
-        document.getElementById('toyonoSalaryA').value = 0;
-        document.getElementById('toyonoSalaryB').value = calculateStaffBSalary(toyonoParticipants);
+        if (activeVenue === 'おぶせ' || activeVenue === '') {
+          document.getElementById('obuseSalaryA').value = calculateStaffASalary(obuseSales);
+          document.getElementById('obuseSalaryB').value = 0;
+        }
+        if (activeVenue === 'とよの' || activeVenue === '') {
+          const toyonoParticipants = getVal('toyono2hCount') + getVal('toyono1_5hCount') + getVal('toyono1hCount') + getVal('toyonoFreeCount');
+          document.getElementById('toyonoSalaryA').value = 0;
+          document.getElementById('toyonoSalaryB').value = calculateStaffBSalary(toyonoParticipants);
+        }
       }
       
-      const obuseSalary = getVal('obuseSalaryA') + getVal('obuseSalaryB');
-      const toyonoSalary = getVal('toyonoSalaryA') + getVal('toyonoSalaryB');
+      let obuseSalary = getVal('obuseSalaryA') + getVal('obuseSalaryB');
+      let toyonoSalary = getVal('toyonoSalaryA') + getVal('toyonoSalaryB');
+      
+      if (activeVenue === 'とよの') obuseSalary = 0;
+      if (activeVenue === 'おぶせ') toyonoSalary = 0;
       
       document.getElementById('obuseTotalDisplay').textContent = `${obuseSales.toLocaleString()} 円`;
       document.getElementById('toyonoTotalDisplay').textContent = `${toyonoSales.toLocaleString()} 円`;
