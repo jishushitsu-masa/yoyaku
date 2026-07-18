@@ -335,23 +335,41 @@
       <!-- 月間サマリー -->
       <div id="monthlySummary" style="margin: 0 10px 2rem 10px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 1rem;">
         <h3 style="margin-top: 0; font-size: 1.05rem; color: #1E3A8A; margin-bottom: 0.8rem;">月間サマリー</h3>
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align:center;">
           <thead>
             <tr>
-              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; width:20%;">2時間</th>
-              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; width:20%;">1.5時間</th>
-              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; width:20%;">1時間</th>
-              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; width:25%;">体験</th>
-              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; color: #DC2626; width:25%;">給料総額</th>
+              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC;">区分</th>
+              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC;">2時間</th>
+              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC;">1.5時間</th>
+              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC;">1時間</th>
+              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC;">無料体験</th>
+              <th style="border: 1px solid #E2E8F0; padding: 6px; background: #F8FAFC; color: #DC2626;">スタッフ給与</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td id="monthly2hCount" style="border: 1px solid #E2E8F0; padding: 6px; text-align: center;">0 名</td>
-              <td id="monthly1_5hCount" style="border: 1px solid #E2E8F0; padding: 6px; text-align: center;">0 名</td>
-              <td id="monthly1hCount" style="border: 1px solid #E2E8F0; padding: 6px; text-align: center;">0 名</td>
-              <td id="monthlyFreeCount" style="border: 1px solid #E2E8F0; padding: 6px; text-align: center;">0 名</td>
-              <td id="monthlyStaffSalary" style="border: 1px solid #E2E8F0; padding: 6px; text-align: center; color: #DC2626; font-weight: bold;">¥0</td>
+              <td style="border: 1px solid #E2E8F0; padding: 6px; background: #F0FDF4; font-weight:bold; color:#166534;">おぶせ</td>
+              <td id="monthlyObuse2hCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
+              <td id="monthlyObuse1_5hCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
+              <td id="monthlyObuse1hCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
+              <td id="monthlyObuseFreeCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
+              <td id="monthlyObuseStaffSalary" style="border: 1px solid #E2E8F0; padding: 6px; color: #DC2626; font-weight: bold;">¥0</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #E2E8F0; padding: 6px; background: #FAF5FF; font-weight:bold; color:#6B21A8;">とよの</td>
+              <td id="monthlyToyono2hCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
+              <td id="monthlyToyono1_5hCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
+              <td id="monthlyToyono1hCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
+              <td id="monthlyToyonoFreeCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
+              <td id="monthlyToyonoStaffSalary" style="border: 1px solid #E2E8F0; padding: 6px; color: #DC2626; font-weight: bold;">¥0</td>
+            </tr>
+            <tr style="background: #F1F5F9; font-weight:bold;">
+              <td style="border: 1px solid #E2E8F0; padding: 6px; color:#1E3A8A;">全体合計</td>
+              <td id="monthlyTotal2hCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
+              <td id="monthlyTotal1_5hCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
+              <td id="monthlyTotal1hCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
+              <td id="monthlyTotalFreeCount" style="border: 1px solid #E2E8F0; padding: 6px;">0 名</td>
+              <td id="monthlyTotalStaffSalary" style="border: 1px solid #E2E8F0; padding: 6px; color: #DC2626;">¥0</td>
             </tr>
           </tbody>
         </table>
@@ -1410,7 +1428,12 @@
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       
       let monthlyProfit = 0, obuseMonthlyProfit = 0, toyonoMonthlyProfit = 0;
-      let monthly2h = 0, monthly1_5h = 0, monthly1h = 0, monthlyFree = 0, monthlySalary = 0;
+      
+      const summaryTotals = {
+        obuse: { '2h': 0, '1_5h': 0, '1h': 0, free: 0, salary: 0 },
+        toyono: { '2h': 0, '1_5h': 0, '1h': 0, free: 0, salary: 0 },
+        total: { '2h': 0, '1_5h': 0, '1h': 0, free: 0, salary: 0 }
+      };
       
       for (let i = 0; i < firstDay; i++) {
         const div = document.createElement('div');
@@ -1461,15 +1484,23 @@
         if (toyonoSales['isConfirmed']) toyonoMonthlyProfit += toyonoProfit;
         if (obuseSales['isConfirmed'] || toyonoSales['isConfirmed']) monthlyProfit += totalProfit;
 
-        [obuseSales, toyonoSales].forEach(s => {
-          if (s['isConfirmed']) {
-            monthly2h += s['2時間人数'] || 0;
-            monthly1_5h += s['1時間30分人数'] || 0;
-            monthly1h += s['1時間人数'] || 0;
-            monthlyFree += s['無料体験人数'] || 0;
-            monthlySalary += s['スタッフ給料'] || 0;
-          }
-        });
+        const addStats = (venueKey, s) => {
+          if (!s['isConfirmed']) return;
+          summaryTotals[venueKey]['2h'] += s['2時間人数'] || 0;
+          summaryTotals[venueKey]['1_5h'] += s['1時間30分人数'] || 0;
+          summaryTotals[venueKey]['1h'] += s['1時間人数'] || 0;
+          summaryTotals[venueKey].free += s['無料体験人数'] || 0;
+          summaryTotals[venueKey].salary += s['スタッフ給料'] || 0;
+          
+          summaryTotals.total['2h'] += s['2時間人数'] || 0;
+          summaryTotals.total['1_5h'] += s['1時間30分人数'] || 0;
+          summaryTotals.total['1h'] += s['1時間人数'] || 0;
+          summaryTotals.total.free += s['無料体験人数'] || 0;
+          summaryTotals.total.salary += s['スタッフ給料'] || 0;
+        };
+
+        addStats('obuse', obuseSales);
+        addStats('toyono', toyonoSales);
         
         div.style.paddingBottom = "5px";
         if (obuseSales['isConfirmed'] || toyonoSales['isConfirmed']) {
@@ -1500,11 +1531,17 @@
       document.getElementById('monthlyTotalProfit').style.color = monthlyProfitColor;
       
       // Update monthly summary table
-      document.getElementById('monthly2hCount').textContent = `${monthly2h} 名`;
-      document.getElementById('monthly1_5hCount').textContent = `${monthly1_5h} 名`;
-      document.getElementById('monthly1hCount').textContent = `${monthly1h} 名`;
-      document.getElementById('monthlyFreeCount').textContent = `${monthlyFree} 名`;
-      document.getElementById('monthlyStaffSalary').textContent = `¥${monthlySalary.toLocaleString()}`;
+      const updateSummaryRow = (venuePrefix, stats) => {
+        document.getElementById(`monthly${venuePrefix}2hCount`).textContent = `${stats['2h']} 名`;
+        document.getElementById(`monthly${venuePrefix}1_5hCount`).textContent = `${stats['1_5h']} 名`;
+        document.getElementById(`monthly${venuePrefix}1hCount`).textContent = `${stats['1h']} 名`;
+        document.getElementById(`monthly${venuePrefix}FreeCount`).textContent = `${stats.free} 名`;
+        document.getElementById(`monthly${venuePrefix}StaffSalary`).textContent = `¥${stats.salary.toLocaleString()}`;
+      };
+
+      updateSummaryRow('Obuse', summaryTotals.obuse);
+      updateSummaryRow('Toyono', summaryTotals.toyono);
+      updateSummaryRow('Total', summaryTotals.total);
     }
 
     function openSalesDetail(dateStr, dailyData, activeVenue) {
