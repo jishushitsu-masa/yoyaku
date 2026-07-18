@@ -1527,16 +1527,11 @@
         
         div.style.paddingBottom = "5px";
         if (obuseSales['isConfirmed'] || toyonoSales['isConfirmed']) {
-          const makeProfitEl = (label, p, colorOverride) => {
-            const el = document.createElement('div');
-            const color = p >= 0 ? (colorOverride || '#059669') : '#DC2626';
-            el.style.cssText = `text-align:left; font-size:0.75rem; color:${color}; line-height:1.2; margin-top:2px;`;
-            el.innerHTML = `<span style="display:inline-block; width:16px;">${label}</span> ¥${p.toLocaleString()}`;
-            return el;
-          };
-          if (obuseSales['isConfirmed']) div.appendChild(makeProfitEl('お:', obuseProfit, '#0D9488'));
-          if (toyonoSales['isConfirmed']) div.appendChild(makeProfitEl('と:', toyonoProfit, '#9333EA'));
-          div.appendChild(makeProfitEl('計:', totalProfit));
+          const el = document.createElement('div');
+          const color = totalProfit >= 0 ? '#059669' : '#DC2626';
+          el.style.cssText = `text-align:center; font-weight:bold; font-size:0.85rem; color:${color}; margin-top:8px;`;
+          el.textContent = `¥${totalProfit.toLocaleString()}`;
+          div.appendChild(el);
         } else {
           // スケジュールはあるが売上未確定の場合
           const unconfirmedEl = document.createElement('div');
