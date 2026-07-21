@@ -42,8 +42,8 @@
         </div>
 
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 1.5rem 0;">
-        <h3 style="font-size: 1rem; color: #ef4444; margin-bottom: 0.8rem;">予約のキャンセル</h3>
-        <button id="cancelBtn" class="btn-cancel" style="background-color: #ef4444;">この予約をキャンセルする</button>
+        <h3 style="font-size: 1rem; color: var(--secondary); margin-bottom: 0.8rem;">予約のキャンセル</h3>
+        <button id="cancelBtn" class="btn-cancel" style="background-color: var(--secondary);">この予約をキャンセルする</button>
       </div>
     </div>
   </div>
@@ -132,7 +132,7 @@
     alert('エラーが発生しました: ' + res.message);
     btn.innerText = 'この予約をキャンセルする';
     btn.disabled = false;
-    btn.style.backgroundColor = '#ef4444'; // 元の色に戻す
+    btn.style.backgroundColor = 'var(--secondary)'; // 元の色に戻す
   }
 };
 
