@@ -33,10 +33,10 @@
 
         <div id="changePlanSection" style="margin-bottom: 1.5rem;">
           <h3 style="font-size: 1rem; color: var(--primary); margin-bottom: 0.8rem;">プラン(利用時間)の変更</h3>
-          <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <label><input type="radio" name="newDuration" value="2時間利用"> 2時間利用</label>
-            <label><input type="radio" name="newDuration" value="1時間30分利用"> 1時間30分利用</label>
-            <label><input type="radio" name="newDuration" value="1時間利用"> 1時間利用</label>
+          <div class="radio-group" style="margin-bottom: 1.5rem;">
+            <div class="radio-card"><input type="radio" id="new_d2" name="newDuration" value="2時間利用"><label for="new_d2">2時間<br>利用</label></div>
+            <div class="radio-card"><input type="radio" id="new_d1_5" name="newDuration" value="1時間30分利用"><label for="new_d1_5">1時間30分<br>利用</label></div>
+            <div class="radio-card"><input type="radio" id="new_d1" name="newDuration" value="1時間利用"><label for="new_d1">1時間<br>利用</label></div>
           </div>
           <button id="changeBtn" class="btn-cancel" style="background-color: var(--secondary); margin-bottom: 1rem;">プランを変更する</button>
         </div>
