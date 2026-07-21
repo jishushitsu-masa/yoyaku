@@ -14,22 +14,22 @@
     .res-time { color: #475569; font-size: 0.95rem; margin-bottom: 0.5rem; }
     .res-student { color: #64748b; font-size: 0.85rem; }
     
-    /* キャンセルボタンをネイビーの枠線デザインに変更 */
-    .btn-cancel-mini { 
+    /* ボタンをネイビーの枠線デザインに変更 */
+    .btn-action-mini { 
       position: absolute; 
       top: 1.25rem; 
       right: 1.25rem; 
       background-color: transparent; 
       color: var(--navy); 
       border: 1px solid var(--navy); 
-      padding: 0.4rem 0.8rem; 
+      padding: 0.4rem 0.6rem; 
       border-radius: 6px; 
       font-weight: bold; 
       cursor: pointer; 
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       transition: all 0.2s;
     }
-    .btn-cancel-mini:active {
+    .btn-action-mini:active {
       background-color: var(--navy);
       color: white;
     }
@@ -48,12 +48,16 @@
   </div>
   <script src="index.js"></script>
   <script>
-    const LIFF_ID = "2003593452-NAnYeKnu";
+    const LIFF_ID = "2003593452-9b257Myn";
     window.onload = async () => {
-      await liff.init({ liffId: LIFF_ID });
-      if (!liff.isLoggedIn()) { liff.login(); return; }
-      const profile = await liff.getProfile();
-      fetchUserReservations(profile.userId);
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) { liff.login(); return; }
+        const profile = await liff.getProfile();
+        fetchUserReservations(profile.userId);
+      } catch (err) {
+        document.getElementById('loader').innerText = '初期化エラー: ' + err.message;
+      }
     };
     async function fetchUserReservations(lineUserId) {
       const res = await apiFetch('getUserReservations', { lineUserId });
@@ -66,7 +70,7 @@
           const displayDate = !isNaN(d.getTime()) ? `${d.getMonth()+1}月${d.getDate()}日(${days[d.getDay()]})` : item.date;
           const card = document.createElement('div');
           card.className = 'res-card';
-          card.innerHTML = `<div class="res-venue">【${item.area}】${item.venue}</div><div class="res-date">${displayDate}</div><div class="res-time">${item.time}</div><div class="res-student">生徒名: ${item.studentName} さん</div><button class="btn-cancel-mini" onclick="window.location.href='https://liff.line.me/2003593452-9b257Myn?id=${item.cancelId}'">キャンセル</button>`;
+          card.innerHTML = `<div class="res-venue">【${item.area}】${item.venue}</div><div class="res-date">${displayDate}</div><div class="res-time">${item.time}</div><div class="res-student">生徒名: ${item.studentName} さん</div><button class="btn-action-mini" onclick="window.location.href='https://liff.line.me/2003593452-9b257Myn?id=${item.cancelId}'">変更・キャンセル</button>`;
           listEl.appendChild(card);
         });
       } else { listEl.innerHTML = '<div class="no-data"><p>予約はありません。</p></div>'; }
