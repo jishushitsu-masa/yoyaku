@@ -18,7 +18,7 @@
 <body>
   <div class="container">
     <header>
-      <h1 style="color: var(--primary);">予約のキャンセル</h1>
+      <h1 style="color: var(--primary);">予約の変更・キャンセル</h1>
     </header>
     <div class="card" id="mainCard">
       <div id="loader" style="text-align:center; padding: 2rem;">情報を読み込み中...</div>
@@ -28,8 +28,22 @@
           <div class="detail-item"><div class="detail-label">会場</div><div class="detail-value" id="resVenue"></div></div>
           <div class="detail-item"><div class="detail-label">日付</div><div class="detail-value" id="resDate"></div></div>
           <div class="detail-item"><div class="detail-label">時間</div><div class="detail-value" id="resTime"></div></div>
+          <div class="detail-item"><div class="detail-label">プラン</div><div class="detail-value" id="resDuration"></div></div>
         </div>
-        <button id="cancelBtn" class="btn-cancel">この予約をキャンセルする</button>
+
+        <div id="changePlanSection" style="margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1rem; color: var(--primary); margin-bottom: 0.8rem;">プラン(利用時間)の変更</h3>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <label><input type="radio" name="newDuration" value="2時間利用"> 2時間利用</label>
+            <label><input type="radio" name="newDuration" value="1時間30分利用"> 1時間30分利用</label>
+            <label><input type="radio" name="newDuration" value="1時間利用"> 1時間利用</label>
+          </div>
+          <button id="changeBtn" class="btn-cancel" style="background-color: var(--secondary); margin-bottom: 1rem;">プランを変更する</button>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 1.5rem 0;">
+        <h3 style="font-size: 1rem; color: #ef4444; margin-bottom: 0.8rem;">予約のキャンセル</h3>
+        <button id="cancelBtn" class="btn-cancel" style="background-color: #ef4444;">この予約をキャンセルする</button>
       </div>
     </div>
   </div>
@@ -69,6 +83,16 @@
           }
           
           document.getElementById('resTime').innerText = res.data.time;
+          document.getElementById('resDuration').innerText = res.data.duration;
+          
+          // ラジオボタンの初期選択を設定
+          const radios = document.getElementsByName('newDuration');
+          for (const radio of radios) {
+            if (radio.value === res.data.duration) {
+              radio.checked = true;
+            }
+          }
+          
           document.getElementById('loader').style.display = 'none';
           document.getElementById('content').style.display = 'block';
         } else {
@@ -108,9 +132,49 @@
     alert('エラーが発生しました: ' + res.message);
     btn.innerText = 'この予約をキャンセルする';
     btn.disabled = false;
-    btn.style.backgroundColor = 'var(--primary)'; // 元の色に戻す
+    btn.style.backgroundColor = '#ef4444'; // 元の色に戻す
   }
 };
+
+    document.getElementById('changeBtn').onclick = async () => {
+      const btn = document.getElementById('changeBtn');
+      const selectedDuration = document.querySelector('input[name="newDuration"]:checked');
+      
+      if (!selectedDuration) {
+        alert('変更するプランを選択してください。');
+        return;
+      }
+      
+      const newDuration = selectedDuration.value;
+      if (newDuration === document.getElementById('resDuration').innerText) {
+        alert('現在のプランと同じです。');
+        return;
+      }
+
+      btn.innerText = '変更処理中...';
+      btn.disabled = true;
+      btn.style.backgroundColor = '#94a3b8';
+
+      const res = await apiFetch('updateDuration', { cancelId: cancelId, duration: newDuration });
+      
+      if (res.status === 'success') {
+        if (liff.isInClient()) {
+          liff.sendMessages([{ type: "text", text: "🔧 プラン変更" }])
+            .then(() => liff.closeWindow())
+            .catch(e => {
+              console.error(e);
+              document.body.innerHTML = '<div class="container" style="text-align:center; padding-top:2rem;"><h2>プランの変更が完了しました</h2><p>右上の×ボタンで画面を閉じてください。</p></div>';
+            });
+        } else {
+          document.body.innerHTML = '<div class="container" style="text-align:center; padding-top:2rem;"><h2>プランの変更が完了しました</h2><p>ご利用ありがとうございます。</p></div>';
+        }
+      } else {
+        alert('エラーが発生しました: ' + res.message);
+        btn.innerText = 'プランを変更する';
+        btn.disabled = false;
+        btn.style.backgroundColor = 'var(--secondary)';
+      }
+    };
   </script>
 </body>
 </html>
