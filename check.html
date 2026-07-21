@@ -16,17 +16,19 @@
     
     /* ボタンをネイビーの枠線デザインに変更 */
     .btn-action-mini { 
-      position: absolute; 
-      top: 1.25rem; 
-      right: 1.25rem; 
+      display: block;
+      width: 100%;
+      margin-top: 1rem;
       background-color: transparent; 
       color: var(--navy); 
       border: 1px solid var(--navy); 
-      padding: 0.4rem 0.6rem; 
+      padding: 0.6rem; 
       border-radius: 6px; 
       font-weight: bold; 
       cursor: pointer; 
-      font-size: 0.75rem;
+      font-size: 0.9rem;
+      text-align: center;
+      box-sizing: border-box;
       transition: all 0.2s;
     }
     .btn-action-mini:active {
