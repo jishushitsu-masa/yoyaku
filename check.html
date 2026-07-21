@@ -70,7 +70,7 @@
           const displayDate = !isNaN(d.getTime()) ? `${d.getMonth()+1}月${d.getDate()}日(${days[d.getDay()]})` : item.date;
           const card = document.createElement('div');
           card.className = 'res-card';
-          card.innerHTML = `<div class="res-venue">【${item.area}】${item.venue}</div><div class="res-date">${displayDate}</div><div class="res-time">${item.time}</div><div class="res-student">生徒名: ${item.studentName} さん</div><button class="btn-action-mini" onclick="window.location.href='https://liff.line.me/2003593452-9b257Myn?id=${item.cancelId}'">変更・キャンセル</button>`;
+          card.innerHTML = `<div class="res-venue">【${item.area}】${item.venue}</div><div class="res-date">${displayDate}</div><div class="res-time">${item.time}</div><div class="res-student" style="margin-bottom:0.25rem;">プラン: <span style="font-weight:bold;color:#1e293b;">${item.duration || '-'}</span></div><div class="res-student">生徒名: ${item.studentName} さん</div><button class="btn-action-mini" onclick="window.location.href='https://liff.line.me/2003593452-9b257Myn?id=${item.cancelId}'">変更・キャンセル</button>`;
           listEl.appendChild(card);
         });
       } else { listEl.innerHTML = '<div class="no-data"><p>予約はありません。</p></div>'; }
