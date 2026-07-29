@@ -1434,7 +1434,7 @@
         if (isStaffB) {
           data['スタッフ給料A'] = 0;
           data['スタッフ給料B'] = calculateStaffBSalary(totalParticipants);
-          data['会場費'] = 1920;
+          data['会場費'] = 1900;
         } else {
           data['スタッフ給料A'] = calculateStaffASalary(totalSales);
           data['スタッフ給料B'] = 0;
@@ -1684,7 +1684,7 @@
           const toyonoParticipants = getVal('toyono2hCount') + getVal('toyono1_5hCount') + getVal('toyono1hCount') + getVal('toyonoFreeCount');
           document.getElementById('toyonoSalaryA').value = 0;
           document.getElementById('toyonoSalaryB').value = calculateStaffBSalary(toyonoParticipants);
-          document.getElementById('toyonoVenueFee').value = 1920;
+          document.getElementById('toyonoVenueFee').value = 1900;
         }
       }
       
