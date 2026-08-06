@@ -29,7 +29,15 @@
         <div class="form-group"><label>保護者名</label><input type="text" id="parentName" required></div>
         <div class="form-group"><label>電話番号</label><input type="tel" id="phone" required></div>
         
-        <div class="form-group">
+        <div class="form-group hidden" id="specialClassGroup">
+          <label>受講方法</label>
+          <div class="radio-group" style="display:flex; gap:10px;">
+            <div class="radio-card" id="specialTakeCard"><input type="radio" id="sp_take" name="specialClassOption" value="補講" checked><label for="sp_take">特別補講を<br>受講する</label></div>
+            <div class="radio-card" id="specialSelfStudyCard"><input type="radio" id="sp_self" name="specialClassOption" value="自習室"><label for="sp_self">自習室として<br>利用する</label></div>
+          </div>
+        </div>
+
+        <div class="form-group" id="usageGroup">
           <label>利用区分</label>
           <div class="radio-group" style="display:flex; gap:10px;">
             <div class="radio-card"><input type="radio" id="d2" name="duration" value="2時間利用" checked><label for="d2">2時間<br>利用</label></div>
@@ -140,6 +148,34 @@
             document.getElementById('selectedDateText').innerHTML = `<b>${displayDate} ${item['時間'] || ''}</b>${courseNameHtml}${descHtml}<br><small>場所：${item['会場名']}</small>`;
             document.getElementById('submitBtn').disabled = false;
             scheduleList.classList.remove('open'); accordionHeader.classList.remove('active');
+
+            const isSpecialClass = item['特別補講'] && item['特別補講'] !== '';
+            const isSelfStudyAllowed = item['自習室利用可否'] === '利用可能';
+            const specialGroup = document.getElementById('specialClassGroup');
+            const specialSelfStudyCard = document.getElementById('specialSelfStudyCard');
+            const usageGroup = document.getElementById('usageGroup');
+            const spTake = document.getElementById('sp_take');
+            const spSelf = document.getElementById('sp_self');
+
+            if (isSpecialClass) {
+              specialGroup.classList.remove('hidden');
+              if (isSelfStudyAllowed) {
+                specialSelfStudyCard.style.display = '';
+              } else {
+                specialSelfStudyCard.style.display = 'none';
+                spTake.checked = true;
+              }
+              const updateUsage = () => {
+                if (spTake.checked) usageGroup.classList.add('hidden');
+                else usageGroup.classList.remove('hidden');
+              };
+              updateUsage();
+              spTake.onchange = updateUsage;
+              spSelf.onchange = updateUsage;
+            } else {
+              specialGroup.classList.add('hidden');
+              usageGroup.classList.remove('hidden');
+            }
           };
         } else {
           div.style.opacity = "0.5"; div.style.cursor = "not-allowed";
@@ -153,13 +189,20 @@
       saveUserInfo();
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.innerText = "送信中...";
+      let durationVal = document.querySelector('input[name="duration"]:checked').value;
+      const specialGroup = document.getElementById('specialClassGroup');
+      const spTake = document.getElementById('sp_take');
+      if (specialGroup && !specialGroup.classList.contains('hidden') && spTake && spTake.checked) {
+        durationVal = '補講';
+      }
+
       const res = await apiFetch('reserve', {
         area: AREA_NAME,
         venue: document.getElementById('selectedVenue').value,
         studentName: document.getElementById('studentName').value,
         parentName: document.getElementById('parentName').value,
         phone: document.getElementById('phone').value,
-        duration: document.querySelector('input[name="duration"]:checked').value,
+        duration: durationVal,
         date: document.getElementById('selectedDate').value,
         time: document.getElementById('selectedTime').value,
         lineUserId: lineUserId
