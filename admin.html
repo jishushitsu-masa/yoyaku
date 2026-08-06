@@ -967,7 +967,11 @@
       const walkInBtnContainer = document.createElement('div');
       walkInBtnContainer.style.marginTop = '2rem';
       walkInBtnContainer.style.marginBottom = '2rem';
-      walkInBtnContainer.innerHTML = `<button onclick="document.getElementById('walkInModal').classList.remove('hidden')" style="width:100%; padding:1rem; background:#3B5998; color:white; border:none; border-radius:8px; font-weight:bold; font-size:1.1rem; cursor:pointer; box-shadow:0 4px 6px rgba(59,89,152,0.2);">＋ 当日追加</button>`;
+      let actionBtnsHTML = `<button onclick="document.getElementById('walkInModal').classList.remove('hidden')" style="width:100%; padding:1rem; background:#3B5998; color:white; border:none; border-radius:8px; font-weight:bold; font-size:1.1rem; cursor:pointer; box-shadow:0 4px 6px rgba(59,89,152,0.2);">＋ 当日追加</button>`;
+      if (authToken === 'master') {
+        actionBtnsHTML += `<button onclick="openSalesDetail('${dateStr}', getSalesDataForDate('${dateStr}'), '${area}')" style="width:100%; margin-top:1rem; padding:1rem; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:bold; font-size:1.1rem; cursor:pointer; box-shadow:0 4px 6px rgba(59,89,152,0.2);">💰 売上確認・管理</button>`;
+      }
+      walkInBtnContainer.innerHTML = actionBtnsHTML;
       container.appendChild(walkInBtnContainer);
     }
 
