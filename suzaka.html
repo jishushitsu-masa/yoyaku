@@ -44,9 +44,9 @@
             <div class="radio-card"><input type="radio" id="d1" name="duration" value="1時間利用"><label for="d1">1時間<br>利用</label></div>
           </div>
         </div>
-        <div class="form-group" id="feeGroup">
-          <label>利用料金</label>
-          <div id="totalPriceDisplay" style="font-weight: bold; font-size: 1.1rem;">1,000円</div>
+        <div class="form-group" id="feeGroup" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; margin-bottom: 1.5rem;">
+          <label style="margin-bottom: 0;">利用料金</label>
+          <div id="totalPriceDisplay" style="font-weight: bold; font-size: 1.25rem;">1,000円</div>
         </div>
         <input type="hidden" id="selectedDate"><input type="hidden" id="selectedVenue"><input type="hidden" id="selectedTime">
         <button type="submit" class="btn btn-primary" id="submitBtn" disabled>予約を確定する</button>
@@ -69,13 +69,14 @@
       
       if (specialGroup && !specialGroup.classList.contains('hidden') && spTake && spTake.checked) {
         if (currentClassPrice) {
-          feeDisplay.innerText = `${currentClassPrice}円`;
-          feeGroup.style.display = 'block';
+          const formattedPrice = Number(currentClassPrice).toLocaleString();
+          feeDisplay.innerText = `${formattedPrice}円`;
+          feeGroup.style.display = 'flex';
         } else {
           feeGroup.style.display = 'none';
         }
       } else {
-        feeGroup.style.display = 'block';
+        feeGroup.style.display = 'flex';
         const duration = document.querySelector('input[name="duration"]:checked');
         if (duration) {
           if (duration.value === '2時間利用') feeDisplay.innerText = '1,000円';
