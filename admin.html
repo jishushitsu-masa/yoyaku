@@ -561,34 +561,44 @@
       <form id="salesDetailForm">
         <input type="hidden" id="salesDateInput" name="日付">
         <input type="hidden" id="salesActiveVenue">
+        <input type="hidden" id="salesIsSpecialClass">
+        <input type="hidden" id="salesIsSelfStudyAllowed">
+        <input type="hidden" id="salesSpecialPrice">
         
         <div style="display:flex; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
           <!-- おぶせ -->
           <div id="obuseSalesSection" style="flex:1; min-width:300px; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:1rem;">
             <h3 style="margin-top:0; margin-bottom:1rem; font-size:1rem; color:#166534; border-bottom:1px solid #BBF7D0; padding-bottom:0.5rem;">おぶせ (手動修正可)</h3>
             
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+            <div id="obuseSpRow" style="display:none; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+              <div style="width:100px; font-weight:bold; font-size:0.9rem; color:#e65100;">特別補講</div>
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <input type="number" id="obuseSpCount" style="width:50px; text-align:right;" oninput="document.getElementById('obuseSpAmount').value = this.value * (Number(document.getElementById('salesSpecialPrice').value) || 0); updateSalesTotal(true)"> 名
+                <input type="number" id="obuseSpAmount" style="width:70px; text-align:right;" oninput="updateSalesTotal(true)"> 円
+              </div>
+            </div>
+            <div id="obuseStdRow2h" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
               <div style="width:100px; font-weight:bold; font-size:0.9rem;">2時間利用</div>
               <div style="display:flex; align-items:center; gap:0.5rem;">
                 <input type="number" id="obuse2hCount" style="width:50px; text-align:right;" oninput="document.getElementById('obuse2hAmount').value = this.value * 1000; updateSalesTotal(true)"> 名
                 <input type="number" id="obuse2hAmount" style="width:70px; text-align:right;" oninput="updateSalesTotal(true)"> 円
               </div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+            <div id="obuseStdRow1_5h" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
               <div style="width:100px; font-weight:bold; font-size:0.9rem;">1時間30分利用</div>
               <div style="display:flex; align-items:center; gap:0.5rem;">
                 <input type="number" id="obuse1_5hCount" style="width:50px; text-align:right;" oninput="document.getElementById('obuse1_5hAmount').value = this.value * 750; updateSalesTotal(true)"> 名
                 <input type="number" id="obuse1_5hAmount" style="width:70px; text-align:right;" oninput="updateSalesTotal(true)"> 円
               </div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+            <div id="obuseStdRow1h" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
               <div style="width:100px; font-weight:bold; font-size:0.9rem;">1時間利用</div>
               <div style="display:flex; align-items:center; gap:0.5rem;">
                 <input type="number" id="obuse1hCount" style="width:50px; text-align:right;" oninput="document.getElementById('obuse1hAmount').value = this.value * 500; updateSalesTotal(true)"> 名
                 <input type="number" id="obuse1hAmount" style="width:70px; text-align:right;" oninput="updateSalesTotal(true)"> 円
               </div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <div id="obuseFreeRow" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
               <div style="width:100px; font-weight:bold; font-size:0.9rem;">無料体験</div>
               <div style="display:flex; align-items:center; gap:0.5rem;">
                 <input type="number" id="obuseFreeCount" style="width:50px; text-align:right;" oninput="updateSalesTotal(true)"> 名
@@ -624,28 +634,35 @@
           <div id="toyonoSalesSection" style="flex:1; min-width:300px; background:#FAF5FF; border:1px solid #E9D5FF; border-radius:8px; padding:1rem;">
             <h3 style="margin-top:0; margin-bottom:1rem; font-size:1rem; color:#6B21A8; border-bottom:1px solid #E9D5FF; padding-bottom:0.5rem;">とよの (手動修正可)</h3>
             
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+            <div id="toyonoSpRow" style="display:none; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+              <div style="width:100px; font-weight:bold; font-size:0.9rem; color:#e65100;">特別補講</div>
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <input type="number" id="toyonoSpCount" style="width:50px; text-align:right;" oninput="document.getElementById('toyonoSpAmount').value = this.value * (Number(document.getElementById('salesSpecialPrice').value) || 0); updateSalesTotal(true)"> 名
+                <input type="number" id="toyonoSpAmount" style="width:70px; text-align:right;" oninput="updateSalesTotal(true)"> 円
+              </div>
+            </div>
+            <div id="toyonoStdRow2h" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
               <div style="width:100px; font-weight:bold; font-size:0.9rem;">2時間利用</div>
               <div style="display:flex; align-items:center; gap:0.5rem;">
                 <input type="number" id="toyono2hCount" style="width:50px; text-align:right;" oninput="document.getElementById('toyono2hAmount').value = this.value * 1000; updateSalesTotal(true)"> 名
                 <input type="number" id="toyono2hAmount" style="width:70px; text-align:right;" oninput="updateSalesTotal(true)"> 円
               </div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+            <div id="toyonoStdRow1_5h" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
               <div style="width:100px; font-weight:bold; font-size:0.9rem;">1時間30分利用</div>
               <div style="display:flex; align-items:center; gap:0.5rem;">
                 <input type="number" id="toyono1_5hCount" style="width:50px; text-align:right;" oninput="document.getElementById('toyono1_5hAmount').value = this.value * 750; updateSalesTotal(true)"> 名
                 <input type="number" id="toyono1_5hAmount" style="width:70px; text-align:right;" oninput="updateSalesTotal(true)"> 円
               </div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+            <div id="toyonoStdRow1h" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
               <div style="width:100px; font-weight:bold; font-size:0.9rem;">1時間利用</div>
               <div style="display:flex; align-items:center; gap:0.5rem;">
                 <input type="number" id="toyono1hCount" style="width:50px; text-align:right;" oninput="document.getElementById('toyono1hAmount').value = this.value * 500; updateSalesTotal(true)"> 名
                 <input type="number" id="toyono1hAmount" style="width:70px; text-align:right;" oninput="updateSalesTotal(true)"> 円
               </div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <div id="toyonoFreeRow" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
               <div style="width:100px; font-weight:bold; font-size:0.9rem;">無料体験</div>
               <div style="display:flex; align-items:center; gap:0.5rem;">
                 <input type="number" id="toyonoFreeCount" style="width:50px; text-align:right;" oninput="updateSalesTotal(true)"> 名
@@ -1400,9 +1417,17 @@
     }
 
     function getSalesDataForDate(dateStr) {
+      const scheduleItem = adminData.schedule.find(s => {
+        if (!s['日付']) return false;
+        const sDate = String(s['日付']).split('T')[0].replace(/-/g, '/');
+        return sDate === dateStr && s['休日'] !== '休日' && s['休館'] !== '休館' && s['休業'] !== '休業';
+      });
+      const isSpecialClass = scheduleItem && scheduleItem['特別補講'] && scheduleItem['特別補講'] !== '';
+      const specialPrice = isSpecialClass ? (Number(scheduleItem['特別補講料金']) || 0) : 0;
+
       const emptyData = () => ({
-        '2時間人数': 0, '1時間30分人数': 0, '1時間人数': 0, '無料体験人数': 0,
-        '2時間売上': 0, '1時間30分売上': 0, '1時間売上': 0, 'スタッフ給料A': 0, 'スタッフ給料B': 0, '会場費': 0
+        '特別補講人数': 0, '2時間人数': 0, '1時間30分人数': 0, '1時間人数': 0, '無料体験人数': 0,
+        '特別補講売上': 0, '2時間売上': 0, '1時間30分売上': 0, '1時間売上': 0, 'スタッフ給料A': 0, 'スタッフ給料B': 0, '会場費': 0
       });
 
       let obuseData = emptyData();
@@ -1424,15 +1449,17 @@
           else if (cat === '1時間30分利用') targetData['1時間30分人数']++;
           else if (cat === '1時間利用') targetData['1時間人数']++;
           else if (isFreeTrial) targetData['無料体験人数']++;
+          else if (cat === '補講') targetData['特別補講人数']++;
         }
       });
 
       const finalizeAutoData = (data, isStaffB) => {
+        data['特別補講売上'] = data['特別補講人数'] * specialPrice;
         data['2時間売上'] = data['2時間人数'] * 1000;
         data['1時間30分売上'] = data['1時間30分人数'] * 750;
         data['1時間売上'] = data['1時間人数'] * 500;
-        const totalSales = data['2時間売上'] + data['1時間30分売上'] + data['1時間売上'];
-        const totalParticipants = data['2時間人数'] + data['1時間30分人数'] + data['1時間人数'] + data['無料体験人数'];
+        const totalSales = data['特別補講売上'] + data['2時間売上'] + data['1時間30分売上'] + data['1時間売上'];
+        const totalParticipants = data['特別補講人数'] + data['2時間人数'] + data['1時間30分人数'] + data['1時間人数'] + data['無料体験人数'];
         
         // Staff calculation logic
         if (isStaffB) {
@@ -1470,6 +1497,8 @@
 
           return {
             'isConfirmed': true,
+            '特別補講人数': (manualData['特別補講人数'] !== '' && manualData['特別補講人数'] !== undefined) ? Number(manualData['特別補講人数']) : autoData['特別補講人数'],
+            '特別補講売上': (manualData['特別補講売上'] !== '' && manualData['特別補講売上'] !== undefined) ? Number(manualData['特別補講売上']) : autoData['特別補講売上'],
             '2時間人数': (manualData['2時間人数'] !== '' && manualData['2時間人数'] !== undefined) ? Number(manualData['2時間人数']) : autoData['2時間人数'],
             '2時間売上': (manualData['2時間売上'] !== '' && manualData['2時間売上'] !== undefined) ? Number(manualData['2時間売上']) : autoData['2時間売上'],
             '1時間30分人数': (manualData['1時間30分人数'] !== '' && manualData['1時間30分人数'] !== undefined) ? Number(manualData['1時間30分人数']) : autoData['1時間30分人数'],
@@ -1629,19 +1658,48 @@
       document.getElementById('salesDetailDate').textContent = dateStr;
       document.getElementById('salesDateInput').value = dateStr;
       document.getElementById('salesActiveVenue').value = activeVenue || '';
+
+      const scheduleItem = adminData.schedule.find(s => {
+        if (!s['日付']) return false;
+        const sDate = String(s['日付']).split('T')[0].replace(/-/g, '/');
+        return sDate === dateStr && s['休日'] !== '休日' && s['休館'] !== '休館' && s['休業'] !== '休業';
+      });
+
+      const isSpecialClass = scheduleItem && scheduleItem['特別補講'] && scheduleItem['特別補講'] !== '';
+      const isSelfStudyAllowed = scheduleItem ? scheduleItem['自習室利用可否'] === '利用可能' : true;
+      const specialPrice = isSpecialClass ? (Number(scheduleItem['特別補講料金']) || 0) : 0;
+
+      document.getElementById('salesIsSpecialClass').value = isSpecialClass ? 'true' : 'false';
+      document.getElementById('salesIsSelfStudyAllowed').value = isSelfStudyAllowed ? 'true' : 'false';
+      document.getElementById('salesSpecialPrice').value = specialPrice;
+
+      const toggleRows = (venue) => {
+        document.getElementById(`${venue}SpRow`).style.display = isSpecialClass ? 'flex' : 'none';
+        document.getElementById(`${venue}FreeRow`).style.display = isSpecialClass ? 'none' : 'flex';
+        const showStd = !isSpecialClass || isSelfStudyAllowed;
+        document.getElementById(`${venue}StdRow2h`).style.display = showStd ? 'flex' : 'none';
+        document.getElementById(`${venue}StdRow1_5h`).style.display = showStd ? 'flex' : 'none';
+        document.getElementById(`${venue}StdRow1h`).style.display = showStd ? 'flex' : 'none';
+      };
       
       if (activeVenue === 'おぶせ') {
         document.getElementById('obuseSalesSection').style.display = 'block';
         document.getElementById('toyonoSalesSection').style.display = 'none';
+        toggleRows('obuse');
       } else if (activeVenue === 'とよの') {
         document.getElementById('obuseSalesSection').style.display = 'none';
         document.getElementById('toyonoSalesSection').style.display = 'block';
+        toggleRows('toyono');
       } else {
         document.getElementById('obuseSalesSection').style.display = 'block';
         document.getElementById('toyonoSalesSection').style.display = 'block';
+        toggleRows('obuse');
+        toggleRows('toyono');
       }
       
       const obuse = dailyData.obuse;
+      document.getElementById('obuseSpCount').value = obuse['特別補講人数'] || 0;
+      document.getElementById('obuseSpAmount').value = obuse['特別補講売上'] || 0;
       document.getElementById('obuse2hCount').value = obuse['2時間人数'];
       document.getElementById('obuse2hAmount').value = obuse['2時間売上'];
       document.getElementById('obuse1_5hCount').value = obuse['1時間30分人数'];
@@ -1654,6 +1712,8 @@
       document.getElementById('obuseVenueFee').value = obuse['会場費'];
 
       const toyono = dailyData.toyono;
+      document.getElementById('toyonoSpCount').value = toyono['特別補講人数'] || 0;
+      document.getElementById('toyonoSpAmount').value = toyono['特別補講売上'] || 0;
       document.getElementById('toyono2hCount').value = toyono['2時間人数'];
       document.getElementById('toyono2hAmount').value = toyono['2時間売上'];
       document.getElementById('toyono1_5hCount').value = toyono['1時間30分人数'];
@@ -1672,8 +1732,8 @@
       const getVal = id => Number(document.getElementById(id).value) || 0;
       const activeVenue = document.getElementById('salesActiveVenue').value;
       
-      let obuseSales = getVal('obuse2hAmount') + getVal('obuse1_5hAmount') + getVal('obuse1hAmount');
-      let toyonoSales = getVal('toyono2hAmount') + getVal('toyono1_5hAmount') + getVal('toyono1hAmount');
+      let obuseSales = getVal('obuseSpAmount') + getVal('obuse2hAmount') + getVal('obuse1_5hAmount') + getVal('obuse1hAmount');
+      let toyonoSales = getVal('toyonoSpAmount') + getVal('toyono2hAmount') + getVal('toyono1_5hAmount') + getVal('toyono1hAmount');
       
       if (activeVenue === 'とよの') obuseSales = 0;
       if (activeVenue === 'おぶせ') toyonoSales = 0;
@@ -1685,7 +1745,7 @@
           document.getElementById('obuseVenueFee').value = 0;
         }
         if (activeVenue === 'とよの' || activeVenue === '') {
-          const toyonoParticipants = getVal('toyono2hCount') + getVal('toyono1_5hCount') + getVal('toyono1hCount') + getVal('toyonoFreeCount');
+          const toyonoParticipants = getVal('toyonoSpCount') + getVal('toyono2hCount') + getVal('toyono1_5hCount') + getVal('toyono1hCount') + getVal('toyonoFreeCount');
           document.getElementById('toyonoSalaryA').value = 0;
           document.getElementById('toyonoSalaryB').value = calculateStaffBSalary(toyonoParticipants);
           document.getElementById('toyonoVenueFee').value = 1900;
@@ -1720,6 +1780,8 @@
       const obuseData = {
         '日付': dateStr,
         '会場': 'おぶせ',
+        '特別補講人数': document.getElementById('obuseSpCount').value,
+        '特別補講売上': document.getElementById('obuseSpAmount').value,
         '2時間人数': document.getElementById('obuse2hCount').value,
         '2時間売上': document.getElementById('obuse2hAmount').value,
         '1時間30分人数': document.getElementById('obuse1_5hCount').value,
@@ -1735,6 +1797,8 @@
       const toyonoData = {
         '日付': dateStr,
         '会場': 'とよの',
+        '特別補講人数': document.getElementById('toyonoSpCount').value,
+        '特別補講売上': document.getElementById('toyonoSpAmount').value,
         '2時間人数': document.getElementById('toyono2hCount').value,
         '2時間売上': document.getElementById('toyono2hAmount').value,
         '1時間30分人数': document.getElementById('toyono1_5hCount').value,
