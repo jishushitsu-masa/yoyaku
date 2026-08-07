@@ -1423,7 +1423,7 @@
         return sDate === dateStr && s['休日'] !== '休日' && s['休館'] !== '休館' && s['休業'] !== '休業';
       });
       const isSpecialClass = scheduleItem && scheduleItem['特別補講'] && scheduleItem['特別補講'] !== '';
-      const specialPrice = isSpecialClass ? (Number(scheduleItem['特別補講料金']) || 0) : 0;
+      const specialPrice = isSpecialClass ? (Number(scheduleItem['料金']) || 0) : 0;
 
       const emptyData = () => ({
         '特別補講人数': 0, '2時間人数': 0, '1時間30分人数': 0, '1時間人数': 0, '無料体験人数': 0,
@@ -1667,7 +1667,7 @@
 
       const isSpecialClass = scheduleItem && scheduleItem['特別補講'] && scheduleItem['特別補講'] !== '';
       const isSelfStudyAllowed = scheduleItem ? scheduleItem['自習室利用可否'] === '利用可能' : true;
-      const specialPrice = isSpecialClass ? (Number(scheduleItem['特別補講料金']) || 0) : 0;
+      const specialPrice = isSpecialClass ? (Number(scheduleItem['料金']) || 0) : 0;
 
       document.getElementById('salesIsSpecialClass').value = isSpecialClass ? 'true' : 'false';
       document.getElementById('salesIsSelfStudyAllowed').value = isSelfStudyAllowed ? 'true' : 'false';
