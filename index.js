@@ -1,7 +1,7 @@
 /**
  * フロントエンド共通JavaScript
  */
-const API_URL = 'https://script.google.com/macros/s/AKfycbzlrMFUC9EzjmdzeOFx2H5o1C5sHgk1Oa3m6ZIE2o8ElUhKlkB7ElV-rq0tRj0LEkMK/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwAlTZMmZyyuV7D8fpsXG9v7wCJRVRH4cvwi5jX577CAL4QDGFgFRmPdoTBON5Ivk8/exec';
 
 /**
  * API通信用ラッパー関数
