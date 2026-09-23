@@ -7,7 +7,13 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbzlrMFUC9EzjmdzeOFx2H5o
  * API通信用ラッパー関数
  * GASの制約を回避するため、すべてPOST(text/plain)で送信します
  */
-async function apiFetch(action, data = {}, retries = 3) {
+async function apiFetch(action, data = {}, retries = null) {
+  // 読み取り系はデフォルト3回リトライ、書き込み系（予約など）は二重実行防止のためリトライしない
+  if (retries === null) {
+    const readActions = ['getSchedule', 'getAdminData', 'getReservationDetail', 'getUserReservations', 'login'];
+    retries = readActions.includes(action) ? 3 : 0;
+  }
+
   const payload = {
     action: action,
     ...data
