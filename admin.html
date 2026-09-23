@@ -918,7 +918,7 @@
           name: studentInfo['生徒名'] || studentName,
           furigana: String(studentInfo['ふりがな'] || ''),
           grade: String(studentInfo['現在の学年'] || studentInfo['登録時の学年'] || '-'),
-          category: String(r['区分'] || r['利用区分'] || r['参加区分'] || r['利用時間'] || ''),
+          category: String(r['プラン'] || r['区分'] || r['利用区分'] || r['参加区分'] || r['利用時間'] || ''),
           time: String(r['時間'] || ''),
           phone: String(r['電話番号'] || studentInfo['電話番号'] || studentInfo['保護者電話番号'] || ''),
           gender: String(studentInfo['性別'] || ''),
@@ -1443,7 +1443,7 @@
         const rDate = String(r['日付']).split('T')[0].replace(/-/g, '/');
         const isNotCancelled = String(r['キャンセル日時'] || '').trim() === "";
         const isPaid = String(r['入金状態'] || '').trim() === '済';
-        const cat = String(r['区分'] || r['利用区分'] || r['参加区分'] || r['利用時間'] || '').trim();
+        const cat = String(r['プラン'] || r['区分'] || r['利用区分'] || r['参加区分'] || r['利用時間'] || '').trim();
         const isFreeTrial = cat === '無料体験' || cat === '体験';
         const area = String(r['エリア'] || '').trim();
         
