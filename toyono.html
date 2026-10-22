@@ -147,6 +147,9 @@
       
       filtered.forEach(item => {
         const isOff = item['休み'] === '休み';
+        const capRaw = item['定員数'] !== undefined && item['定員数'] !== '' ? item['定員数'] : item['定員'];
+        const capacity = (capRaw !== undefined && capRaw !== '') ? Number(capRaw) : 0;
+        const isFull = Boolean(item['満席']) || (capacity > 0 && Number(item['予約数'] || 0) >= capacity);
         const dateStr = String(item['日付']).split('T')[0].replace(/-/g, '/');
         const d = new Date(dateStr);
         const day = ["日","月","火","水","木","金","土"][d.getDay()];
@@ -154,7 +157,7 @@
         const submitDate = `${d.getFullYear()}/${('0'+(d.getMonth()+1)).slice(-2)}/${('0'+d.getDate()).slice(-2)}`;
         
         const isToday = d.getTime() === today.getTime();
-        const isDisabled = isOff || isToday;
+        const isDisabled = isOff || isFull || isToday;
 
         const div = document.createElement('div');
         div.className = `schedule-item ${isDisabled ? 'disabled' : 'selectable'}`;
@@ -162,6 +165,7 @@
         
         let extraText = '';
         if (isOff) extraText = '<small style="color:red;">(休み)</small>';
+        else if (isFull) extraText = '<small style="color:red;">(満席)</small>';
         else if (isToday) extraText = '<br><small style="color:orange;">(当日予約不可・直接ご連絡ください)</small>';
 
         let courseNameHtml = '';

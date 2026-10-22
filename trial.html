@@ -92,7 +92,7 @@
         <div style="display:flex; gap:1rem; margin-bottom:1.2rem;">
           <div style="flex:2;">
             <label>中学校</label>
-            <input type="text" name="school" required placeholder="例: ○○中">
+            <input type="text" name="school" required placeholder="例: ○○中学校">
           </div>
           <div style="flex:1;">
             <label>学年</label>
@@ -125,7 +125,7 @@
     
     <div class="card hidden" id="success-card" style="text-align:center; padding:3rem 1.5rem;">
       <h2 style="color:var(--secondary);">申込完了</h2>
-      <p style="margin-top:1rem;">無料体験のお申込みありがとうございます。<br><br>ご登録のメールアドレスへ<br>予約内容をお送りいたしました。<br><br>当日はどうぞよろしくお願いいたします。</p>
+      <p style="margin-top:1rem;">無料体験のお申込みありがとうございます。<br><br>ご登録のメールアドレスへ予約内容をお送りいたしました。<br>当日はどうぞよろしくお願いいたします。</p>
     </div>
   </div>
 
@@ -225,6 +225,10 @@
       const fragment = document.createDocumentFragment();
       filtered.forEach(item => {
         const isOff = item['休み'] === '休み';
+        const capRaw = item['定員数'] !== undefined && item['定員数'] !== '' ? item['定員数'] : item['定員'];
+        const capacity = (capRaw !== undefined && capRaw !== '') ? Number(capRaw) : 0;
+        const isFull = Boolean(item['満席']) || (capacity > 0 && Number(item['予約数'] || 0) >= capacity);
+        const isDisabled = isOff || isFull;
         const dateStr = String(item['日付']).split('T')[0].replace(/-/g, '/');
         const d = new Date(dateStr);
         const day = ["日","月","火","水","木","金","土"][d.getDay()];
@@ -232,7 +236,7 @@
         const submitDate = `${d.getFullYear()}/${('0'+(d.getMonth()+1)).slice(-2)}/${('0'+d.getDate()).slice(-2)}`;
         
         const div = document.createElement('div');
-        div.className = `schedule-item ${isOff ? 'disabled' : 'selectable'}`;
+        div.className = `schedule-item ${isDisabled ? 'disabled' : 'selectable'}`;
         // obuse.html/suzaka.htmlと同じスタイル適用
         div.style.padding = "10px"; div.style.borderBottom = "1px solid #eee";
         let courseNameHtml = '';
@@ -246,9 +250,13 @@
           descHtml = `<br><small style="color: #000000;">${item['講座説明']}</small>`;
         }
 
-        div.innerHTML = `<div><b>${displayDate} ${item['時間'] || ''}</b> ${isOff ? '<small style="color:red;">(休み)</small>' : ''}${courseNameHtml}${descHtml}<br><small>場所：${item['会場名']}</small></div>`;
+        let extraText = '';
+        if (isOff) extraText = '<small style="color:red;">(休み)</small>';
+        else if (isFull) extraText = '<small style="color:red;">(満席)</small>';
+
+        div.innerHTML = `<div><b>${displayDate} ${item['時間'] || ''}</b> ${extraText}${courseNameHtml}${descHtml}<br><small>場所：${item['会場名']}</small></div>`;
         
-        if (!isOff) {
+        if (!isDisabled) {
           div.onclick = () => {
             document.getElementById('input-date').value = submitDate;
             document.getElementById('input-venueDetail').value = item['会場名'];
