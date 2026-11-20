@@ -497,8 +497,7 @@
         <form id="testRecordForm" class="hidden" style="background:#F9FAFB; padding:1rem; border-radius:8px; border:1px solid var(--border);">
           <div style="display:flex; gap:0.5rem; margin-bottom:0.8rem;">
             <div class="form-group" style="flex:1; margin:0;"><label>学年</label><select name="学年" required style="padding:0.5rem 0.2rem;"><option value="">選択</option><option value="中1">中1</option><option value="中2">中2</option><option value="中3">中3</option></select></div>
-            <div class="form-group" style="flex:1; margin:0;"><label>学期</label><select name="学期" required style="padding:0.5rem 0.2rem;"><option value="">選択</option><option value="1学期">1学期</option><option value="2学期">2学期</option><option value="3学期">3学期</option></select></div>
-            <div class="form-group" style="flex:1; margin:0;"><label>種類</label><select name="種類" required style="padding:0.5rem 0.2rem;"><option value="">選択</option><option value="中間">中間</option><option value="期末">期末</option></select></div>
+            <div class="form-group" style="flex:1; margin:0;"><label>月</label><select name="月" required style="padding:0.5rem 0.2rem;"><option value="">選択</option><option value="4月">4月</option><option value="5月">5月</option><option value="6月">6月</option><option value="7月">7月</option><option value="8月">8月</option><option value="9月">9月</option><option value="10月">10月</option><option value="11月">11月</option><option value="12月">12月</option><option value="1月">1月</option><option value="2月">2月</option><option value="3月">3月</option></select></div>
           </div>
           <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:0.2rem; margin-bottom:1.2rem;">
             <div class="form-group" style="margin:0;"><label style="text-align:center; font-size:0.8rem;">国</label><input type="number" name="国語" class="test-score" style="text-align:center; padding:0.4rem 0.1rem; width:100%; box-sizing:border-box; min-width:0;"></div>
@@ -1118,11 +1117,18 @@
         if (s.includes('1')) return 1;
         return 0;
       };
-      const getTermWeight = (term) => {
-        const s = String(term || '');
-        if (s.includes('3')) return 3;
-        if (s.includes('2') || s.includes('後')) return 2;
-        if (s.includes('1') || s.includes('前')) return 1;
+      // 学年内の時系列（4月〜翌3月）で並べるための重み付け（従来の学期データにも対応）
+      const getMonthOrTermWeight = (item) => {
+        const mStr = String(item['月'] || item['学期'] || '');
+        const mMatch = mStr.match(/(\d+)月/);
+        if (mMatch) {
+          const m = parseInt(mMatch[1], 10);
+          // 4月(1)〜12月(9)、1月(10)〜3月(12) の順にする
+          return m >= 4 ? (m - 3) : (m + 9);
+        }
+        if (mStr.includes('3')) return 3;
+        if (mStr.includes('2') || mStr.includes('後')) return 2;
+        if (mStr.includes('1') || mStr.includes('前')) return 1;
         return 0;
       };
       const getTypeWeight = (type) => {
@@ -1137,9 +1143,9 @@
         const gwB = getGradeWeight(b['学年']);
         if (gwA !== gwB) return gwB - gwA; // 降順
 
-        const twA = getTermWeight(a['学期']);
-        const twB = getTermWeight(b['学期']);
-        if (twA !== twB) return twB - twA; // 降順
+        const mwA = getMonthOrTermWeight(a);
+        const mwB = getMonthOrTermWeight(b);
+        if (mwA !== mwB) return mwB - mwA; // 降順
 
         const typeA = getTypeWeight(a['種類']);
         const typeB = getTypeWeight(b['種類']);
@@ -1155,9 +1161,11 @@
         else if (g === '中2' || g === '高2') g = '2年';
         else if (g === '中3' || g === '高3') g = '3年';
 
-        const term = t['学期'] || '';
+        const monthOrTerm = t['月'] || t['学期'] || '';
         const type = t['種類'] || '';
-        const testName = `<div style="font-weight:bold; color:var(--text-main); margin-bottom:2px;">${g} ${term}</div><div style="font-size:0.7rem;">${type}</div>`;
+        const testName = type
+          ? `<div style="font-weight:bold; color:var(--text-main); margin-bottom:2px;">${g} ${monthOrTerm}</div><div style="font-size:0.7rem;">${type}</div>`
+          : `<div style="font-weight:bold; color:var(--text-main);">${g} ${monthOrTerm}</div>`;
         
         tr.innerHTML = `
           <td style="font-size:0.75rem; line-height:1.2; padding:8px 4px;">${testName}</td>
@@ -1269,6 +1277,10 @@
       
       const formData = new FormData(e.target);
       const testData = Object.fromEntries(formData.entries());
+      // スプレッドシートの列名が「学期」のままでも「月」でも保存できるように両方セット
+      if (testData['月'] && !testData['学期']) {
+        testData['学期'] = testData['月'];
+      }
       
       testData['生徒名'] = currentStudentName;
       let total = 0;
