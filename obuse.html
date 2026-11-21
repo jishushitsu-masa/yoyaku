@@ -152,7 +152,16 @@
         const capacity = (capRaw !== undefined && capRaw !== '') ? Number(capRaw) : 0;
         const currentCount = Number(item['予約数'] || 0);
         const remaining = capacity - currentCount;
-        const isFull = Boolean(item['満席']) || (capacity > 0 && remaining <= 0);
+
+        const spCapRaw = item['補講定員数'] !== undefined && item['補講定員数'] !== '' ? item['補講定員数'] : item['補講定員'];
+        const spCapacity = (spCapRaw !== undefined && spCapRaw !== '') ? Number(spCapRaw) : 0;
+        const currentSpCount = Number(item['補講予約数'] || 0);
+        const isSpFull = Boolean(item['補講満席']) || (spCapacity > 0 && currentSpCount >= spCapacity);
+
+        const isSpecialClassItem = Boolean(item['特別補講'] && item['特別補講'] !== '');
+        const isSelfStudyAllowedItem = item['自習室利用可否'] === '利用可能';
+
+        const isFull = Boolean(item['満席']) || (capacity > 0 && remaining <= 0) || (isSpecialClassItem && !isSelfStudyAllowedItem && isSpFull);
         const dateStr = String(item['日付']).split('T')[0].replace(/-/g, '/');
         const d = new Date(dateStr);
         const day = ["日","月","火","水","木","金","土"][d.getDay()];
@@ -175,7 +184,8 @@
         let courseNameHtml = '';
         if (item['特別補講']) {
           const cName = (item['特別補講'] === true || item['特別補講'] === 'TRUE' || item['特別補講'] === '〇' || item['特別補講'] === 'TRUE') ? '特別補講' : item['特別補講'];
-          courseNameHtml = `<br><span style="color: #e65100; font-weight: bold;">【${cName}】</span>`;
+          const spStatusBadge = (!isFull && isSpFull && isSelfStudyAllowedItem) ? ' <small style="color:red;">(補講は満席・自習のみ可)</small>' : '';
+          courseNameHtml = `<br><span style="color: #e65100; font-weight: bold;">【${cName}】</span>${spStatusBadge}`;
         }
 
         let descHtml = '';
@@ -197,11 +207,13 @@
             const isSpecialClass = item['特別補講'] && item['特別補講'] !== '';
             const isSelfStudyAllowed = item['自習室利用可否'] === '利用可能';
             const specialGroup = document.getElementById('specialClassGroup');
+            const specialTakeCard = document.getElementById('specialTakeCard');
             const specialSelfStudyCard = document.getElementById('specialSelfStudyCard');
             const usageGroup = document.getElementById('usageGroup');
             const spTake = document.getElementById('sp_take');
             const spSelf = document.getElementById('sp_self');
-            currentClassPrice = item['料金'] ? item['料金'] : '';
+            const spTakeLabel = document.querySelector('label[for="sp_take"]');
+            currentClassPrice = item['料金'] ? String(item['料金']).replace(/,/g, '') : '';
 
             if (isSpecialClass) {
               specialGroup.classList.remove('hidden');
@@ -209,6 +221,25 @@
                 specialSelfStudyCard.style.display = '';
               } else {
                 specialSelfStudyCard.style.display = 'none';
+              }
+
+              if (isSpFull) {
+                spTake.disabled = true;
+                if (spTakeLabel) spTakeLabel.innerHTML = '特別補講を<br>受講する<span style="color:red; font-weight:bold;">（満席）</span>';
+                if (specialTakeCard) {
+                  specialTakeCard.style.opacity = '0.5';
+                  specialTakeCard.style.pointerEvents = 'none';
+                }
+                if (isSelfStudyAllowed) {
+                  spSelf.checked = true;
+                }
+              } else {
+                spTake.disabled = false;
+                if (spTakeLabel) spTakeLabel.innerHTML = '特別補講を<br>受講する';
+                if (specialTakeCard) {
+                  specialTakeCard.style.opacity = '1';
+                  specialTakeCard.style.pointerEvents = '';
+                }
                 spTake.checked = true;
               }
               const updateUsage = () => {
