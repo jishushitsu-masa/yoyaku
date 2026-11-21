@@ -183,8 +183,7 @@
         let courseNameHtml = '';
         if (item['特別補講']) {
           const cName = (item['特別補講'] === true || item['特別補講'] === 'TRUE' || item['特別補講'] === '〇' || item['特別補講'] === 'TRUE') ? '特別補講' : item['特別補講'];
-          const spStatusBadge = (!isFull && isSpFull && isSelfStudyAllowedItem) ? ' <small style="color:red;">(補講は満席・自習のみ可)</small>' : '';
-          courseNameHtml = `<br><span style="color: #e65100; font-weight: bold;">【${cName}】</span>${spStatusBadge}`;
+          courseNameHtml = `<br><span style="color: #e65100; font-weight: bold;">【${cName}】</span>`;
         }
 
         let descHtml = '';
