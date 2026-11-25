@@ -477,13 +477,13 @@
       </form>
 
       <div style="margin-top: 2rem; border-top: 2px solid var(--border); padding-top: 1rem;">
-        <div class="table-responsive" style="margin-bottom:1rem; overflow-x:auto;">
-          <table style="font-size:0.85rem; min-width:350px;">
+        <div class="table-responsive" style="margin-bottom:1rem;">
+          <table style="font-size:0.85rem; width:100%; table-layout:fixed;">
             <thead>
               <tr>
-                <th style="min-width:70px;">テスト</th>
-                <th style="text-align:center;">国</th><th style="text-align:center;">数</th><th style="text-align:center;">英</th><th style="text-align:center;">理</th><th style="text-align:center;">社</th>
-                <th style="color:var(--primary); text-align:center;">計</th>
+                <th style="width:22%; padding:8px 4px;">テスト</th>
+                <th style="width:12%; text-align:center; padding:8px 2px;">国</th><th style="width:12%; text-align:center; padding:8px 2px;">数</th><th style="width:12%; text-align:center; padding:8px 2px;">英</th><th style="width:12%; text-align:center; padding:8px 2px;">理</th><th style="width:12%; text-align:center; padding:8px 2px;">社</th>
+                <th style="width:18%; color:var(--primary); text-align:center; padding:8px 2px;">計</th>
               </tr>
             </thead>
             <tbody id="testResultsTableBody">
@@ -1168,13 +1168,13 @@
           : `<div style="font-weight:bold; color:var(--text-main);">${g} ${monthOrTerm}</div>`;
         
         tr.innerHTML = `
-          <td style="font-size:0.75rem; line-height:1.2; padding:8px 4px;">${testName}</td>
-          <td style="text-align:center;">${t['国語'] || ''}</td>
-          <td style="text-align:center;">${t['数学'] || ''}</td>
-          <td style="text-align:center;">${t['英語'] || ''}</td>
-          <td style="text-align:center;">${t['理科'] || ''}</td>
-          <td style="text-align:center;">${t['社会'] || ''}</td>
-          <td style="font-weight:bold; color:var(--primary); text-align:center;">${t['合計点'] || ''}</td>
+          <td style="font-size:0.75rem; line-height:1.2; padding:8px 4px; white-space:nowrap;">${testName}</td>
+          <td style="text-align:center; padding:8px 2px;">${t['国語'] || ''}</td>
+          <td style="text-align:center; padding:8px 2px;">${t['数学'] || ''}</td>
+          <td style="text-align:center; padding:8px 2px;">${t['英語'] || ''}</td>
+          <td style="text-align:center; padding:8px 2px;">${t['理科'] || ''}</td>
+          <td style="text-align:center; padding:8px 2px;">${t['社会'] || ''}</td>
+          <td style="font-weight:bold; color:var(--primary); text-align:center; padding:8px 2px;">${t['合計点'] || ''}</td>
         `;
         tbody.appendChild(tr);
       });
